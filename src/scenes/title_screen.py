@@ -20,12 +20,13 @@ from src.utils.sprite_loader import load_image
 
 
 class CharacterButton:
-    def __init__(self, x: int, y: int, character_name: str, sprite_path: str):
+    def __init__(self, x: int, y: int, character_name: str, sprite_path: str, ability_name: str = ""):
         self.x = x
         self.y = y
         self.character_name = character_name
-        self.width = 200
-        self.height = 300
+        self.ability_name = ability_name
+        self.width = 180
+        self.height = 220  # Reduced height to fit 2 rows
         self.rect = pygame.Rect(x, y, self.width, self.height)
         self.selected = False
         self.hovered = False
@@ -38,11 +39,18 @@ class CharacterButton:
         self.animated_character.set_animation("idle", loop=True)
 
         # Font for character name
-        self.font = pygame.font.Font(None, 36)
+        self.font = pygame.font.Font(None, 32)
         self.name_surface = self.font.render(character_name, True, (255, 255, 255))
 
+        # Font for ability name
+        self.ability_font = pygame.font.Font(None, 20)
+        if ability_name:
+            self.ability_surface = self.ability_font.render(ability_name, True, (200, 200, 255))
+        else:
+            self.ability_surface = None
+
         # Font for animation info
-        self.info_font = pygame.font.Font(None, 24)
+        self.info_font = pygame.font.Font(None, 18)
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -75,15 +83,22 @@ class CharacterButton:
 
         # Draw character name
         name_rect = self.name_surface.get_rect(
-            center=(self.rect.centerx, self.rect.bottom - 50)
+            center=(self.rect.centerx, self.rect.bottom - 45)
         )
         screen.blit(self.name_surface, name_rect)
 
+        # Draw ability name
+        if self.ability_surface:
+            ability_rect = self.ability_surface.get_rect(
+                center=(self.rect.centerx, self.rect.bottom - 25)
+            )
+            screen.blit(self.ability_surface, ability_rect)
+
         # Draw animation info
         animation_info = self.animated_character.get_animation_info()
-        info_surface = self.info_font.render(animation_info, True, (200, 200, 200))
+        info_surface = self.info_font.render(animation_info, True, (150, 150, 150))
         info_rect = info_surface.get_rect(
-            center=(self.rect.centerx, self.rect.bottom - 25)
+            center=(self.rect.centerx, self.rect.bottom - 8)
         )
         screen.blit(info_surface, info_rect)
 
@@ -100,17 +115,40 @@ class TitleScreen:
             get_living_room_bg(), (screen_width, screen_height)
         )
 
-        # Create character selection buttons
-        button_y = screen_height // 2 - 150
-        danger_x = screen_width // 2 - 350
-        rose_x = screen_width // 2 - 50
-        dad_x = screen_width // 2 + 250
+        # Create character selection buttons in 2 rows of 3
+        # Calculate positions for grid layout
+        button_spacing_x = 220
+        button_spacing_y = 260
+        grid_start_x = screen_width // 2 - button_spacing_x - 110
+        grid_start_y = screen_height // 2 - 250
 
+        # Row 1 - Original characters
         self.danger_button = CharacterButton(
-            danger_x, button_y, "Danger", get_danger_sprite()
+            grid_start_x, grid_start_y, "Danger", get_danger_sprite(), "Speed Burst"
         )
-        self.rose_button = CharacterButton(rose_x, button_y, "Rose", get_rose_sprite())
-        self.dad_button = CharacterButton(dad_x, button_y, "Dad", "")
+        self.rose_button = CharacterButton(
+            grid_start_x + button_spacing_x, grid_start_y, "Rose", get_rose_sprite(), "Precision"
+        )
+        self.dad_button = CharacterButton(
+            grid_start_x + button_spacing_x * 2, grid_start_y, "Dad", "", "Experience"
+        )
+
+        # Row 2 - New characters
+        self.benji_button = CharacterButton(
+            grid_start_x, grid_start_y + button_spacing_y, "Benji", "", "Tech Boost"
+        )
+        self.olive_button = CharacterButton(
+            grid_start_x + button_spacing_x, grid_start_y + button_spacing_y, "Olive", "", "Nature's Blessing"
+        )
+        self.uncle_bear_button = CharacterButton(
+            grid_start_x + button_spacing_x * 2, grid_start_y + button_spacing_y, "Uncle Bear", "", "Bear Strength"
+        )
+
+        # Store all buttons for easier iteration
+        self.character_buttons = [
+            self.danger_button, self.rose_button, self.dad_button,
+            self.benji_button, self.olive_button, self.uncle_bear_button
+        ]
 
         # Title text
         self.title_font = pygame.font.Font(None, 72)
@@ -148,29 +186,15 @@ class TitleScreen:
         )
 
     def handle_event(self, event):
-        if self.danger_button.handle_event(event):
-            self.selected_character = "Danger"
-            self.danger_button.selected = True
-            self.rose_button.selected = False
-            self.dad_button.selected = False
-            self.sound_manager.play_sfx(get_sfx_path("menu_select.wav"))
-            return None
-
-        if self.rose_button.handle_event(event):
-            self.selected_character = "Rose"
-            self.rose_button.selected = True
-            self.danger_button.selected = False
-            self.dad_button.selected = False
-            self.sound_manager.play_sfx(get_sfx_path("menu_select.wav"))
-            return None
-
-        if self.dad_button.handle_event(event):
-            self.selected_character = "Dad"
-            self.dad_button.selected = True
-            self.danger_button.selected = False
-            self.rose_button.selected = False
-            self.sound_manager.play_sfx(get_sfx_path("menu_select.wav"))
-            return None
+        # Handle character button clicks
+        for button in self.character_buttons:
+            if button.handle_event(event):
+                self.selected_character = button.character_name
+                # Update selection state for all buttons
+                for b in self.character_buttons:
+                    b.selected = (b == button)
+                self.sound_manager.play_sfx(get_sfx_path("menu_select.wav"))
+                return None
 
         # Start button (only clickable if character selected)
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -194,28 +218,26 @@ class TitleScreen:
 
     def update(self, dt: float):
         mouse_pos = pygame.mouse.get_pos()
-        self.danger_button.update(mouse_pos)
-        self.rose_button.update(mouse_pos)
-        self.dad_button.update(mouse_pos)
+        for button in self.character_buttons:
+            button.update(mouse_pos)
 
     def draw(self, screen):
         # Draw background
         screen.blit(self.background, (0, 0))
 
         # Draw title
-        title_rect = self.title_surface.get_rect(center=(self.screen_width // 2, 100))
+        title_rect = self.title_surface.get_rect(center=(self.screen_width // 2, 60))
         screen.blit(self.title_surface, title_rect)
 
         # Draw instructions
         instruction_rect = self.instruction_surface.get_rect(
-            center=(self.screen_width // 2, 200)
+            center=(self.screen_width // 2, 130)
         )
         screen.blit(self.instruction_surface, instruction_rect)
 
-        # Draw character buttons
-        self.danger_button.draw(screen)
-        self.rose_button.draw(screen)
-        self.dad_button.draw(screen)
+        # Draw all character buttons
+        for button in self.character_buttons:
+            button.draw(screen)
 
         # Draw settings button
         mouse_pos = pygame.mouse.get_pos()

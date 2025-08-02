@@ -1,0 +1,43 @@
+{
+  "character": "benji",
+  "art_style": "placeholder",
+  "animations": {
+    "idle": {
+      "frames": 4,
+      "frame_rate": 8,
+      "loop": true
+    },
+    "walk": {
+      "frames": 5,
+      "frame_rate": 12,
+      "loop": true
+    },
+    "walk_extra": {
+      "frames": 9,
+      "frame_rate": 12,
+      "loop": true
+    },
+    "action": {
+      "frames": 6,
+      "frame_rate": 10,
+      "loop": false
+    },
+    "jump": {
+      "frames": 3,
+      "frame_rate": 6,
+      "loop": false
+    },
+    "victory": {
+      "frames": 4,
+      "frame_rate": 8,
+      "loop": false
+    },
+    "hurt": {
+      "frames": 2,
+      "frame_rate": 4,
+      "loop": false
+    }
+  },
+  "source": "placeholder",
+  "license": "placeholder"
+}

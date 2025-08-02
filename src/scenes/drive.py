@@ -49,6 +49,8 @@ class NPCCar:
     ai_state: str = "cruising"      # AI behavior state
     collision_zone: tuple = (32, 48)  # Collision detection size (width, height)
     sprite_name: str = None  # Name of sprite to use for rendering
+    prev_x: float = None   # Previous x position for trajectory calculation
+    rotation: float = 0.0  # Current rotation angle in degrees
 
 
 @dataclass
@@ -752,6 +754,10 @@ class DriveGame:
         # Update existing traffic cars
         cars_to_remove = []
         for i, car in enumerate(self.npc_cars):
+            # Store previous x position
+            if car.prev_x is None:
+                car.prev_x = car.x
+            
             # Update car position based on direction - all from player's POV
             if car.direction == 1:
                 # Same direction as player - normal relative movement
@@ -773,6 +779,37 @@ class DriveGame:
             
             # Enforce road boundaries for traffic cars
             self._enforce_traffic_boundaries(car)
+            
+            # Calculate rotation based on lateral movement and road curve
+            if car.prev_x is not None:
+                # Calculate lateral velocity (change in x per frame)
+                lateral_velocity = (car.x - car.prev_x) / dt if dt > 0 else 0
+                
+                # Also consider road curve for rotation
+                # Cars should lean into curves naturally
+                curve_rotation = self.road_curve * 15.0  # Base rotation from road curve
+                
+                # Calculate rotation angle based on lateral velocity and forward speed
+                # Positive lateral velocity = moving right = rotate clockwise
+                # Scale factor adjusts how much rotation per unit of lateral movement
+                rotation_scale = 800.0  # Adjust this to control rotation sensitivity
+                
+                # For oncoming traffic, reverse the rotation direction
+                direction_factor = 1 if car.direction == 1 else -1
+                
+                # Calculate target rotation combining lane changes and road curve
+                lateral_rotation = lateral_velocity * rotation_scale * direction_factor
+                total_rotation = lateral_rotation + (curve_rotation * direction_factor)
+                
+                # Clamp rotation to reasonable range
+                target_rotation = max(-25, min(25, total_rotation))
+                
+                # Smooth rotation changes
+                rotation_smoothing = 0.15
+                car.rotation = car.rotation * (1 - rotation_smoothing) + target_rotation * rotation_smoothing
+                
+                # Update previous x position
+                car.prev_x = car.x
             
             # Remove cars that are too far behind or ahead
             if car.y < -250 or car.y > 700:
@@ -2046,9 +2083,15 @@ class DriveGame:
                     if car.direction == -1:
                         sprite = pygame.transform.flip(sprite, False, True)
                     
-                    # Draw sprite centered on car position
-                    sprite_rect = sprite.get_rect(center=car_rect.center)
-                    screen.blit(sprite, sprite_rect)
+                    # Apply rotation based on trajectory
+                    if abs(car.rotation) > 0.1:  # Only rotate if there's meaningful rotation
+                        rotated_sprite = pygame.transform.rotate(sprite, -car.rotation)  # Negative for correct direction
+                        sprite_rect = rotated_sprite.get_rect(center=car_rect.center)
+                        screen.blit(rotated_sprite, sprite_rect)
+                    else:
+                        # Draw sprite without rotation for straight movement
+                        sprite_rect = sprite.get_rect(center=car_rect.center)
+                        screen.blit(sprite, sprite_rect)
                 else:
                     # Fallback to rectangle rendering
                     pygame.draw.rect(screen, car.color, car_rect)

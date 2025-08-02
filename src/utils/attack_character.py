@@ -20,7 +20,8 @@ class AnimatedCharacter:
         scale: tuple = (SPRITE_DISPLAY_SIZE, SPRITE_DISPLAY_SIZE),
         sprite_path: str | None = None,  # For backward compatibility
     ):
-        self.character_name = character_name
+        # Convert character name to lowercase and replace spaces with underscores
+        self.character_name = character_name.lower().replace(" ", "_")
         self.scene = scene
         self.scale = scale
 
