@@ -3,7 +3,8 @@
 import random
 import time
 import math
-from typing import Optional
+from typing import Optional, List
+from dataclasses import dataclass
 
 import pygame
 
@@ -29,6 +30,23 @@ from src.managers.race_music_manager import RaceMusicManager, RaceState
 from src.utils.asset_paths import get_sfx_path
 from src.utils.sprite_loader import load_vehicle_sprite
 from src.ui.drawing_helpers import draw_text_with_background, draw_instructions
+
+
+@dataclass
+class NPCCar:
+    """Represents an NPC vehicle in traffic (cars and trucks)."""
+    x: float               # Horizontal position (0.0-1.0)
+    y: float               # Vertical position (distance ahead/behind player)
+    lane: int              # Lane number (0-3: 0,1=player direction, 2,3=oncoming)
+    speed: float           # Relative speed compared to player
+    color: tuple           # RGB color for the vehicle
+    vehicle_type: str = "car"       # "car" or "truck"
+    direction: int = 1     # 1 = same direction as player, -1 = oncoming
+    width: int = 32        # Vehicle width in pixels
+    height: int = 48       # Vehicle height in pixels
+    lane_change_timer: float = 0.0  # Timer for lane changes
+    ai_state: str = "cruising"      # AI behavior state
+    collision_zone: tuple = (32, 48)  # Collision detection size (width, height)
 
 
 class DriveGame:
@@ -75,6 +93,29 @@ class DriveGame:
         )
         self.selected_vehicle = None
         self.car_sprite = None
+        self.car_rotation = 0.0          # Current car sprite rotation angle
+        self.momentum_x = 0.0            # Horizontal momentum for drift effects
+        self.drift_factor = 0.0          # Current drift intensity
+        
+        # Street boundary system
+        self.off_road_timer = 0.0        # Time spent off-road
+        self.off_road_penalty = 0.0      # Speed penalty for off-road driving
+        self.road_left_edge = 0.0        # Current left road boundary (0.0-1.0)
+        self.road_right_edge = 1.0       # Current right road boundary (0.0-1.0)
+        
+        # NPC Traffic System
+        self.npc_cars: List[NPCCar] = []  # List of active NPC cars
+        self.traffic_spawn_timer = 0.0    # Timer for spawning new traffic
+        self.traffic_density = 0.3        # Probability of spawning traffic
+        self.max_traffic_cars = 6         # Maximum number of NPC cars on screen
+        
+        # Collision Detection System
+        self.collision_cooldown = 0.0     # Cooldown timer to prevent multiple collisions
+        self.collision_damage = 0.0       # Accumulated collision damage (0.0-1.0)
+        self.collision_speed_penalty = 0.0  # Current speed penalty from collisions
+        self.collision_recovery_rate = 0.5   # How fast collision penalties recover
+        self.last_collision_type = None   # "car" or "truck" for feedback
+        self.collision_flash_timer = 0.0  # Timer for visual collision feedback
         
         # Music selector doesn't need callbacks - we handle events in handle_event
         
@@ -87,6 +128,20 @@ class DriveGame:
         self.road_curve = 0.0           # Current road curvature
         self.road_position = 0.0        # Position along the road
         
+        # Road surface variation effects
+        self.width_oscillation = 0.0    # Independent width variation
+        self.surface_noise = 0.0         # Road surface micro-variations
+        self.speed_shimmer = 0.0         # Visual speed feedback effect
+        
+        # Turn system for discrete left/right turns
+        self.turn_state = "straight"     # "straight", "turning_left", "turning_right"
+        self.turn_intensity = 0.0        # 0.0 to 1.0, how sharp the current turn is
+        self.turn_progress = 0.0         # 0.0 to 1.0, progress through current turn
+        self.turn_timer = 0.0            # Time until next turn decision
+        self.straight_duration = 8.0     # Seconds of straight road before turns
+        self.turn_duration = 4.0         # Seconds to complete a turn
+        self.next_turn_direction = None  # "left" or "right" for the next turn
+        
         # Racing state
         self.race_state = RaceState(
             speed=0.0,
@@ -97,8 +152,8 @@ class DriveGame:
         
         # Visual elements
         self.horizon_y = self.screen_height // 2
-        self.road_width = 200
-        self.max_road_width = 400
+        self.road_width = 500  # Increased 25% from 400 to 500 for proper 4-lane highway
+        self.max_road_width = 1000  # Increased proportionally from 800 to 1000
         self.car_width = 64  # Display width (scaled from 128)
         self.car_height = 96  # Display height (scaled from 192)
         
@@ -198,12 +253,32 @@ class DriveGame:
                 self._end_race()
                 return
                 
-        # Update road curvature (simple sine wave)
-        curve_frequency = 0.3 + self.player_speed * 0.2
-        self.road_curve = math.sin(self.road_position * curve_frequency) * 0.5
+        # Update turn system - discrete turns every 8-10 seconds
+        self._update_turn_system(dt)
         
         # Update road position based on speed
         self.road_position += self.player_speed * dt * 10
+        
+        # Natural road width variation system (±5% = ±25 pixels from 500px base)
+        # Use layered noise for more natural variation
+        primary_freq = 0.08 + self.player_speed * 0.05  # Slower, broader changes
+        secondary_freq = 0.25 + self.player_speed * 0.1  # Faster detail
+        
+        # Combine two sine waves with different frequencies for natural feel
+        primary_wave = math.sin(self.road_position * primary_freq) * 20.0  # Increased for 500px base
+        secondary_wave = math.sin(self.road_position * secondary_freq * 1.3) * 7.5  # Increased for 500px base
+        
+        # Ensure total amplitude stays within ±5% (±25 pixels)
+        self.width_oscillation = primary_wave + secondary_wave
+        
+        # Subtle movement effects for enhanced racing feel
+        # Surface micro-variations (very small road texture simulation)
+        surface_freq = 1.8 + self.player_speed * 2.0  # High frequency, speed-dependent
+        self.surface_noise = math.sin(self.road_position * surface_freq) * 3.75  # Increased for 500px base
+        
+        # Speed shimmer effect (visual feedback for speed)
+        shimmer_intensity = self.player_speed * 0.8  # Stronger at higher speeds
+        self.speed_shimmer = math.sin(self.road_position * 3.2) * shimmer_intensity
         
         # Update distance and score
         distance_delta = self.player_speed * dt * 100
@@ -223,37 +298,273 @@ class DriveGame:
         if target_position != self.race_state.position:
             self.race_state.position = target_position
             
+        # Update street boundaries for EV restriction
+        self._update_road_boundaries()
+        
+        # Update NPC traffic system
+        self._update_traffic(dt)
+        
+        # Check for collisions with traffic
+        self._check_traffic_collisions(dt)
+        
         # Update race music
         self.race_music_manager.update_race_state(self.race_state)
         
+    def _update_road_boundaries(self):
+        """Calculate current road boundaries based on road geometry."""
+        # Calculate road center and width (same logic as drawing)
+        road_center_pixels = self.screen_width // 2 + int(self.road_curve * 50)
+        
+        # Apply road width variations
+        base_width_variation = int(self.width_oscillation)
+        surface_variation = int(self.surface_noise)
+        current_width_pixels = self.road_width + base_width_variation + surface_variation
+        
+        # Convert pixel boundaries to normalized coordinates (0.0-1.0)
+        road_left_pixels = road_center_pixels - current_width_pixels // 2
+        road_right_pixels = road_center_pixels + current_width_pixels // 2
+        
+        # Add safety margin for car width (car is 64px wide, so 32px each side)
+        car_half_width = 32
+        safe_left_pixels = road_left_pixels + car_half_width
+        safe_right_pixels = road_right_pixels - car_half_width
+        
+        # Convert to normalized coordinates
+        self.road_left_edge = max(0.0, safe_left_pixels / self.screen_width)
+        self.road_right_edge = min(1.0, safe_right_pixels / self.screen_width)
+        
+        # Ensure valid boundaries
+        if self.road_left_edge >= self.road_right_edge:
+            # Emergency fallback - narrow road, use center area
+            center = (self.road_left_edge + self.road_right_edge) / 2
+            margin = 0.1
+            self.road_left_edge = max(0.0, center - margin)
+            self.road_right_edge = min(1.0, center + margin)
+            
+    def _enforce_street_boundaries(self, dt: float):
+        """Enforce EV street boundary restrictions and apply off-road penalties."""
+        # Check if car is off-road
+        is_off_road = (self.player_x < self.road_left_edge or self.player_x > self.road_right_edge)
+        
+        if is_off_road:
+            # Accumulate off-road time
+            self.off_road_timer += dt
+            
+            # Apply immediate corrections to keep car near road
+            if self.player_x < self.road_left_edge:
+                # Off-road to the left - push back toward road
+                overshoot = self.road_left_edge - self.player_x
+                correction_strength = min(1.0, overshoot * 8.0)  # Stronger correction for bigger overshoot
+                self.player_x += correction_strength * dt * 2.0
+                self.player_x = min(self.player_x, self.road_left_edge + 0.02)  # Allow small overshoot
+                
+            elif self.player_x > self.road_right_edge:
+                # Off-road to the right - push back toward road
+                overshoot = self.player_x - self.road_right_edge
+                correction_strength = min(1.0, overshoot * 8.0)
+                self.player_x -= correction_strength * dt * 2.0
+                self.player_x = max(self.player_x, self.road_right_edge - 0.02)  # Allow small overshoot
+            
+            # Build up off-road penalty based on time and speed
+            penalty_rate = 1.5 * self.player_speed  # Faster = worse penalty
+            max_penalty = 0.6  # Maximum 60% speed reduction
+            self.off_road_penalty = min(max_penalty, self.off_road_penalty + penalty_rate * dt)
+            
+            # Add visual and audio feedback for off-road driving
+            if self.off_road_timer > 0.5:  # After 0.5 seconds off-road
+                # Trigger warning effects (will be shown in UI)
+                pass
+                
+        else:
+            # On-road - gradually reduce penalties
+            self.off_road_timer = max(0.0, self.off_road_timer - dt * 2.0)  # Recover faster than accumulate
+            self.off_road_penalty = max(0.0, self.off_road_penalty - dt * 0.8)  # Gradual penalty recovery
+            
+        # Apply speed penalty
+        if self.off_road_penalty > 0.0:
+            # Reduce max effective speed when off-road
+            effective_max_speed = self.max_speed * (1.0 - self.off_road_penalty)
+            if self.player_speed > effective_max_speed:
+                # Force deceleration
+                deceleration_rate = 2.0 * dt  # Quick slowdown when off-road
+                self.player_speed = max(effective_max_speed, self.player_speed - deceleration_rate)
+        
+    def _update_turn_system(self, dt: float):
+        """Update the discrete turn system for realistic racing turns."""
+        import random
+        
+        # Update turn timer
+        self.turn_timer += dt
+        
+        if self.turn_state == "straight":
+            # Check if it's time to start a turn
+            if self.turn_timer >= self.straight_duration:
+                # Decide next turn direction (alternate with some randomness)
+                if self.next_turn_direction is None:
+                    self.next_turn_direction = random.choice(["left", "right"])
+                else:
+                    # Prefer alternating turns, but add some randomness
+                    if random.random() < 0.8:  # 80% chance to alternate
+                        self.next_turn_direction = "left" if self.next_turn_direction == "right" else "right"
+                    # else keep same direction (20% chance)
+                
+                # Start the turn
+                self.turn_state = f"turning_{self.next_turn_direction}"
+                self.turn_progress = 0.0
+                self.turn_timer = 0.0
+                
+                # Set turn intensity (randomize slightly for variety)
+                base_intensity = 0.6
+                intensity_variation = random.uniform(-0.2, 0.2)
+                self.turn_intensity = max(0.3, min(1.0, base_intensity + intensity_variation))
+                
+        elif self.turn_state in ["turning_left", "turning_right"]:
+            # Update turn progress
+            self.turn_progress = min(1.0, self.turn_timer / self.turn_duration)
+            
+            # Check if turn is complete
+            if self.turn_progress >= 1.0:
+                self.turn_state = "straight"
+                self.turn_progress = 0.0
+                self.turn_timer = 0.0
+                # Add some variation to straight duration (8-10 seconds)
+                self.straight_duration = random.uniform(8.0, 10.0)
+        
+        # Calculate road curve based on turn state
+        if self.turn_state == "straight":
+            # Gradually return to straight
+            self.road_curve *= 0.95  # Smooth transition back to straight
+        else:
+            # Calculate smooth turn curve using sine function
+            turn_progress_smooth = 0.5 * (1 - math.cos(self.turn_progress * math.pi))
+            turn_direction = 1.0 if self.turn_state == "turning_right" else -1.0
+            self.road_curve = turn_direction * self.turn_intensity * turn_progress_smooth
+            
     def _handle_racing_input(self, dt: float):
         """Handle racing input and update player state."""
-        # Acceleration/deceleration
+        # Enhanced acceleration/deceleration with turn physics
+        base_acceleration = self.acceleration
+        base_deceleration = self.deceleration
+        
+        # Apply turn-based speed adjustment (realistic racing physics)
+        if self.turn_state != "straight":
+            # Reduce acceleration and increase deceleration in turns
+            turn_severity = self.turn_intensity * self.turn_progress
+            acceleration_penalty = 0.4 * turn_severity  # Up to 40% reduction
+            deceleration_increase = 0.6 * turn_severity  # Up to 60% increase
+            
+            base_acceleration *= (1.0 - acceleration_penalty)
+            base_deceleration *= (1.0 + deceleration_increase)
+        
         if pygame.K_UP in self.keys_pressed or pygame.K_w in self.keys_pressed:
             self.player_speed = min(
                 self.max_speed,
-                self.player_speed + self.acceleration * dt
+                self.player_speed + base_acceleration * dt
             )
-            # Boost effect at high speeds
-            if self.player_speed > 0.8:
+            # Boost effect at high speeds (harder to achieve in turns)
+            boost_threshold = 0.8 if self.turn_state == "straight" else 0.9
+            if self.player_speed > boost_threshold:
                 self.race_state.is_boost = True
         else:
             self.player_speed = max(
                 0.0,
-                self.player_speed - self.deceleration * dt
+                self.player_speed - base_deceleration * dt
             )
             self.race_state.is_boost = False
             
-        # Steering
-        steering_speed = 1.5 * dt
-        if pygame.K_LEFT in self.keys_pressed or pygame.K_a in self.keys_pressed:
-            self.player_x = max(0.0, self.player_x - steering_speed)
-        if pygame.K_RIGHT in self.keys_pressed or pygame.K_d in self.keys_pressed:
-            self.player_x = min(1.0, self.player_x + steering_speed)
+        # Apply collision speed penalty to effective speed
+        effective_speed = self.player_speed * (1.0 - self.collision_speed_penalty)
+        self.player_speed = max(0.1, effective_speed)  # Minimum speed to prevent complete stop
             
-        # Apply road curve influence
-        curve_influence = self.road_curve * self.player_speed * dt
+        # Enhanced steering with off-road resistance
+        base_steering_speed = 0.35 * dt  # Ultra-tight: reduced from 0.5 to 0.35 for precision control
+        
+        # Reduce steering responsiveness when off-road or penalized
+        steering_penalty = self.off_road_penalty * 0.5  # Up to 30% steering reduction
+        effective_steering_speed = base_steering_speed * (1.0 - steering_penalty)
+        
+        if pygame.K_LEFT in self.keys_pressed or pygame.K_a in self.keys_pressed:
+            self.player_x = max(0.0, self.player_x - effective_steering_speed)
+        if pygame.K_RIGHT in self.keys_pressed or pygame.K_d in self.keys_pressed:
+            self.player_x = min(1.0, self.player_x + effective_steering_speed)
+            
+        # Enhanced vehicle physics: gradual turn response
+        if self.turn_state != "straight":
+            # Calculate desired position based on turn
+            turn_influence_strength = 0.04  # Ultra-reduced from 0.08 to 0.04 for minimal auto-assistance
+            turn_direction = 1.0 if self.turn_state == "turning_right" else -1.0
+            
+            # Desired position shifts toward inside of turn for realistic racing line
+            desired_offset = -turn_direction * self.turn_intensity * turn_influence_strength * self.turn_progress
+            target_x = 0.5 + desired_offset  # Start from center and shift
+            
+            # Gradually move toward target position (realistic steering response)
+            steering_response_rate = 0.15 * dt  # Ultra-reduced from 0.3 to 0.15 for tight response
+            position_difference = target_x - self.player_x
+            self.player_x += position_difference * steering_response_rate
+        
+        # Apply road curve influence (reduced since we have better turn physics)
+        curve_influence = self.road_curve * self.player_speed * dt * 0.04  # Ultra-reduced from 0.08 to 0.04
         self.player_x = max(0.0, min(1.0, self.player_x + curve_influence))
+        
+        # Update car rotation based on ACTUAL steering input (tied tightly to movement)
+        max_rotation = 18.0  # Maximum rotation in degrees (within 15-20% range)
+        
+        # Calculate rotation based on actual steering input AND turn state
+        input_rotation = 0.0
+        
+        # Direct steering input rotation (immediate response tied to movement)
+        if pygame.K_LEFT in self.keys_pressed or pygame.K_a in self.keys_pressed:
+            input_rotation = -max_rotation * 0.7  # Left turn rotation
+        elif pygame.K_RIGHT in self.keys_pressed or pygame.K_d in self.keys_pressed:
+            input_rotation = max_rotation * 0.7   # Right turn rotation
+            
+        # Add turn state influence (road turns) - reduced to let player control dominate
+        turn_rotation = 0.0
+        if self.turn_state != "straight":
+            turn_direction = 1.0 if self.turn_state == "turning_right" else -1.0
+            turn_rotation = turn_direction * max_rotation * 0.3 * self.turn_intensity * self.turn_progress
+            
+        # Combine input and turn rotations (input has priority)
+        target_rotation = input_rotation + turn_rotation
+        target_rotation = max(-max_rotation, min(max_rotation, target_rotation))  # Clamp to max
+        
+        # Smooth rotation transition (very responsive to input)
+        rotation_speed = 150.0 * dt  # Very fast response to steering input
+        rotation_diff = target_rotation - self.car_rotation
+        if abs(rotation_diff) > rotation_speed:
+            self.car_rotation += rotation_speed * (1 if rotation_diff > 0 else -1)
+        else:
+            self.car_rotation = target_rotation
+                
+        # Enhanced momentum and drift effects (Issue #9)
+        if self.turn_state != "straight":
+            # Build up momentum in turn direction
+            turn_direction = 1.0 if self.turn_state == "turning_right" else -1.0
+            momentum_build_rate = self.player_speed * self.turn_intensity * dt * 0.8
+            target_momentum = turn_direction * momentum_build_rate
+            
+            # Smooth momentum buildup
+            self.momentum_x += (target_momentum - self.momentum_x) * 3.0 * dt
+            
+            # Calculate drift based on speed and turn sharpness
+            drift_threshold = 0.6  # Speed threshold for drift
+            if self.player_speed > drift_threshold:
+                drift_intensity = (self.player_speed - drift_threshold) * self.turn_intensity
+                self.drift_factor = min(1.0, drift_intensity * 2.0)
+            else:
+                self.drift_factor *= 0.9  # Fade out drift
+        else:
+            # Momentum decays when straight
+            self.momentum_x *= 0.85  # Gradual decay
+            self.drift_factor *= 0.95  # Drift fades out
+            
+        # Apply momentum to player position (realistic car physics)
+        momentum_influence = self.momentum_x * dt * 0.04  # Ultra-reduced from 0.08 to 0.04
+        self.player_x += momentum_influence
+        
+        # Enforce street boundaries and apply off-road effects
+        self._enforce_street_boundaries(dt)
         
         # Check for crashes (hitting road edges at high speed)
         if (self.player_x < 0.1 or self.player_x > 0.9) and self.player_speed > 0.6:
@@ -272,6 +583,452 @@ class DriveGame:
             
         # Reset crash flag after brief moment
         pygame.time.set_timer(pygame.USEREVENT + 1, 500)  # Clear crash state after 500ms
+        
+    def _update_traffic(self, dt: float):
+        """Update NPC traffic system."""
+        # Update spawn timer
+        self.traffic_spawn_timer += dt
+        
+        # Spawn new traffic cars
+        if (self.traffic_spawn_timer > 2.0 and  # Spawn every 2 seconds
+            len(self.npc_cars) < self.max_traffic_cars and
+            random.random() < self.traffic_density):
+            self._spawn_npc_car()
+            self.traffic_spawn_timer = 0.0
+            
+        # Update existing traffic cars
+        cars_to_remove = []
+        for i, car in enumerate(self.npc_cars):
+            # Update car position based on direction - all from player's POV
+            if car.direction == 1:
+                # Same direction as player - normal relative movement
+                relative_speed = car.speed - self.player_speed
+                car.y += relative_speed * dt * 100  # Move relative to player
+            else:
+                # Oncoming traffic - from player POV they approach from ahead
+                # They should appear to come toward player and pass by naturally
+                oncoming_relative_speed = car.speed + self.player_speed  # Combined approach speed
+                car.y -= oncoming_relative_speed * dt * 100  # Approach from ahead (toward player)
+            
+            # Update AI behavior
+            self._update_npc_ai(car, dt)
+            
+            # Enforce road boundaries for traffic cars
+            self._enforce_traffic_boundaries(car)
+            
+            # Remove cars that are too far behind or ahead
+            if car.y < -250 or car.y > 700:
+                cars_to_remove.append(i)
+                
+        # Remove old cars (reverse order to maintain indices)
+        for i in reversed(cars_to_remove):
+            del self.npc_cars[i]
+            
+    def _spawn_npc_car(self):
+        """Spawn a new NPC car in proper 4-lane traffic."""
+        # 4-lane system (corrected): 
+        # Lane 1: Left lane, oncoming traffic (opposite direction)
+        # Lane 2: Right lane, oncoming traffic (opposite direction)
+        # Lane 3: Left lane, player direction (same as player)
+        # Lane 4: Right lane, player direction (same as player) 
+        
+        # Player is in lanes 3-4, oncoming traffic in lanes 1-2
+        player_lane = 3 if self.player_x < 0.5 else 4  # Left or right in player direction
+        
+        # 70% chance for same direction (lanes 3-4), 30% for oncoming (lanes 1-2)
+        if random.random() < 0.7:
+            # Same direction traffic (lanes 3-4)
+            direction = 1
+            lane = random.choice([3, 4])
+            # Prefer lane away from player
+            if random.random() < 0.6 and lane == player_lane:
+                lane = 7 - lane  # Switch to other lane (3↔4)
+                
+            # Spawn ahead or behind player
+            spawn_ahead = random.choice([True, False])
+            if spawn_ahead:
+                y_position = random.uniform(150, 400)  # Ahead of player
+                npc_speed = random.uniform(0.4, 0.9)   # Slower than player typically
+            else:
+                y_position = random.uniform(-150, -50)  # Behind player
+                npc_speed = random.uniform(0.6, 1.2)    # Mix of speeds
+        else:
+            # Oncoming traffic (lanes 1-2)
+            direction = -1
+            lane = random.choice([1, 2])
+            
+            # Oncoming cars start far ahead and move toward player
+            y_position = random.uniform(300, 600)  # Start far ahead
+            npc_speed = random.uniform(0.5, 1.0)   # Oncoming speed
+            
+        # Convert lane to screen position using ACTUAL road boundaries
+        # Use the same road calculation as the drawing code
+        road_center_pixels = self.screen_width // 2  # Screen center in pixels
+        base_width_variation = int(self.width_oscillation)
+        surface_variation = int(self.surface_noise)
+        current_road_width_pixels = self.road_width + base_width_variation + surface_variation
+        
+        # Calculate actual road edges in pixels
+        road_left_pixels = road_center_pixels - current_road_width_pixels // 2
+        road_right_pixels = road_center_pixels + current_road_width_pixels // 2
+        
+        # Convert to normalized coordinates (0.0-1.0)
+        road_left_normalized = road_left_pixels / self.screen_width
+        road_right_normalized = road_right_pixels / self.screen_width
+        road_width_normalized = road_right_normalized - road_left_normalized
+        
+        # Split road into two directions: left half (lanes 1,2) and right half (lanes 3,4)
+        direction_width = road_width_normalized / 2  # Each direction gets half the road
+        lane_width = direction_width / 2  # 2 lanes per direction
+        
+        if direction == -1:  # Oncoming traffic (left half of road)
+            if lane == 1:    # Left lane, oncoming direction
+                x_position = road_left_normalized + lane_width * 0.5
+            else:           # Right lane, oncoming direction (lane == 2)
+                x_position = road_left_normalized + lane_width * 1.5
+        else:              # Same direction as player (right half of road)
+            direction_start = road_left_normalized + direction_width  # Center of road
+            if lane == 3:    # Left lane, player direction
+                x_position = direction_start + lane_width * 0.5
+            else:           # Right lane, player direction (lane == 4)
+                x_position = direction_start + lane_width * 1.5
+            
+        # Determine vehicle type (10% chance for trucks)
+        is_truck = random.random() < 0.15  # 15% chance for semi trucks
+        
+        if is_truck:
+            vehicle_type = "truck"
+            vehicle_width = 40      # Wider than cars
+            vehicle_height = 80     # Much longer than cars
+            collision_zone = (40, 80)
+            # Trucks are typically darker colors
+            truck_colors = [
+                (100, 100, 100),  # Dark gray
+                (80, 80, 80),     # Darker gray
+                (60, 60, 60),     # Very dark gray
+                (120, 80, 40),    # Brown
+                (40, 40, 120),    # Dark blue
+                (80, 40, 40),     # Dark red
+            ]
+            vehicle_color = random.choice(truck_colors)
+            # Trucks move slightly slower
+            npc_speed *= 0.85
+        else:
+            vehicle_type = "car"
+            vehicle_width = 32
+            vehicle_height = 48
+            collision_zone = (32, 48)
+            # Regular car colors (different colors for different directions)
+            if direction == 1:  # Same direction - warmer colors
+                car_colors = [
+                    (255, 0, 0),    # Red
+                    (255, 255, 0),  # Yellow
+                    (255, 128, 0),  # Orange
+                    (0, 255, 0),    # Green
+                ]
+            else:  # Oncoming traffic - cooler colors
+                car_colors = [
+                    (0, 0, 255),    # Blue
+                    (0, 255, 255),  # Cyan
+                    (255, 0, 255),  # Magenta
+                    (128, 0, 128),  # Purple
+                ]
+            vehicle_color = random.choice(car_colors)
+        
+        npc_car = NPCCar(
+            x=x_position,
+            y=y_position,
+            lane=lane,
+            speed=npc_speed,
+            color=vehicle_color,
+            vehicle_type=vehicle_type,
+            direction=direction,
+            width=vehicle_width,
+            height=vehicle_height,
+            collision_zone=collision_zone,
+            ai_state="cruising"
+        )
+        
+        self.npc_cars.append(npc_car)
+        
+    def _update_npc_ai(self, car: NPCCar, dt: float):
+        """Update NPC car AI behavior for 4-lane traffic."""
+        # Update lane change timer
+        car.lane_change_timer += dt
+        
+        # Different AI behavior for same-direction vs oncoming traffic
+        if car.direction == 1:
+            # Same direction traffic can change lanes
+            if car.ai_state == "cruising":
+                # Lane change frequency depends on vehicle type
+                lane_change_chance = 0.01 * dt if car.vehicle_type == "truck" else 0.03 * dt  # Trucks change lanes less
+                lane_change_cooldown = 8.0 if car.vehicle_type == "truck" else 4.0  # Trucks wait longer
+                
+                if random.random() < lane_change_chance and car.lane_change_timer > lane_change_cooldown:
+                    # Only change within same direction lanes
+                    target_lane = None
+                    
+                    if car.direction == 1:  # Same direction as player - can change between lanes 3 and 4
+                        if car.lane == 3:
+                            target_lane = 4
+                        elif car.lane == 4:
+                            target_lane = 3
+                    else:  # Oncoming direction - can change between lanes 1 and 2
+                        if car.lane == 1:
+                            target_lane = 2
+                        elif car.lane == 2:
+                            target_lane = 1
+                        
+                    if target_lane is not None and self._is_lane_change_safe(car, target_lane):
+                        car.ai_state = "changing_lanes"
+                        # Calculate target position using proper directional positioning
+                        road_center_normalized = 0.5
+                        road_width_normalized = 0.6
+                        left_road_edge = road_center_normalized - road_width_normalized / 2
+                        direction_width = road_width_normalized / 2
+                        lane_width = direction_width / 2
+                        
+                        if car.direction == 1:  # Same direction (right half)
+                            lane_offset = target_lane - 3  # Convert 3,4 to 0,1
+                            car.target_x = road_center_normalized + lane_width * (lane_offset + 0.5)
+                        else:  # Oncoming direction (left half)
+                            lane_offset = target_lane - 1  # Convert 1,2 to 0,1
+                            car.target_x = left_road_edge + lane_width * (lane_offset + 0.5)
+                            
+                        car.lane = target_lane
+                        car.lane_change_timer = 0.0
+                        
+            elif car.ai_state == "changing_lanes":
+                # Smoothly move to target lane
+                if hasattr(car, 'target_x'):
+                    lane_change_speed = 0.8 * dt  # Reduced lane change speed
+                    if abs(car.x - car.target_x) < 0.05:
+                        car.x = car.target_x
+                        car.ai_state = "cruising"
+                        delattr(car, 'target_x')
+                    else:
+                        direction = 1 if car.target_x > car.x else -1
+                        car.x += direction * lane_change_speed
+        else:
+            # Oncoming traffic stays in their lanes (no lane changes)
+            car.ai_state = "cruising"
+                    
+        # Speed variation for realism (less variation for oncoming traffic)
+        variation_chance = 0.05 * dt if car.direction == -1 else 0.1 * dt
+        if random.random() < variation_chance:
+            speed_change = random.uniform(-0.05, 0.05)
+            if car.direction == 1:
+                car.speed = max(0.2, min(1.2, car.speed + speed_change))
+            else:
+                car.speed = max(0.4, min(1.0, car.speed + speed_change))
+            
+    def _is_lane_change_safe(self, car: NPCCar, target_lane: int) -> bool:
+        """Check if lane change is safe for NPC car within their directional lanes."""
+        # Calculate target position using proper directional positioning
+        road_center_normalized = 0.5
+        road_width_normalized = 0.6
+        left_road_edge = road_center_normalized - road_width_normalized / 2
+        direction_width = road_width_normalized / 2
+        lane_width = direction_width / 2
+        
+        if car.direction == 1:  # Same direction (right half)
+            if target_lane not in [3, 4]:  # Only allow lanes 3,4 for same direction
+                return False
+            lane_offset = target_lane - 3  # Convert 3,4 to 0,1
+            target_x = road_center_normalized + lane_width * (lane_offset + 0.5)
+        else:  # Oncoming direction (left half)
+            if target_lane not in [1, 2]:  # Only allow lanes 1,2 for oncoming
+                return False
+            lane_offset = target_lane - 1  # Convert 1,2 to 0,1
+            target_x = left_road_edge + lane_width * (lane_offset + 0.5)
+        
+        # Ensure target position is within the correct directional boundaries
+        if car.direction == 1:
+            # Same direction - must stay in left half
+            direction_left = left_road_edge + 0.02
+            direction_right = road_center_normalized - 0.02
+        else:
+            # Oncoming direction - must stay in right half
+            direction_left = road_center_normalized + 0.02
+            direction_right = left_road_edge + road_width_normalized - 0.02
+            
+        if target_x < direction_left or target_x > direction_right:
+            return False  # Target would be outside directional lanes
+        
+        # Check for collisions with other cars in target lane
+        for other_car in self.npc_cars:
+            if other_car != car and abs(other_car.x - target_x) < 0.08:  # Reduced collision distance
+                # Car is in target lane, check distance
+                if abs(other_car.y - car.y) < 80:  # Too close
+                    return False
+                    
+        # Check distance from player (only for same-direction traffic)
+        if car.direction == 1 and abs(target_x - self.player_x) < 0.15 and abs(car.y) < 100:
+            return False  # Too close to player
+            
+        return True
+        
+    def _get_road_boundaries(self):
+        """Get current road boundaries in normalized coordinates."""
+        # Use the same road calculation as the drawing code
+        road_center_pixels = self.screen_width // 2
+        base_width_variation = int(self.width_oscillation)
+        surface_variation = int(self.surface_noise)
+        current_road_width_pixels = self.road_width + base_width_variation + surface_variation
+        
+        # Calculate actual road edges in pixels
+        road_left_pixels = road_center_pixels - current_road_width_pixels // 2
+        road_right_pixels = road_center_pixels + current_road_width_pixels // 2
+        
+        # Convert to normalized coordinates (0.0-1.0)
+        road_left_normalized = road_left_pixels / self.screen_width
+        road_right_normalized = road_right_pixels / self.screen_width
+        road_width_normalized = road_right_normalized - road_left_normalized
+        
+        return road_left_normalized, road_right_normalized, road_width_normalized
+        
+    def _enforce_traffic_boundaries(self, car: NPCCar):
+        """Ensure traffic cars stay within their directional lanes and road boundaries."""
+        # Get actual road boundaries
+        road_left_normalized, road_right_normalized, road_width_normalized = self._get_road_boundaries()
+        
+        # Split road into two directions
+        direction_width = road_width_normalized / 2  # Each direction gets half the road
+        lane_width = direction_width / 2  # 2 lanes per direction
+        road_center_normalized = road_left_normalized + road_width_normalized / 2
+        
+        # Define directional boundaries
+        car_width_normalized = 0.02  # Approximate car width in normalized coordinates
+        
+        if car.direction == 1:  # Same direction (right half)
+            direction_left = road_center_normalized + car_width_normalized
+            direction_right = road_right_normalized - car_width_normalized
+        else:  # Oncoming direction (left half)
+            direction_left = road_left_normalized + car_width_normalized
+            direction_right = road_center_normalized - car_width_normalized
+        
+        # Enforce directional boundaries - push cars back into their side
+        if car.x < direction_left:
+            car.x = direction_left
+            # If changing lanes, cancel the lane change
+            if car.ai_state == "changing_lanes":
+                car.ai_state = "cruising"
+                if hasattr(car, 'target_x'):
+                    delattr(car, 'target_x')
+                    
+        elif car.x > direction_right:
+            car.x = direction_right
+            # If changing lanes, cancel the lane change
+            if car.ai_state == "changing_lanes":
+                car.ai_state = "cruising"
+                if hasattr(car, 'target_x'):
+                    delattr(car, 'target_x')
+                    
+        # Keep cars roughly in their designated lanes when not changing
+        if car.ai_state == "cruising":
+            # Calculate ideal lane position based on direction
+            if car.direction == 1:  # Same direction (right half)
+                lane_offset = car.lane - 3  # Convert 3,4 to 0,1
+                ideal_x = road_center_normalized + lane_width * (lane_offset + 0.5)
+            else:  # Oncoming direction (left half)
+                lane_offset = car.lane - 1  # Convert 1,2 to 0,1
+                ideal_x = road_left_normalized + lane_width * (lane_offset + 0.5)
+            
+            # Gently guide cars toward their lane center
+            lane_drift_correction = 0.5  # Stronger correction for lane discipline
+            if abs(car.x - ideal_x) > lane_width * 0.4:  # If drifting too far from lane center
+                correction = (ideal_x - car.x) * lane_drift_correction * 0.02  # Correction per frame
+                car.x += correction
+    
+    def _check_traffic_collisions(self, dt: float):
+        """Check for collisions between player and traffic vehicles."""
+        # Update collision cooldown and flash timer
+        if self.collision_cooldown > 0:
+            self.collision_cooldown -= dt
+        if self.collision_flash_timer > 0:
+            self.collision_flash_timer -= dt
+            
+        # Recover from collision penalties over time
+        if self.collision_speed_penalty > 0:
+            recovery = self.collision_recovery_rate * dt
+            self.collision_speed_penalty = max(0, self.collision_speed_penalty - recovery)
+            
+        # Only check collisions if cooldown expired (prevents multiple rapid collisions)
+        if self.collision_cooldown > 0:
+            return
+            
+        # Get player collision rectangle in normalized coordinates
+        player_collision_width = 0.05  # Player car width in normalized coords (~64px at 1280px width)
+        player_collision_height = 0.1   # Player car height in normalized coords
+        player_left = self.player_x - player_collision_width / 2
+        player_right = self.player_x + player_collision_width / 2
+        player_top = 0.4   # Player Y position (fixed in center-ish area)
+        player_bottom = player_top + player_collision_height
+        
+        # Check collision with each traffic car
+        for car in self.npc_cars:
+            # Convert car position to collision rectangle
+            car_collision_width = car.collision_zone[0] / self.screen_width  # Convert pixels to normalized
+            car_collision_height = car.collision_zone[1] / 200  # Rough conversion for Y-axis
+            
+            car_left = car.x - car_collision_width / 2
+            car_right = car.x + car_collision_width / 2
+            
+            # Convert car Y position to screen space for collision detection
+            # Car Y is distance ahead/behind - convert to screen Y position
+            car_screen_y = 0.5 - (car.y / 400)  # Rough conversion
+            car_top = car_screen_y - car_collision_height / 2
+            car_bottom = car_screen_y + car_collision_height / 2
+            
+            # Check for rectangle collision
+            if (player_right > car_left and player_left < car_right and
+                player_bottom > car_top and player_top < car_bottom):
+                
+                # Collision detected!
+                self._handle_collision(car)
+                break  # Only handle one collision per frame
+                
+    def _handle_collision(self, car: NPCCar):
+        """Handle collision with a traffic vehicle."""
+        # Set collision cooldown to prevent multiple rapid collisions
+        self.collision_cooldown = 1.0  # 1 second cooldown
+        
+        # Different penalties for different vehicle types
+        if car.vehicle_type == "truck":
+            speed_penalty = 0.4  # 40% speed reduction for truck collision
+            self.collision_damage += 0.2  # Trucks cause more damage
+            self.last_collision_type = "truck"
+        else:  # car
+            speed_penalty = 0.2  # 20% speed reduction for car collision
+            self.collision_damage += 0.1  # Cars cause less damage
+            self.last_collision_type = "car"
+            
+        # Apply speed penalty
+        self.collision_speed_penalty = max(self.collision_speed_penalty, speed_penalty)
+        
+        # Cap total damage at 1.0
+        self.collision_damage = min(1.0, self.collision_damage)
+        
+        # Visual feedback
+        self.collision_flash_timer = 0.3  # Flash screen for 300ms
+        
+        # Audio feedback (if sound manager available)
+        if hasattr(self.scene_manager, 'sound_manager') and self.scene_manager.sound_manager:
+            try:
+                if car.vehicle_type == "truck":
+                    # Play heavy collision sound for trucks
+                    self.scene_manager.sound_manager.play_sfx("crash_heavy")
+                else:
+                    # Play light collision sound for cars  
+                    self.scene_manager.sound_manager.play_sfx("crash_light")
+            except:
+                pass  # Sound files might not exist yet
+                
+        # Push car away slightly to prevent stuck collisions
+        if car.direction == 1:  # Same direction traffic
+            car.y += 50  # Push car ahead
+        else:  # Oncoming traffic
+            car.y -= 50  # Push car back
         
     def draw(self, screen):
         """Draw the game."""
@@ -309,9 +1066,13 @@ class DriveGame:
                                  self.screen_height - self.horizon_y)
         screen.fill((34, 139, 34), ground_rect)  # Forest green
         
-        # Simple road
-        road_center = self.screen_width // 2
-        current_width = self.road_width + int(self.road_curve * 100)
+        # Enhanced road with natural variation
+        road_center = self.screen_width // 2 + int(self.road_curve * 50)  # Curve affects center position only
+        
+        # Apply multiple layers of variation for realistic road
+        base_width_variation = int(self.width_oscillation)  # Primary width changes
+        surface_variation = int(self.surface_noise)  # Micro road texture
+        current_width = self.road_width + base_width_variation + surface_variation
         
         road_rect = pygame.Rect(
             road_center - current_width // 2,
@@ -321,20 +1082,197 @@ class DriveGame:
         )
         screen.fill((60, 60, 60), road_rect)
         
-        # Road lines
+        # Enhanced road lines with speed effects for 4-lane traffic
         line_color = COLOR_YELLOW
-        center_line_x = road_center + int(self.road_curve * 50)
+        center_line_x = road_center  # Already calculated with curve offset above
         
-        for y in range(self.horizon_y, self.screen_height, 20):
-            line_y = y + int((self.road_position * 50) % 40) - 20
+        # Apply speed shimmer to road lines for visual feedback
+        shimmer_offset = int(self.speed_shimmer)
+        
+        # Draw center divider line (solid white line to separate traffic directions)
+        center_divider_color = COLOR_WHITE
+        for y in range(self.horizon_y, self.screen_height, 10):
+            line_y = y + int((self.road_position * 30) % 20) - 10
             if self.horizon_y <= line_y < self.screen_height:
-                pygame.draw.line(screen, line_color, 
-                               (center_line_x - 2, line_y), 
-                               (center_line_x + 2, line_y), 4)
+                pygame.draw.line(screen, center_divider_color,
+                               (center_line_x - 1, line_y),
+                               (center_line_x + 1, line_y + 8), 3)
+        
+        # Draw lane markings (dashed yellow lines for lane changes)
+        for y in range(self.horizon_y, self.screen_height, 30):
+            line_y = y + int((self.road_position * 50) % 60) - 30
+            if self.horizon_y <= line_y < self.screen_height:
+                # Add subtle horizontal shimmer based on speed
+                line_x_offset = shimmer_offset if (y // 30) % 2 == 0 else -shimmer_offset // 2
+                
+                # Left lane divider (between lanes 0 and 1 - player direction)
+                left_lane_x = center_line_x - current_width // 4 + line_x_offset
+                pygame.draw.line(screen, line_color,
+                               (left_lane_x - 1, line_y),
+                               (left_lane_x + 1, line_y + 10), 2)
+                               
+                # Right lane divider (between lanes 2 and 3 - oncoming direction)  
+                right_lane_x = center_line_x + current_width // 4 + line_x_offset
+                pygame.draw.line(screen, line_color,
+                               (right_lane_x - 1, line_y),
+                               (right_lane_x + 1, line_y + 10), 2)
+        
+        # Draw road edge markers for EV boundary visualization
+        self._draw_road_edges(screen, road_center, current_width)
+                               
+    def _draw_road_edges(self, screen, road_center: int, road_width: int):
+        """Draw road edge markers to show EV boundaries."""
+        # Calculate edge positions
+        left_edge = road_center - road_width // 2
+        right_edge = road_center + road_width // 2
+        
+        edge_color = COLOR_WHITE
+        warning_color = COLOR_RED
+        
+        # Determine if player is near edges (for warning colors)
+        player_pixel_x = int(self.player_x * self.screen_width)
+        near_left_edge = abs(player_pixel_x - left_edge) < 40
+        near_right_edge = abs(player_pixel_x - right_edge) < 40
+        
+        # Draw left edge markers
+        left_color = warning_color if near_left_edge else edge_color
+        for y in range(self.horizon_y, self.screen_height, 30):
+            line_y = y + int((self.road_position * 30) % 60) - 30
+            if self.horizon_y <= line_y < self.screen_height:
+                pygame.draw.line(screen, left_color,
+                               (left_edge - 1, line_y),
+                               (left_edge - 1, line_y + 15), 3)
+        
+        # Draw right edge markers
+        right_color = warning_color if near_right_edge else edge_color
+        for y in range(self.horizon_y, self.screen_height, 30):
+            line_y = y + int((self.road_position * 30) % 60) - 30
+            if self.horizon_y <= line_y < self.screen_height:
+                pygame.draw.line(screen, right_color,
+                               (right_edge + 1, line_y),
+                               (right_edge + 1, line_y + 15), 3)
+    
+    def _draw_npc_cars(self, screen):
+        """Draw NPC traffic cars with proper directional orientation."""
+        for car in self.npc_cars:
+            # Convert car position to screen coordinates
+            car_screen_x = int(car.x * self.screen_width)
+            car_screen_y = int(self.screen_height - 100 - car.y)  # Player car is at screen_height - 100
+            
+            # Only draw if vehicle is visible on screen
+            if -50 <= car_screen_y <= self.screen_height + 50:
+                # Draw vehicle rectangle based on type
+                car_rect = pygame.Rect(
+                    car_screen_x - car.width // 2,
+                    car_screen_y - car.height // 2,
+                    car.width,
+                    car.height
+                )
+                
+                # Draw main vehicle body
+                pygame.draw.rect(screen, car.color, car_rect)
+                
+                # Add truck-specific details
+                if car.vehicle_type == "truck":
+                    # Draw truck cab (front section)
+                    cab_height = car.height // 3
+                    cab_rect = pygame.Rect(
+                        car_rect.x,
+                        car_rect.y,
+                        car_rect.width,
+                        cab_height
+                    )
+                    cab_color = tuple(max(0, c - 30) for c in car.color)  # Darker cab
+                    pygame.draw.rect(screen, cab_color, cab_rect)
+                    
+                    # Draw trailer separation line
+                    sep_y = car_rect.y + cab_height
+                    pygame.draw.line(screen, (0, 0, 0), 
+                                   (car_rect.x, sep_y), 
+                                   (car_rect.x + car_rect.width, sep_y), 2)
+                
+                # Add simple details
+                # Car outline
+                pygame.draw.rect(screen, (0, 0, 0), car_rect, 2)
+                
+                # Windshield position depends on direction
+                windshield_color = tuple(min(255, c + 50) for c in car.color)
+                
+                if car.direction == 1:
+                    # Same direction as player - windshield at front (top)
+                    windshield_rect = pygame.Rect(
+                        car_rect.x + 4,
+                        car_rect.y + 4,
+                        car_rect.width - 8,
+                        car_rect.height // 3
+                    )
+                else:
+                    # Oncoming traffic - windshield at front (top) since they face us
+                    windshield_rect = pygame.Rect(
+                        car_rect.x + 4,
+                        car_rect.y + 4,
+                        car_rect.width - 8,
+                        car_rect.height // 3
+                    )
+                    
+                pygame.draw.rect(screen, windshield_color, windshield_rect)
+                
+                # Headlights/taillights to show direction
+                if car.direction == 1:
+                    # Same direction - white headlights at front (top)
+                    pygame.draw.circle(screen, (255, 255, 255), 
+                                     (car_rect.x + 8, car_rect.y + 2), 3)
+                    pygame.draw.circle(screen, (255, 255, 255), 
+                                     (car_rect.x + car_rect.width - 8, car_rect.y + 2), 3)
+                else:
+                    # Oncoming traffic - white headlights at front (top) since they face us
+                    pygame.draw.circle(screen, (255, 255, 255), 
+                                     (car_rect.x + 8, car_rect.y + 2), 3)
+                    pygame.draw.circle(screen, (255, 255, 255), 
+                                     (car_rect.x + car_rect.width - 8, car_rect.y + 2), 3)
+                
+                # Wheels (simple black rectangles)
+                wheel_width = 4
+                wheel_height = 8
+                
+                # Left wheels
+                left_front_wheel = pygame.Rect(
+                    car_rect.x - 2,
+                    car_rect.y + 6,
+                    wheel_width,
+                    wheel_height
+                )
+                left_rear_wheel = pygame.Rect(
+                    car_rect.x - 2,
+                    car_rect.y + car_rect.height - wheel_height - 6,
+                    wheel_width,
+                    wheel_height
+                )
+                
+                # Right wheels
+                right_front_wheel = pygame.Rect(
+                    car_rect.x + car_rect.width - 2,
+                    car_rect.y + 6,
+                    wheel_width,
+                    wheel_height
+                )
+                right_rear_wheel = pygame.Rect(
+                    car_rect.x + car_rect.width - 2,
+                    car_rect.y + car_rect.height - wheel_height - 6,
+                    wheel_width,
+                    wheel_height
+                )
+                
+                # Draw all wheels
+                for wheel in [left_front_wheel, left_rear_wheel, right_front_wheel, right_rear_wheel]:
+                    pygame.draw.rect(screen, (0, 0, 0), wheel)
                                
     def _draw_racing_scene(self, screen):
         """Draw the main racing scene."""
         self._draw_road_background(screen)
+        
+        # Draw NPC traffic cars
+        self._draw_npc_cars(screen)
         
         # Draw player car with sprite
         car_x = int(self.player_x * self.screen_width)
@@ -347,20 +1285,26 @@ class DriveGame:
                 (self.car_width, self.car_height)
             )
             
+            # Apply rotation for turn physics (15-20% as specified in master plan)
+            if abs(self.car_rotation) > 0.1:  # Only rotate if meaningful angle
+                rotated_sprite = pygame.transform.rotate(scaled_sprite, -self.car_rotation)  # Negative for correct direction
+            else:
+                rotated_sprite = scaled_sprite
+            
             # Apply visual effects
             if self.race_state.is_crash:
                 # Flash white during crash
-                white_surface = scaled_sprite.copy()
+                white_surface = rotated_sprite.copy()
                 white_surface.fill((255, 255, 255, 128), special_flags=pygame.BLEND_RGBA_ADD)
-                scaled_sprite = white_surface
+                rotated_sprite = white_surface
             elif self.race_state.is_boost:
                 # Add yellow glow during boost
-                glow_surface = scaled_sprite.copy()
+                glow_surface = rotated_sprite.copy()
                 glow_surface.fill((255, 255, 0, 64), special_flags=pygame.BLEND_RGBA_ADD)
-                scaled_sprite = glow_surface
+                rotated_sprite = glow_surface
             
-            car_rect = scaled_sprite.get_rect(center=(car_x, car_y))
-            screen.blit(scaled_sprite, car_rect)
+            car_rect = rotated_sprite.get_rect(center=(car_x, car_y))
+            screen.blit(rotated_sprite, car_rect)
         else:
             # Fallback to rectangle if no sprite
             car_rect = pygame.Rect(
@@ -422,6 +1366,88 @@ class DriveGame:
             final_text = self.font_large.render("FINAL LAP!", True, COLOR_RED)
             final_rect = final_text.get_rect(center=(self.screen_width // 2, 140))
             screen.blit(final_text, final_rect)
+            
+        # Turn indicators for enhanced racing experience
+        if self.turn_state != "straight":
+            turn_direction = self.turn_state.replace("turning_", "").upper()
+            turn_text = f"{turn_direction} TURN - {int(self.turn_progress * 100)}%"
+            turn_surface = self.font_small.render(turn_text, True, COLOR_WHITE)
+            turn_rect = turn_surface.get_rect(right=self.screen_width - 20, top=60)
+            screen.blit(turn_surface, turn_rect)
+            
+            # Turn intensity indicator
+            intensity_text = f"Intensity: {int(self.turn_intensity * 100)}%"
+            intensity_surface = self.font_small.render(intensity_text, True, COLOR_WHITE)
+            intensity_rect = intensity_surface.get_rect(right=self.screen_width - 20, top=80)
+            screen.blit(intensity_surface, intensity_rect)
+            
+            # Car rotation indicator (for debugging/feedback)
+            rotation_text = f"Rotation: {self.car_rotation:.1f}°"
+            rotation_surface = self.font_small.render(rotation_text, True, COLOR_WHITE)
+            rotation_rect = rotation_surface.get_rect(right=self.screen_width - 20, top=100)
+            screen.blit(rotation_surface, rotation_rect)
+            
+        # Drift indicator (when drifting)
+        if self.drift_factor > 0.1:
+            drift_text = f"DRIFT! {int(self.drift_factor * 100)}%"
+            drift_color = COLOR_YELLOW if self.drift_factor < 0.7 else COLOR_RED
+            drift_surface = self.font_large.render(drift_text, True, drift_color)
+            drift_rect = drift_surface.get_rect(center=(self.screen_width // 2, 180))
+            screen.blit(drift_surface, drift_rect)
+            
+        # Off-road warning indicators
+        is_off_road = (self.player_x < self.road_left_edge or self.player_x > self.road_right_edge)
+        
+        if is_off_road or self.off_road_penalty > 0.1:
+            # Main off-road warning
+            if is_off_road:
+                warning_text = "OFF ROAD!"
+                warning_color = COLOR_RED
+            else:
+                warning_text = f"SPEED PENALTY: {int(self.off_road_penalty * 100)}%"
+                warning_color = COLOR_YELLOW
+                
+            warning_surface = self.font_large.render(warning_text, True, warning_color)
+            warning_rect = warning_surface.get_rect(center=(self.screen_width // 2, 220))
+            screen.blit(warning_surface, warning_rect)
+            
+            # Off-road timer (if significant)
+            if self.off_road_timer > 0.2:
+                timer_text = f"Off-road: {self.off_road_timer:.1f}s"
+                timer_surface = self.font_small.render(timer_text, True, COLOR_WHITE)
+                timer_rect = timer_surface.get_rect(center=(self.screen_width // 2, 245))
+                screen.blit(timer_surface, timer_rect)
+        
+        # Collision indicators
+        if self.collision_speed_penalty > 0.05:  # Show if significant collision penalty
+            collision_text = f"COLLISION DAMAGE: {int(self.collision_speed_penalty * 100)}%"
+            collision_color = COLOR_YELLOW if self.collision_speed_penalty < 0.3 else COLOR_RED
+            collision_surface = self.font_large.render(collision_text, True, collision_color)
+            collision_rect = collision_surface.get_rect(center=(self.screen_width // 2, 270))
+            screen.blit(collision_surface, collision_rect)
+            
+            # Show last collision type for feedback
+            if self.last_collision_type:
+                type_text = f"Hit {self.last_collision_type.upper()}"
+                type_surface = self.font_small.render(type_text, True, COLOR_WHITE)
+                type_rect = type_surface.get_rect(center=(self.screen_width // 2, 295))
+                screen.blit(type_surface, type_rect)
+        
+        # Collision flash effect
+        if self.collision_flash_timer > 0:
+            # Create red flash overlay
+            flash_alpha = int(128 * (self.collision_flash_timer / 0.3))  # Fade out over 300ms
+            flash_surface = pygame.Surface((self.screen_width, self.screen_height))
+            flash_surface.set_alpha(flash_alpha)
+            flash_surface.fill(COLOR_RED)
+            screen.blit(flash_surface, (0, 0))
+        
+        # Road boundary indicators (debug info)
+        if self.turn_state != "straight":  # Only show during turns when boundaries matter most
+            boundary_text = f"Road: {self.road_left_edge:.2f} - {self.road_right_edge:.2f}"
+            boundary_surface = self.font_small.render(boundary_text, True, COLOR_WHITE)
+            boundary_rect = boundary_surface.get_rect(right=self.screen_width - 20, top=120)
+            screen.blit(boundary_surface, boundary_rect)
             
     def _draw_ready_screen(self, screen):
         """Draw the ready state screen."""
@@ -563,6 +1589,7 @@ class DriveGame:
         self.player_speed = 0.0
         self.player_x = 0.5
         self.road_position = 0.0
+        self.width_oscillation = 0.0  # Reset width oscillation
         self.distance_traveled = 0.0
         self.top_speed_reached = 0.0
         self.score = 0

@@ -29,7 +29,7 @@
 
 ### 🎯 Key Features
 - **Choose Your Hero**: Play as Danger, Rose, or unlock their snowboarding Dad
-- **3 Epic Minigames**: Ski down treacherous mountains, splash targets at the pool, and survive Vegas!
+- **4 Epic Minigames**: Drive through highway traffic, ski down treacherous mountains, splash targets at the pool, and survive Vegas!
 - **Local Co-op**: Up to 3 players on one screen
 - **Retro Pixel Art**: Classic arcade style with modern gameplay
 - **Boss Battles**: Face off against the notorious Vegas Sphere
@@ -50,12 +50,22 @@
     </tr>
     <tr>
       <td align="center">
+        <img src="docs/images/drive-game.png" alt="Drive Minigame" width="300"><br>
+        <b>Highway Drive</b>
+      </td>
+      <td align="center">
         <img src="docs/images/ski-game.png" alt="Ski Minigame" width="300"><br>
         <b>Ski Downhill</b>
       </td>
+    </tr>
+    <tr>
       <td align="center">
         <img src="docs/images/pool-game.png" alt="Pool Minigame" width="300"><br>
         <b>Pool Splash</b>
+      </td>
+      <td align="center">
+        <img src="docs/images/vegas-game.png" alt="Vegas Minigame" width="300"><br>
+        <b>Vegas Battle</b>
       </td>
     </tr>
   </table>
@@ -173,6 +183,7 @@ poetry run python src/main.py
 
 ### Hub World
 The apartment is your home base! Walk around and interact with:
+- **🚗 Purple Door**: Enter the Drive minigame - Race through highway traffic!
 - **🎿 Blue Door**: Enter the Ski minigame
 - **🏊 Green Door**: Enter the Pool minigame
 - **🎰 Red Door**: Enter the Vegas minigame
@@ -190,6 +201,16 @@ The apartment is your home base! Walk around and interact with:
 | Aim (Pool) | Mouse | Right Stick |
 
 ## 🎯 Game Modes
+
+### 🚗 Highway Drive
+OutRun-inspired racing through dynamic highway traffic!
+- **The Challenge**: Race for 2 minutes while avoiding crashes
+- **Traffic System**: 4-lane highway with realistic bidirectional flow
+- **Obstacles**: Cars and semi trucks with collision penalties
+- **Music Selection**: Choose your driving soundtrack from 3 tracks
+- **Vehicle Choice**: Pick from 3 different EV cars with unique handling
+- **Pro Tip**: Trucks cause 40% speed penalty vs 20% for cars!
+- **High Score Target**: 15,000+ points
 
 ### 🎿 Ski Downhill
 Race down the mountain while Dad chases you on his snowboard!

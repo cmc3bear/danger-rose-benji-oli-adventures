@@ -1,0 +1,6 @@
+{
+  "title": "Fix Road Width Oscillation",
+  "body": "## Problem\nRoad width currently oscillates up to 75% of its size, creating unrealistic and jarring visual experience.\n\n## Current State\n- Road width changes are too rapid and extreme\n- Creates unrealistic visual experience\n- Width oscillation conflated with curve calculation\n- Located in `src/scenes/drive.py` road rendering logic\n\n## Desired State\n- Road width maintains consistent base size\n- Subtle oscillations (±5%) to simulate movement\n- Smooth, realistic width variations\n- Separate width calculation from curve calculation\n\n## Maturity Gate\n- Width variance <10% from base width\n- Width changes are smooth and gradual\n- No visual artifacts or sudden jumps\n- Maintains 60 FPS performance\n\n## Agent Assignments\n- **Implementation:** road-physics-engineer\n- **Review:** performance-guardian, physics-auditor\n- **Mediation:** technical-lead",
+  "labels": ["enhancement", "phase-1", "road-system", "high-priority"],
+  "milestone": 2
+}

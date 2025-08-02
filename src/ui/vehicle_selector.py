@@ -152,7 +152,10 @@ class VehicleSelector:
                             return "vehicle_selected"
                         else:
                             self.selected_index = i
-                            self.sound_manager.play_sfx("menu_move.ogg")
+                            try:
+                                self.sound_manager.play_sfx("menu_move.ogg")
+                            except Exception:
+                                pass  # Sound file might not be available
                             
         return None
     
@@ -160,19 +163,28 @@ class VehicleSelector:
         """Select the previous vehicle."""
         if self.selected_index > 0:
             self.selected_index -= 1
-            self.sound_manager.play_sfx("menu_move.ogg")
+            try:
+                self.sound_manager.play_sfx("menu_move.ogg")
+            except Exception:
+                pass  # Sound file might not be available
     
     def _select_next(self):
         """Select the next vehicle."""
         if self.selected_index < len(self.vehicles) - 1:
             self.selected_index += 1
-            self.sound_manager.play_sfx("menu_move.ogg")
+            try:
+                self.sound_manager.play_sfx("menu_move.ogg")
+            except Exception:
+                pass  # Sound file might not be available
     
     def _confirm_selection(self):
         """Confirm the current selection."""
         self.state = "confirmed"
         self.confirm_animation_time = 0
-        self.sound_manager.play_sfx("menu_select.ogg")
+        try:
+            self.sound_manager.play_sfx("menu_select.ogg")
+        except Exception:
+            pass  # Sound file might not be available
     
     def get_selected_vehicle(self) -> str:
         """Get the ID of the selected vehicle."""
