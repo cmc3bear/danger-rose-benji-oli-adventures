@@ -121,6 +121,8 @@ class DriveGame:
         self.active_effects = []         # List of active hazard effects
         self.slip_factor = 1.0          # Steering multiplier (1.0 = normal, 0.3 = slippery)
         self.effect_visual_timer = 0.0   # Timer for visual feedback
+        self.slip_spin_angle = 0.0      # Current spin angle during slip effect
+        self.slip_spin_speed = 720.0    # Degrees per second for 360 spin
         
         # Street boundary system
         self.off_road_timer = 0.0        # Time spent off-road
@@ -1387,14 +1389,14 @@ class DriveGame:
         """Update spawning of dynamic hazards based on traffic and conditions."""
         # Oil slicks from trucks
         for npc in self.npc_cars:
-            if npc.vehicle_type == "truck" and npc.y > 0 and random.random() < 0.01:  # Increased rate for testing
+            if npc.vehicle_type == "truck" and npc.y > 0 and random.random() < 0.003:  # Moderate spawn rate
                 # Spawn oil slick behind truck
                 oil_x = npc.x + random.uniform(-0.02, 0.02)
                 oil_y = npc.y - 50
                 self._spawn_dynamic_hazard("oil_slick", oil_x, oil_y, "truck")
         
         # Random debris spawning
-        if random.random() < 0.005:  # Increased rate for testing
+        if random.random() < 0.002:  # Moderate spawn rate
             debris_x = random.uniform(0.2, 0.8)
             debris_y = self.horizon_y + 500
             self._spawn_dynamic_hazard("debris", debris_x, debris_y, "random")
@@ -1406,6 +1408,7 @@ class DriveGame:
         """Update active hazard effects on the player."""
         # Reset slip factor
         self.slip_factor = 1.0
+        has_slip_effect = False
         
         # Update active effects
         effects_to_remove = []
@@ -1417,6 +1420,7 @@ class DriveGame:
             if effect["type"] == "slip":
                 # Reduce steering control (multiplicative for multiple effects)
                 self.slip_factor *= effect["strength"]
+                has_slip_effect = True
             
             # Remove expired effects
             if effect["timer"] <= 0:
@@ -1425,6 +1429,18 @@ class DriveGame:
         # Remove expired effects
         for i in reversed(effects_to_remove):
             self.active_effects.pop(i)
+        
+        # Update slip spin animation
+        if has_slip_effect:
+            # Spin the car during slip effect
+            self.slip_spin_angle += self.slip_spin_speed * dt
+            if self.slip_spin_angle >= 360:
+                self.slip_spin_angle -= 360
+        else:
+            # Smoothly return to normal rotation
+            if self.slip_spin_angle > 0:
+                return_speed = 1080 * dt  # Faster return to normal
+                self.slip_spin_angle = max(0, self.slip_spin_angle - return_speed)
         
         # Update visual timer
         if self.effect_visual_timer > 0:
@@ -1939,9 +1955,10 @@ class DriveGame:
                 (self.car_width, self.car_height)
             )
             
-            # Apply rotation for turn physics (15-20% as specified in master plan)
-            if abs(self.car_rotation) > 0.1:  # Only rotate if meaningful angle
-                rotated_sprite = pygame.transform.rotate(scaled_sprite, -self.car_rotation)  # Negative for correct direction
+            # Apply rotation for turn physics and slip spin
+            total_rotation = self.car_rotation + self.slip_spin_angle
+            if abs(total_rotation) > 0.1:  # Only rotate if meaningful angle
+                rotated_sprite = pygame.transform.rotate(scaled_sprite, -total_rotation)  # Negative for correct direction
             else:
                 rotated_sprite = scaled_sprite
             
