@@ -109,9 +109,10 @@ Character Modifiers:
 │                                     │
 │         [Player Spawn]              │
 │                                     │
-│              ┌─────┐                │
-│              │Vegas│                │
-│              └─────┘                │
+│  ┌──────┐   ┌─────┐                │
+│  │Office│   │Vegas│                │
+│  │(Type)│   └─────┘                │
+│  └──────┘                          │
 └─────────────────────────────────────┘
 ```
 
@@ -521,10 +522,11 @@ play_sfx("splash", volume=splash_volume)
 ## Future Expansion Ideas
 
 ### Potential New Minigames
-1. **Kitchen Chaos**: Cooking time management
-2. **Garage Band**: Rhythm game
-3. **Garden Guardian**: Tower defense
-4. **Toy Box Rumble**: Fighting game
+1. **Code Quest Typing Tutor**: Educational typing adventure in Dad's home office
+2. **Kitchen Chaos**: Cooking time management
+3. **Garage Band**: Rhythm game
+4. **Garden Guardian**: Tower defense
+5. **Toy Box Rumble**: Fighting game
 
 ### Seasonal Events
 - **Winter**: Special ski challenges

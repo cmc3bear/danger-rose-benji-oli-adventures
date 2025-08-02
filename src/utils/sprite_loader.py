@@ -6,6 +6,24 @@ import pygame
 from src.config.constants import COLOR_PLACEHOLDER
 
 
+def load_vehicle_sprite(vehicle_name: str) -> pygame.Surface:
+    """Load a vehicle sprite for the drive minigame.
+    
+    Args:
+        vehicle_name: Name of the vehicle (e.g., 'professional' or 'kids_drawing')
+        
+    Returns:
+        The loaded vehicle sprite surface
+    """
+    # Get the path to the vehicle sprite
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(os.path.dirname(current_dir))
+    vehicle_path = os.path.join(project_root, "assets", "images", "vehicles", f"ev_{vehicle_name}.png")
+    
+    # Load and return the sprite
+    return load_image(vehicle_path, scale=(128, 192))
+
+
 def load_image(path: str, scale: tuple | None = None) -> pygame.Surface:
     """Load an image from an absolute path."""
     if not os.path.exists(path):

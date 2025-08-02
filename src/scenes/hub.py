@@ -64,9 +64,10 @@ class HubWorld:
 
         # Create door objects
         self.doors = [
-            Door(200, 100, 100, 150, "ski", "Ski Game", (100, 150, 255)),
-            Door(400, 100, 100, 150, "pool", "Pool Game", (50, 200, 100)),
-            Door(600, 100, 100, 150, "vegas", "Vegas Game", (200, 50, 200)),
+            Door(150, 100, 100, 150, "ski", "Ski Game", (100, 150, 255)),
+            Door(300, 100, 100, 150, "pool", "Pool Game", (50, 200, 100)),
+            Door(450, 100, 100, 150, "vegas", "Vegas Game", (200, 50, 200)),
+            Door(600, 100, 100, 150, "drive", "Highway Drive", (128, 0, 128)),  # Purple door
         ]
 
         # Track which door is highlighted
