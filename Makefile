@@ -28,10 +28,18 @@ help: ## Show this help message
 	@echo "  make test-game    Run game tests only"
 	@echo "  make test-all     Run all tests including integration"
 	@echo "  make test-visual  Run visual regression tests"
-	@echo "  make test-audio   Run audio validation tests"
+	@echo "  make test-audio   Run comprehensive audio test suite"
 	@echo "  make test-auto    Run automated bug detection"
 	@echo "  make coverage     Run tests with coverage report"
 	@echo "  make check        Run all checks (lint + test)"
+	@echo ""
+	@echo "Audio Testing:"
+	@echo "  make test-audio-quick         Quick audio tests"
+	@echo "  make test-audio-performance   Audio performance tests"
+	@echo "  make test-audio-accessibility Audio accessibility tests"
+	@echo "  make test-audio-integration   Audio integration tests"
+	@echo "  make test-audio-stress        Audio stress tests"
+	@echo "  make validate-audio-assets    Validate audio files"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  make lint         Check code style"
@@ -194,10 +202,46 @@ test-visual: ## Run visual regression tests
 	@echo "Check visual_test_results/ for reports"
 
 .PHONY: test-audio
-test-audio: ## Run audio validation tests
-	@echo "🔊 Running audio validation..."
-	poetry run python tools/audio_validator.py
-	@echo "Check audio_test_results/ for reports"
+test-audio: ## Run comprehensive audio test suite
+	@echo "🔊 Running comprehensive audio test suite..."
+	poetry run python tools/audio_test_suite.py
+	@echo "Check audio_test_report.txt for detailed results"
+
+.PHONY: test-audio-quick
+test-audio-quick: ## Run quick audio tests only
+	@echo "🔊 Running quick audio tests..."
+	poetry run python tools/audio_test_suite.py --quick
+	@echo "Quick audio test completed"
+
+.PHONY: test-audio-performance
+test-audio-performance: ## Run audio performance tests
+	@echo "⚡ Running audio performance tests..."
+	poetry run python tools/audio_test_suite.py --category performance
+	@echo "Performance test completed"
+
+.PHONY: test-audio-accessibility
+test-audio-accessibility: ## Run audio accessibility tests
+	@echo "♿ Running audio accessibility tests..."
+	poetry run python tools/audio_test_suite.py --category accessibility
+	@echo "Accessibility test completed"
+
+.PHONY: test-audio-integration
+test-audio-integration: ## Run audio integration tests
+	@echo "🔗 Running audio integration tests..."
+	poetry run python tools/audio_test_suite.py --category integration
+	@echo "Integration test completed"
+
+.PHONY: test-audio-stress
+test-audio-stress: ## Run audio stress tests
+	@echo "💪 Running audio stress tests..."
+	poetry run python tools/audio_test_suite.py --stress
+	@echo "Stress test completed"
+
+.PHONY: validate-audio-assets
+validate-audio-assets: ## Validate audio asset files
+	@echo "🎵 Validating audio assets..."
+	poetry run python tools/audio_validator.py --all
+	@echo "Audio asset validation completed"
 
 .PHONY: test-auto
 test-auto: ## Run automated bug detection (quick 30s test)

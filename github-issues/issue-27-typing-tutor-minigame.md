@@ -6,145 +6,170 @@ Add a new educational typing tutor mini-game to the Danger Rose hub world, teach
 ## 🎯 Objective
 Create an engaging typing adventure that helps kids learn proper typing technique while fitting seamlessly into the Danger Rose universe.
 
-## 🎮 Game Concept: "Code Quest Typing Adventure"
+## 🎮 Game Concept: "Hacker-Man Typing Challenge"
 
 ### Core Mechanics
-- **Typing-based gameplay** where words/code snippets appear on screen
-- **Adventure storyline** with Dad teaching programming fundamentals
-- **Progressive difficulty** starting with single letters, advancing to full code blocks
-- **Visual feedback** with characters reacting to typing accuracy
-- **Educational content** mixing basic typing with simple programming concepts
+- **Hacker-themed typing gameplay** where you "hack" into systems by typing code
+- **Cyberpunk adventure storyline** with Dad as a friendly white-hat hacker teaching ethical coding
+- **Progressive difficulty** starting with passwords, advancing to complex scripts
+- **Matrix-style visual feedback** with green cascading text and terminal aesthetics
+- **Educational content** mixing typing skills with programming and cybersecurity concepts
 
 ### Gameplay Flow
-1. **Enter Dad's Home Office** (new hub door)
-2. **Choose lesson type**: Letters → Words → Code → Free Type
-3. **Type prompts** appear with visual context
-4. **Character animations** respond to typing speed/accuracy
-5. **Unlock new lessons** based on performance
-6. **Earn typing badges** for speed and accuracy milestones
+1. **Click on the laptop** in the hub world (middle of living room table)
+2. **Boot into "HackerOS"**: Terminal-style interface with retro CRT effects
+3. **Choose mission type**: Passwords → Commands → Scripts → Live Hacking
+4. **Type prompts** appear as terminal commands with urgency timers
+5. **"Hack" systems** successfully to unlock new challenges
+6. **Earn hacker badges** for speed, accuracy, and mission completion
 
 ## 🏠 Hub Integration
 
-### New Hub Area: Dad's Home Office
-- **Location**: New door in the apartment (near window)
-- **Visual Theme**: Cozy office with computer desk, programming books, coffee mug
-- **Interactive Elements**:
-  - Computer monitor (game entry point)
-  - Bookshelf with programming books
-  - Whiteboard with code snippets
-  - Trophy case for typing achievements
+### Laptop Sprite in Hub World
+- **Location**: Center of living room table
+- **Visual Design**: Retro gaming laptop with RGB keyboard glow
+- **States**:
+  - Closed: Normal laptop appearance
+  - Open: Screen shows "HackerOS" boot screen with Matrix-style rain
+  - Active: Pulsing green glow when player is nearby
+- **Interaction**: Press 'E' when near to "boot into the mainframe"
 
-### Door Design
-- **Color**: Orange/amber (programmer theme)
-- **Icon**: Keyboard symbol
-- **Unlock**: Available from start (educational priority)
-- **Visual States**: Glowing when new lessons available
+### Visual Details
+- **Laptop Model**: Chunky retro design with visible cooling vents
+- **Screen Effect**: CRT monitor shader with slight curve and scanlines
+- **Keyboard**: Backlit keys with green/amber glow
+- **Stickers**: Hacker-themed decals (skull, binary code, "HACK THE PLANET")
 
 ## 🎓 Educational Progression
 
-### Level 1: Letter Adventures
+### Level 1: Password Cracker
 - **Objective**: Learn home row keys (ASDF JKL;)
-- **Theme**: "Spell ingredients for Dad's coffee"
-- **Prompts**: Single letters appearing as floating coffee beans
-- **Success**: Letters disappear with satisfying pop sound
+- **Theme**: "Crack simple passwords to access training systems"
+- **Prompts**: Single letters and numbers in terminal green
+- **Visual**: Matrix-style character rain, letters glow when typed correctly
+- **Success**: "ACCESS GRANTED" with digital unlock sound
 - **Progression**: 80% accuracy to advance
 
-### Level 2: Word Wizardry
-- **Objective**: Type complete words accurately
-- **Theme**: "Programming vocabulary quest"
-- **Prompts**: Simple programming terms (loop, code, debug, test)
-- **Visual**: Words appear as magical scrolls
+### Level 2: Command Line Master
+- **Objective**: Type complete terminal commands accurately
+- **Theme**: "Execute hacking commands to infiltrate systems"
+- **Prompts**: Unix/Linux commands (ls, cd, grep, sudo, chmod)
+- **Visual**: Terminal window with blinking cursor, command history sidebar
+- **Examples**:
+  - `ls -la /secret/files/`
+  - `grep password *.log`
+  - `sudo apt-get upgrade`
 - **Progression**: 15 WPM average speed
 
-### Level 3: Code Constructor
-- **Objective**: Type code snippets and syntax
-- **Theme**: "Help Dad fix bugs in his programs"
-- **Prompts**: Simple Python/JavaScript lines
+### Level 3: Script Kiddie
+- **Objective**: Type code snippets and hacking scripts
+- **Theme**: "Write scripts to automate your hacking"
+- **Prompts**: Python/JavaScript hacking tools
 - **Examples**: 
-  - `print("Hello World")`
-  - `for i in range(10):`
-  - `if score > 100:`
-- **Visual**: Code appears on Dad's computer screen
+  - `import socket; s = socket.socket()`
+  - `nmap.scan(hosts='192.168.1.0/24')`
+  - `if password == decrypt(hash):`
+- **Visual**: Split screen - code editor + terminal output
 - **Progression**: 25 WPM with 90% accuracy
 
-### Level 4: Speed Coder
-- **Objective**: Fast, accurate typing of longer code blocks
-- **Theme**: "Race against the compile timer"
-- **Prompts**: Multi-line functions and classes
-- **Visual**: Progress bar showing "compilation" time
-- **Challenge**: Beat Dad's typing speed records
+### Level 4: Elite Hacker
+- **Objective**: Fast typing of complex code under time pressure
+- **Theme**: "Live hacking scenarios with countdown timers"
+- **Prompts**: Multi-line exploit code, firewall bypass scripts
+- **Visual**: Multiple terminal windows, system alerts, trace route animations
+- **Challenge**: "Hack" before security traces your location
+- **Special**: Dad appears as mentor giving hints via encrypted messages
 
 ## 🎨 Visual Design
 
 ### Character Integration
-- **Dad Character**: Appears as patient teacher, giving encouraging feedback
-- **Danger & Rose**: Can watch and cheer from the side
+- **Dad Character**: Appears in corner as "HackerDad" with hoodie and laptop
 - **Visual Feedback**:
-  - ✅ Correct typing: Character smiles, positive animations
-  - ❌ Mistakes: Gentle correction animations, no harsh penalties
-  - 🔥 Speed streaks: Excitement animations, particle effects
+  - ✅ Correct typing: Green text streams, "SYSTEM BREACHED" messages
+  - ❌ Mistakes: Red alert flashes, "INTRUSION DETECTED" warnings
+  - 🔥 Speed streaks: Matrix rain intensifies, terminal glows brighter
+  - 💀 Game Over: "TRACED" with sirens (but friendly restart)
 
-### UI Elements
-- **Typing Area**: Large, clear text with cursor
-- **Progress Indicators**: WPM meter, accuracy percentage
-- **Lesson Progress**: Completion bars for each skill level
-- **Achievement Display**: Badges earned for milestones
+### Hacker UI Elements
+- **Terminal Window**: Retro CRT monitor with green phosphor glow
+- **Text Display**: Monospace font with scanline effects
+- **Progress Indicators**: 
+  - Hack Progress Bar: Shows system penetration percentage
+  - Trace Timer: Countdown before security finds you
+  - Firewall Strength: Visual barriers to break through
+- **Background**: Dark room with multiple monitors, server racks blinking
+
+### Visual Effects
+- **Matrix Rain**: Cascading green characters in background
+- **Glitch Effects**: Screen distortion when making mistakes
+- **Neon Glow**: Text and UI elements have cyberpunk neon edges
+- **ASCII Art**: Rewards and achievements shown as ASCII art
 
 ### Theme Consistency
-- **Color Palette**: Warm oranges and blues (coder theme)
-- **Font**: Monospace for code, clean sans-serif for UI
-- **Sound Design**: Satisfying keystroke sounds, achievement chimes
+- **Color Palette**: Matrix green (#00FF00), amber warnings, red alerts
+- **Font**: Classic terminal fonts (Consolas, Monaco, Courier)
+- **Sound Design**: Mechanical keyboard clicks, modem sounds, electronic beeps
 
 ## 🏆 Progression & Rewards
 
-### Typing Badges
-- **First Steps**: Complete first lesson
-- **Home Row Hero**: Master home row keys
-- **Word Warrior**: Type 100 words correctly
-- **Syntax Samurai**: Complete first code lesson
-- **Speed Demon**: Achieve 30+ WPM
-- **Accuracy Ace**: Maintain 95% accuracy for full lesson
-- **Code Master**: Complete all lessons
+### Hacker Badges
+- **Script Kiddie**: Complete first hack
+- **Password Cracker**: Break 10 passwords
+- **Terminal Velocity**: Type 50 commands correctly
+- **Zero Cool**: Reference to "Hackers" movie - achieve 30+ WPM
+- **White Hat**: Complete ethical hacking lessons
+- **1337 H4x0r**: Maintain 95% accuracy in elite mode
+- **Ghost in the Shell**: Complete all missions undetected
+- **Neo**: Master the Matrix typing mode
 
 ### Unlockables
-- **Keyboard Themes**: Different visual styles for the typing interface
-- **Dad's Stories**: Unlock programming history mini-lessons
-- **Custom Lessons**: Create your own typing challenges
-- **Family Leaderboard**: Compare typing speeds with other family members
+- **Terminal Themes**: Different hacker aesthetics (Matrix, Cyberpunk, Retro)
+- **Hack Tools**: New commands and scripts to learn
+- **Easter Eggs**: Hidden references to hacker culture
+- **Avatar Customization**: Hoodie colors, masks, laptop stickers
+- **Secret Missions**: Unlock bonus "hack the planet" challenges
 
 ## 🎵 Audio Design
 
-### Music Theme: "Productive Focus"
-- **Style**: Lo-fi hip hop with subtle electronic elements
-- **Tempo**: 90-100 BPM (conducive to focus)
-- **Instruments**: Soft piano, ambient pads, gentle percussion
-- **Dynamic**: Music tempo slightly increases with typing speed
+### Music Theme: "Digital Infiltration"
+- **Style**: Synthwave/Darksynth with cyberpunk elements
+- **Tempo**: 120-140 BPM (building tension)
+- **Instruments**: Analog synths, electronic drums, glitch effects
+- **Dynamic**: Music intensifies as trace timer counts down
 
 ### Sound Effects
-- **Keystroke**: Satisfying mechanical keyboard sounds
-- **Correct Word**: Gentle chime or bell
-- **Mistake**: Soft "whoosh" (not harsh)
-- **Achievement**: Celebratory fanfare
-- **Background**: Subtle coffee brewing, page turning
+- **Keystroke**: Mechanical keyboard with echo (Cherry MX Blue style)
+- **Correct Entry**: Digital beep, data stream sound
+- **Access Granted**: Electronic unlock, system breach alert
+- **Mistake**: Error buzz, firewall detection sound
+- **Time Warning**: Increasing alarm beeps as trace approaches
+- **Background**: Server fans, hard drive clicks, modem dial-up nostalgia
+- **Success**: "HACK COMPLETE" with triumphant synth stinger
 
 ## 🔧 Technical Implementation
 
 ### New Files Needed
 ```
-src/scenes/typing_tutor.py          # Main typing game scene
-src/entities/typing_interface.py    # UI for text input/display
-src/entities/lesson_manager.py      # Handles lesson progression
-src/utils/typing_metrics.py         # WPM, accuracy calculations
-assets/audio/music/typing_theme.ogg # Background music
-assets/audio/sfx/keystroke_*.ogg    # Typing sound effects
-assets/images/ui/keyboard_*.png     # Visual keyboard reference
+src/scenes/hacker_typing.py         # Main hacker typing game scene
+src/entities/laptop.py              # Interactive laptop entity for hub
+src/entities/terminal_ui.py         # Terminal interface with CRT effects
+src/entities/hack_manager.py        # Manages hacking missions/progress
+src/utils/typing_metrics.py         # WPM, accuracy, trace timer
+src/effects/matrix_rain.py          # Matrix-style background effect
+src/effects/crt_shader.py           # CRT monitor visual effects
+assets/audio/music/hacker_theme.ogg # Synthwave background music
+assets/audio/sfx/keyboard_*.ogg     # Mechanical keyboard sounds
+assets/audio/sfx/hack_*.ogg         # Hacking sound effects
+assets/images/entities/laptop_*.png # Laptop sprite states
+assets/images/ui/terminal_*.png     # Terminal UI elements
 ```
 
 ### Integration Points
-- **Hub Scene**: Add new door and office area
-- **Scene Manager**: Register typing tutor scene
-- **Save System**: Track lesson progress and achievements
-- **Audio System**: Typing-specific sound management
+- **Hub Scene**: Add laptop entity on living room table
+- **Scene Manager**: Register hacker typing scene
+- **Save System**: Track hacking progress and unlocked tools
+- **Audio System**: Cyberpunk-specific sound management
+- **Effects System**: Matrix rain and CRT shader implementation
 
 ## 📊 Success Metrics
 
@@ -218,17 +243,29 @@ assets/images/ui/keyboard_*.png     # Visual keyboard reference
 
 ## 📝 Notes for Developers
 
-This mini-game aligns perfectly with Danger Rose's educational philosophy while teaching a practical life skill. The typing tutor should feel like a natural extension of Dad's character as a programmer and mentor.
+This mini-game combines typing education with a fun hacker theme that appeals to kids while teaching ethical computer use. The "HackerDad" character reinforces positive hacking (white hat) principles.
 
 **Key Design Principles:**
-- Learning through play, not drill-and-kill
-- Positive reinforcement over penalty for mistakes
-- Progressive skill building from basic to advanced
-- Family-friendly competitive elements
-- Real-world applicable skills (both typing and basic programming concepts)
+- Make typing feel like an exciting hacking adventure
+- Emphasize ethical hacking and cybersecurity awareness
+- Use familiar hacker culture references appropriately
+- Balance challenge with accessibility for young players
+- Teach real commands and programming concepts
+
+**Ethical Hacking Education:**
+- Always frame hacking as problem-solving and security testing
+- Include messages about responsible computer use
+- Show consequences of malicious hacking (getting "traced")
+- Reward ethical choices and learning
+
+**Visual Implementation:**
+- Laptop should be prominent but not obstruct table view
+- CRT effects should be nostalgic but not strain eyes
+- Matrix rain should be background element, not distracting
+- Terminal text must be highly readable despite effects
 
 **Integration with Existing Game:**
-- Maintains visual consistency with other mini-games
-- Uses existing character assets and personalities
-- Fits naturally into the apartment hub world
-- Follows established progression and achievement patterns
+- Laptop fits naturally on living room table
+- Maintains retro gaming aesthetic with cyberpunk twist
+- Uses existing interaction system (E to interact)
+- Follows established achievement and progression patterns
