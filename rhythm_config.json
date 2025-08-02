@@ -1,0 +1,53 @@
+{
+  "difficulty_settings": {
+    "easy": {
+      "slow_bpm_modifier": 0.6,
+      "normal_bpm_modifier": 0.8,
+      "fast_bpm_modifier": 1.0,
+      "base_traffic_density": 0.3,
+      "bpm_density_factor": 0.2,
+      "beat_tolerance": 0.15,
+      "visual_assists": true,
+      "audio_assists": true,
+      "on_beat_bonus": 1.1,
+      "rhythm_streak_bonus": 0.05
+    },
+    "normal": {
+      "slow_bpm_modifier": 0.8,
+      "normal_bpm_modifier": 1.0,
+      "fast_bpm_modifier": 1.3,
+      "base_traffic_density": 0.5,
+      "bpm_density_factor": 0.2,
+      "beat_tolerance": 0.1,
+      "visual_assists": true,
+      "audio_assists": false,
+      "on_beat_bonus": 1.2,
+      "rhythm_streak_bonus": 0.1
+    },
+    "hard": {
+      "slow_bpm_modifier": 1.0,
+      "normal_bpm_modifier": 1.2,
+      "fast_bpm_modifier": 1.5,
+      "base_traffic_density": 0.7,
+      "bpm_density_factor": 0.2,
+      "beat_tolerance": 0.075,
+      "visual_assists": false,
+      "audio_assists": false,
+      "on_beat_bonus": 1.5,
+      "rhythm_streak_bonus": 0.15
+    },
+    "expert": {
+      "slow_bpm_modifier": 1.2,
+      "normal_bpm_modifier": 1.5,
+      "fast_bpm_modifier": 1.8,
+      "base_traffic_density": 0.9,
+      "bpm_density_factor": 0.2,
+      "beat_tolerance": 0.05,
+      "visual_assists": false,
+      "audio_assists": false,
+      "on_beat_bonus": 2.0,
+      "rhythm_streak_bonus": 0.2
+    }
+  },
+  "gameplay_settings": {
+    "rhythm_intensity": 

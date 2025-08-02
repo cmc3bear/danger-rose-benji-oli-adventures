@@ -36,12 +36,14 @@ graph TD
     D --> E[Ski Minigame]
     D --> F[Pool Minigame]
     D --> G[Vegas Minigame]
-    E --> H[Score & Rewards]
-    F --> H
-    G --> H
-    H --> C
-    H --> I[Unlock Content]
+    D --> H[Typing Challenge]
+    E --> I[Score & Rewards]
+    F --> I
+    G --> I
+    H --> I
     I --> C
+    I --> J[Unlock Content]
+    J --> C
 ```
 
 ### Session Flow (15-30 minutes)
@@ -108,11 +110,11 @@ Character Modifiers:
 │  └───┘                    └───┘    │
 │                                     │
 │         [Player Spawn]              │
-│                                     │
+│            💻 Laptop                │
 │  ┌──────┐   ┌─────┐                │
-│  │Office│   │Vegas│                │
-│  │(Type)│   └─────┘                │
-│  └──────┘                          │
+│  │ Drive│   │Vegas│                │
+│  └──────┘   └─────┘                │
+│                                     │
 └─────────────────────────────────────┘
 ```
 
@@ -135,6 +137,15 @@ Character Modifiers:
   - Available: Glowing outline
   - New High Score: Sparkle effects
   - 100% Complete: Gold frame
+
+#### Laptop (Hacker Terminal)
+- **Location**: Center of living room table
+- **Visual States**:
+  - Closed: Normal laptop appearance
+  - Open: Terminal screen with Matrix rain effect
+  - Active: Green glow when player approaches
+- **Interaction**: Press E to "hack into the mainframe"
+- **Leads to**: Hacker-Man Typing Challenge
 
 #### Window View
 - Dynamic based on time played
@@ -298,6 +309,60 @@ Phase 3 - Dizzy Face 😵:
   - Super Sword: One-hit kills for 10s
   - Rainbow Rapid: No cooldown for 8s
   - Invincibility Star: 5 seconds
+
+### 💻 Hacker-Man Typing Challenge
+
+#### Core Mechanics
+```mermaid
+stateDiagram-v2
+    [*] --> Menu: Enter Scene
+    Menu --> Challenge: Select Level
+    Challenge --> Typing: Start Challenge
+    Typing --> Success: Complete Text
+    Typing --> Failed: Time Expired
+    Success --> Menu: View Results
+    Failed --> Menu: Retry Option
+    Menu --> [*]: Exit to Hub
+```
+
+#### Gameplay Elements
+- **Interactive Laptop**: Located on living room table in hub world
+- **Hacker Theme**: Matrix-style terminal with green phosphor aesthetic
+- **Progressive Difficulty**: 4 levels from basic passwords to complex scripts
+- **Real-time Feedback**: Character-by-character color coding
+- **Educational Content**: Actual terminal commands and programming syntax
+
+#### Challenge System
+| Level | Name | Focus | WPM Target | Content Type |
+|-------|------|-------|------------|--------------|
+| 1 | Password Cracker | Home row keys | 15 WPM | Simple passwords |
+| 2 | Command Master | Terminal commands | 25 WPM | Unix/Linux commands |
+| 3 | Script Kiddie | Code snippets | 30 WPM | Python/JavaScript |
+| 4 | Elite Hacker | Full programs | 40 WPM | Complete scripts |
+
+#### Scoring System
+```
+Infiltration Score = (
+    base_points +
+    accuracy_bonus +
+    combo_bonus +
+    time_bonus +
+    wmp_bonus
+)
+```
+
+#### Visual Features
+- **CRT Monitor Effects**: Scanlines, phosphor glow, slight curve
+- **Matrix Rain**: Cascading green characters in background  
+- **Terminal Interface**: Authentic command-line aesthetic
+- **Character Status**: Green=correct, Red=incorrect, Yellow=current
+- **Progress Visualization**: "System infiltration" progress bars
+
+#### Educational Aspects
+- **Typing Fundamentals**: Progressive key learning (home row → symbols)
+- **Programming Exposure**: Real code syntax and commands
+- **Cybersecurity Awareness**: Ethical hacking themes and terminology
+- **Performance Metrics**: WPM as "hacking speed", accuracy as "stealth rating"
 
 ## Progression & Unlockables
 
@@ -521,12 +586,14 @@ play_sfx("splash", volume=splash_volume)
 
 ## Future Expansion Ideas
 
-### Potential New Minigames
-1. **Code Quest Typing Tutor**: Educational typing adventure in Dad's home office
-2. **Kitchen Chaos**: Cooking time management
-3. **Garage Band**: Rhythm game
-4. **Garden Guardian**: Tower defense
-5. **Toy Box Rumble**: Fighting game
+### Implemented Minigames
+1. **✅ Hacker-Man Typing Challenge**: Educational typing tutor with cyberpunk theme - COMPLETED v0.1.4
+
+### Future Minigame Ideas
+1. **Kitchen Chaos**: Cooking time management
+2. **Garage Band**: Rhythm game
+3. **Garden Guardian**: Tower defense
+4. **Toy Box Rumble**: Fighting game
 
 ### Seasonal Events
 - **Winter**: Special ski challenges

@@ -4,7 +4,6 @@ import pygame
 from typing import Optional, Dict
 from enum import Enum
 
-from ..base import BaseScene
 from .typing_engine import TypingEngine
 from .terminal_renderer import TerminalRenderer
 from .challenge_manager import ChallengeManager, ChallengeType, Challenge
@@ -18,15 +17,23 @@ class GameState(Enum):
     PAUSED = "paused"
 
 
-class HackerTypingScene(BaseScene):
+class HackerTypingScene:
     """Hacker-themed typing tutor mini-game scene."""
     
     def __init__(self, game):
-        super().__init__(game)
+        self.game = game
         
         # Core components
         self.typing_engine = TypingEngine()
-        self.renderer = TerminalRenderer(self.game.screen.get_width(), self.game.screen.get_height())
+        # Get screen dimensions from pygame display
+        screen = pygame.display.get_surface()
+        if screen:
+            width, height = screen.get_size()
+        else:
+            # Fallback to constants
+            from src.config.constants import SCREEN_WIDTH, SCREEN_HEIGHT
+            width, height = SCREEN_WIDTH, SCREEN_HEIGHT
+        self.renderer = TerminalRenderer(width, height)
         self.challenge_manager = ChallengeManager()
         
         # Game state

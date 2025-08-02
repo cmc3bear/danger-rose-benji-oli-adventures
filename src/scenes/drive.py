@@ -2886,4 +2886,12 @@ class DriveGame:
         """Called when leaving this scene."""
         # Stop any playing music
         self.race_music_manager.stop_race_music(fade_out_ms=500)
+        
+        # Force stop all pygame music to prevent bleed-through
+        pygame.mixer.music.stop()
+        
+        # Clean up any ongoing sounds
+        if hasattr(self, 'music_selector'):
+            self.music_selector.stop_preview()
+            
         return {}
