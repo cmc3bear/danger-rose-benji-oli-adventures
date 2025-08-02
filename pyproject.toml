@@ -1,6 +1,6 @@
 [project]
 name = "danger-rose"
-version = "0.1.0"
+version = "0.1.3"
 description = "A retro-style adventure game featuring Danger, Rose, and their snowboarding Dad"
 license = {text = "MIT"}
 authors = [

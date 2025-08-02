@@ -6,14 +6,14 @@
   **A cozy family game with endless minigame adventures**
 
   <!-- Build & Release -->
-  [![CI/CD](https://github.com/svange/danger-rose/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/svange/danger-rose/actions)
-  [![Release](https://img.shields.io/github/v/release/svange/danger-rose?include_prereleases)](https://github.com/svange/danger-rose/releases)
-  [![Downloads](https://img.shields.io/github/downloads/svange/danger-rose/total)](https://github.com/svange/danger-rose/releases)
+  [![CI/CD](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/actions)
+  [![Release](https://img.shields.io/github/v/release/cmc3bear/danger-rose-benji-oli-adventures?include_prereleases)](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/releases)
+  [![Downloads](https://img.shields.io/github/downloads/cmc3bear/danger-rose-benji-oli-adventures/total)](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/releases)
   
   <!-- Code Quality -->
   [![Python](https://img.shields.io/badge/Python-3.12%2B-blue.svg)](https://www.python.org/downloads/)
   [![Code style: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-  [![Coverage](https://img.shields.io/badge/coverage-55%25-yellow.svg)](https://github.com/svange/danger-rose)
+  [![Coverage](https://img.shields.io/badge/coverage-55%25-yellow.svg)](https://github.com/cmc3bear/danger-rose-benji-oli-adventures)
   
   <!-- Tech Stack -->
   [![Pygame-CE](https://img.shields.io/badge/Pygame--CE-2.5.5-green.svg)](https://pyga.me/)
@@ -21,13 +21,13 @@
   [![PyInstaller](https://img.shields.io/badge/PyInstaller-6.0-orange.svg)](https://www.pyinstaller.org/)
   
   <!-- Project Info -->
-  [![License](https://img.shields.io/github/license/svange/danger-rose)](LICENSE)
-  [![Issues](https://img.shields.io/github/issues/svange/danger-rose)](https://github.com/svange/danger-rose/issues)
+  [![License](https://img.shields.io/github/license/cmc3bear/danger-rose-benji-oli-adventures)](LICENSE)
+  [![Issues](https://img.shields.io/github/issues/cmc3bear/danger-rose-benji-oli-adventures)](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/issues)
   [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](guides/setup/contributing.md)
   
   <!-- Activity -->
-  [![Last Commit](https://img.shields.io/github/last-commit/svange/danger-rose)](https://github.com/svange/danger-rose/commits/main)
-  [![Contributors](https://img.shields.io/github/contributors/svange/danger-rose)](https://github.com/svange/danger-rose/graphs/contributors)
+  [![Last Commit](https://img.shields.io/github/last-commit/cmc3bear/danger-rose-benji-oli-adventures)](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/commits/main)
+  [![Contributors](https://img.shields.io/github/contributors/cmc3bear/danger-rose-benji-oli-adventures)](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/graphs/contributors)
 </div>
 
 ## 🏠 About
