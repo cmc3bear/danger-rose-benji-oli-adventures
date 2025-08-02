@@ -1423,7 +1423,11 @@ class DriveGame:
         
         # Random debris spawning
         if random.random() < 0.002:  # Moderate spawn rate
-            debris_x = random.uniform(0.2, 0.8)
+            # Get current road boundaries
+            road_left, road_right, road_width = self._get_road_boundaries()
+            # Spawn within road boundaries with some margin
+            margin = 0.05  # 5% margin from edges
+            debris_x = random.uniform(road_left + margin, road_right - margin)
             debris_y = self.horizon_y + 500
             self._spawn_dynamic_hazard("debris", debris_x, debris_y, "random")
         
@@ -2004,7 +2008,8 @@ class DriveGame:
             
             # Apply rotation for turn physics and slip spin
             total_rotation = self.car_rotation + self.slip_spin_angle
-            if abs(total_rotation) > 0.1:  # Only rotate if meaningful angle
+            # Always apply rotation if there's any slip spin
+            if abs(total_rotation) > 0.1 or self.slip_spin_angle > 0:
                 rotated_sprite = pygame.transform.rotate(scaled_sprite, -total_rotation)  # Negative for correct direction
             else:
                 rotated_sprite = scaled_sprite
@@ -2114,19 +2119,27 @@ class DriveGame:
             # Calculate fade alpha
             fade_alpha = min(255, int(255 * min(1.0, self.comic_text_fade_timer)))
             
-            # Position near the car
+            # Position near the car but ensure it stays on screen
             car_screen_x = int(self.player_x * self.screen_width)
             bubble_x = car_screen_x + 50
-            bubble_y = self.screen_height - 200
             
-            # Measure text for bubble size
-            text_surface = self.font_large.render(self.current_comic_text, True, COLOR_BLACK)
+            # Keep bubble in the road area (below horizon but above car)
+            bubble_y = self.horizon_y + 150  # Below sky, in road area
+            
+            # Measure text for bubble size - use smaller font
+            text_surface = self.font_small.render(self.current_comic_text, True, COLOR_BLACK)
             text_rect = text_surface.get_rect()
             
-            # Create bubble background
-            bubble_padding = 20
+            # Create bubble background with smaller padding
+            bubble_padding = 15
             bubble_rect = text_rect.inflate(bubble_padding * 2, bubble_padding)
             bubble_rect.center = (bubble_x, bubble_y)
+            
+            # Keep bubble on screen
+            if bubble_rect.right > self.screen_width - 20:
+                bubble_rect.right = self.screen_width - 20
+            if bubble_rect.left < 20:
+                bubble_rect.left = 20
             
             # Draw comic bubble with transparency
             bubble_surface = pygame.Surface((bubble_rect.width, bubble_rect.height), pygame.SRCALPHA)
