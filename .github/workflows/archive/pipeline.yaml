@@ -1,0 +1,1196 @@
+name: Augmenting Integrations 🐍 Continuous Delivery
+
+on: workflow_dispatch
+# disabled for now, but can be enabled later
+#on:
+#  push:
+#    branches:
+#      - main
+#      - dev
+#      - feat/*
+#      - fix/*
+#      - perf/*
+#      - docs/*
+
+env:
+  # Vars from .env file or GitHub Environment
+  TESTING_REGION: ${{ vars.TESTING_REGION }}
+  TESTING_ARTIFACTS_BUCKET: ${{ vars.TESTING_ARTIFACTS_BUCKET }}
+  TESTING_CLOUDFORMATION_EXECUTION_ROLE: ${{ vars.TESTING_CLOUDFORMATION_EXECUTION_ROLE }}
+  TESTING_PIPELINE_EXECUTION_ROLE: ${{ vars.TESTING_PIPELINE_EXECUTION_ROLE }}
+  AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+  # Secrets from .env file or GitHub Secrets
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  # Local env hints a
+  PYTHON_VERSION: ${{ vars.PYTHON_VERSION }}
+
+# default: least privileged permissions across all jobs
+permissions:
+  contents: read
+
+# Prevent concurrent runs per branch to avoid race conditions
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+
+  run-pre-commit-tests:
+    uses: ./.github/workflows/pre-commit.yaml
+    name: Enforce commit standards
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
+
+  security-scan:
+    name: Security scanning
+    runs-on: ubuntu-latest
+    needs: [run-pre-commit-tests]
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-security-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root --with security
+
+      - name: Install project
+        run: poetry install --no-interaction --with security
+
+      - name: Generate Bandit report
+        run: |
+          poetry run bandit -r src/ -f json -o bandit-report.json || echo '{"errors": [], "results": [], "metrics": {"_totals": {"nosec": 0, "skipped_tests": 0}}}' > bandit-report.json
+        continue-on-error: true
+
+      - name: Run Bandit security scan (enforced)
+        run: |
+          poetry run bandit -r src/ -ll  # Only fail on medium and high severity issues
+
+      - name: Generate Safety report
+        run: |
+          # Safety can output HTML instead of JSON in some cases, so we handle both
+          poetry run safety check --json --output safety-report.json || echo '{"vulnerabilities": [], "scan_type": "safety", "error": "Safety scan completed with no vulnerabilities or failed to generate JSON"}' > safety-report.json
+        continue-on-error: true
+
+      - name: Run Safety check (enforced)
+        run: |
+          poetry run safety check
+
+      - name: Generate pip-audit report
+        run: |
+          poetry run pip-audit --desc --format json --output pip-audit-report.json || echo '{"dependencies": [], "vulnerabilities": []}' > pip-audit-report.json
+        continue-on-error: true
+
+      - name: Run pip-audit (enforced)
+        run: |
+          poetry run pip-audit --desc
+
+      - name: Generate Semgrep report
+        run: |
+          poetry run semgrep --config=auto --json --output=semgrep-report.json src/ || echo '{"results": [], "errors": []}' > semgrep-report.json
+        continue-on-error: true
+
+      - name: Run Semgrep scan (enforced)
+        run: |
+          poetry run semgrep --config=auto src/
+
+      - name: Generate HTML reports from JSON
+        run: |
+          # Create a simple HTML wrapper for JSON reports
+          cat > security-reports.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Security Scan Results</title>
+              <style>
+                  body { font-family: Arial, sans-serif; margin: 20px; background: #0d1117; color: #c9d1d9; }
+                  .report { margin: 20px 0; padding: 15px; border: 1px solid #30363d; border-radius: 8px; background: #161b22; }
+                  .report h2 { color: #58a6ff; margin-top: 0; }
+                  pre { background: #0d1117; padding: 10px; border-radius: 4px; overflow-x: auto; border: 1px solid #30363d; }
+                  .error { color: #ff7b72; }
+                  .warning { color: #ffa657; }
+                  .info { color: #79c0ff; }
+              </style>
+          </head>
+          <body>
+              <h1>Security Scan Results</h1>
+
+              <div class="report">
+                  <h2>🔍 Bandit Security Scan</h2>
+                  <p>Python security issues detected by Bandit:</p>
+                  <pre id="bandit-content">Loading...</pre>
+              </div>
+
+              <div class="report">
+                  <h2>🚨 Safety Vulnerability Check</h2>
+                  <p>Known vulnerabilities in dependencies:</p>
+                  <pre id="safety-content">Loading...</pre>
+              </div>
+
+              <div class="report">
+                  <h2>🔧 Pip-Audit Results</h2>
+                  <p>Package vulnerability audit:</p>
+                  <pre id="audit-content">Loading...</pre>
+              </div>
+
+              <div class="report">
+                  <h2>🎯 Semgrep Analysis</h2>
+                  <p>Static code analysis findings:</p>
+                  <pre id="semgrep-content">Loading...</pre>
+              </div>
+
+              <script>
+                  // Load and display JSON reports
+                  const reports = [
+                      {id: 'bandit-content', file: 'bandit-report.json'},
+                      {id: 'safety-content', file: 'safety-report.json'},
+                      {id: 'audit-content', file: 'pip-audit-report.json'},
+                      {id: 'semgrep-content', file: 'semgrep-report.json'}
+                  ];
+
+                  reports.forEach(report => {
+                      fetch(report.file)
+                          .then(response => response.json())
+                          .then(data => {
+                              document.getElementById(report.id).textContent = JSON.stringify(data, null, 2);
+                          })
+                          .catch(error => {
+                              document.getElementById(report.id).textContent = 'Error loading report: ' + error;
+                              document.getElementById(report.id).className = 'error';
+                          });
+                  });
+              </script>
+          </body>
+          </html>
+          EOF
+        continue-on-error: true
+
+      - name: Upload security scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: |
+            bandit-report.json
+            safety-report.json
+            pip-audit-report.json
+            semgrep-report.json
+            security-reports.html
+
+  compliance-reports:
+    name: Generate compliance reports
+    runs-on: ubuntu-latest
+    needs: [run-pre-commit-tests]
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-compliance-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root --with compliance
+
+      - name: Install project
+        run: poetry install --no-interaction --with compliance
+
+      - name: Generate license reports
+        run: |
+          # Install poetry export plugin if not available (CI-only, doesn't modify project)
+          poetry self add poetry-plugin-export || true
+
+          # Export only runtime dependencies (not dev/test dependencies)
+          poetry export --without-hashes --format requirements.txt --only=main > runtime-requirements.txt
+
+          # Extract package names from requirements file for filtering
+          cat runtime-requirements.txt | cut -d'=' -f1 | cut -d'>' -f1 | cut -d'<' -f1 | cut -d'!' -f1 | tr -d ' ' > runtime-package-names.txt
+
+          # Generate license reports for runtime dependencies only
+          poetry run pip-licenses --from=mixed --packages $(cat runtime-package-names.txt | tr '\n' ' ') --format=json --output-file=license-report.json
+          poetry run pip-licenses --from=mixed --packages $(cat runtime-package-names.txt | tr '\n' ' ') --format=html --output-file=license-report.html
+          poetry run pip-licenses --from=mixed --packages $(cat runtime-package-names.txt | tr '\n' ' ') --format=markdown --output-file=license-report.md
+          poetry run pip-licenses --from=mixed --packages $(cat runtime-package-names.txt | tr '\n' ' ') --summary
+
+
+      - name: Check license compatibility
+        run: |
+          # Create a Python script to analyze license compatibility
+          cat > license_check.py << 'EOF'
+          import json
+          import sys
+          from pathlib import Path
+
+          # Read the project license from pyproject.toml
+          try:
+              import tomllib
+          except ImportError:
+              import tomli as tomllib
+
+          # Load project info
+          with open('pyproject.toml', 'rb') as f:
+              project_data = tomllib.load(f)
+
+          project_license = project_data.get('project', {}).get('license', {}).get('file', 'LICENSE')
+
+          # Try to read LICENSE file to determine license type
+          try:
+              with open(project_license, 'r') as f:
+                  license_text = f.read()
+
+              # Simple license detection
+              if 'MIT' in license_text:
+                  project_license_type = 'MIT'
+              elif 'Apache' in license_text:
+                  project_license_type = 'Apache-2.0'
+              elif 'BSD' in license_text:
+                  project_license_type = 'BSD'
+              elif 'GPL' in license_text:
+                  project_license_type = 'GPL'
+              else:
+                  project_license_type = 'Unknown'
+          except:
+              project_license_type = 'Unknown'
+
+          # Load dependency licenses
+          with open('license-report.json', 'r') as f:
+              deps = json.load(f)
+
+          # Load license exceptions from pyproject.toml
+          exceptions = {}
+          try:
+              license_config = project_data.get('tool', {}).get('license-compliance', {})
+              exception_list = license_config.get('exceptions', [])
+              for exc in exception_list:
+                  if all(key in exc for key in ['package', 'license', 'justification', 'approved_by', 'expires']):
+                      exceptions[exc['package']] = exc
+              print(f"Loaded {len(exceptions)} license exceptions")
+          except Exception as e:
+              print(f"Warning: Failed to load license exceptions: {e}")
+
+          # Define license compatibility rules
+          incompatible_licenses = []
+          warnings = []
+          approved_exceptions = []
+
+          for dep in deps:
+              dep_license = dep.get('License', 'Unknown')
+              dep_name = dep.get('Name', 'Unknown')
+
+              # Check for problematic licenses with permissive project licenses
+              if project_license_type in ['MIT', 'BSD', 'Apache-2.0']:
+                  if any(gpl in dep_license.upper() for gpl in ['GPL', 'AGPL', 'LGPL']):
+                      if 'LGPL' in dep_license.upper():
+                          warnings.append(f"⚠️  {dep_name}: {dep_license} (LGPL may require additional compliance)")
+                      else:
+                          # Check if this dependency has a valid exception
+                          if dep_name in exceptions:
+                              exc = exceptions[dep_name]
+                              # Validate expiration date
+                              from datetime import datetime
+                              try:
+                                  expires = datetime.strptime(exc['expires'], '%Y-%m-%d').date()
+                                  today = datetime.now().date()
+                                  if expires < today:
+                                      incompatible_licenses.append(f"❌ {dep_name}: {dep_license} (Exception expired on {exc['expires']})")
+                                  else:
+                                      days_left = (expires - today).days
+                                      if days_left <= 30:
+                                          approved_exceptions.append(f"🟡 {dep_name}: {dep_license} (Exception expires in {days_left} days - approved by {exc['approved_by']})")
+                                      else:
+                                          approved_exceptions.append(f"✅ {dep_name}: {dep_license} (Exception approved by {exc['approved_by']} until {exc['expires']})")
+                              except ValueError:
+                                  incompatible_licenses.append(f"❌ {dep_name}: {dep_license} (Invalid exception expiration date: {exc['expires']})")
+                          else:
+                              incompatible_licenses.append(f"❌ {dep_name}: {dep_license} (Copyleft license incompatible with {project_license_type})")
+
+              # Check for unknown/missing licenses
+              if dep_license in ['Unknown', 'UNKNOWN', '', 'None']:
+                  warnings.append(f"⚠️  {dep_name}: No license information available")
+
+          # Generate report
+          report = {
+              "project_license": project_license_type,
+              "total_dependencies": len(deps),
+              "incompatible_count": len(incompatible_licenses),
+              "warning_count": len(warnings),
+              "exception_count": len(approved_exceptions),
+              "incompatible_licenses": incompatible_licenses,
+              "warnings": warnings,
+              "approved_exceptions": approved_exceptions,
+              "status": "FAIL" if incompatible_licenses else "PASS" if not warnings else "WARNING"
+          }
+
+          # Write JSON report
+          with open('license-compatibility.json', 'w') as f:
+              json.dump(report, f, indent=2)
+
+          # Write HTML report
+          html_content = f"""
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>License Compatibility Report</title>
+              <style>
+                  body {{ font-family: Arial, sans-serif; margin: 20px; background: #0d1117; color: #c9d1d9; }}
+                  .header {{ background: #161b22; padding: 15px; border-radius: 8px; margin-bottom: 20px; }}
+                  .status-pass {{ color: #7ee787; font-weight: bold; }}
+                  .status-warning {{ color: #ffa657; font-weight: bold; }}
+                  .status-fail {{ color: #ff7b72; font-weight: bold; }}
+                  .issue {{ margin: 10px 0; padding: 8px; background: #161b22; border-radius: 4px; }}
+                  .summary {{ background: #161b22; padding: 15px; border-radius: 8px; margin: 20px 0; }}
+              </style>
+          </head>
+          <body>
+              <div class="header">
+                  <h1>License Compatibility Report</h1>
+                  <p><strong>Project License:</strong> {project_license_type}</p>
+                  <p><strong>Status:</strong> <span class="status-{report['status'].lower()}">{report['status']}</span></p>
+              </div>
+
+              <div class="summary">
+                  <h2>Summary</h2>
+                  <ul>
+                      <li>Total Dependencies: {report['total_dependencies']}</li>
+                      <li>Incompatible Licenses: {report['incompatible_count']}</li>
+                      <li>Approved Exceptions: {report['exception_count']}</li>
+                      <li>Warnings: {report['warning_count']}</li>
+                  </ul>
+              </div>
+          """
+
+          if approved_exceptions:
+              html_content += "<h2>✅ Approved License Exceptions</h2>"
+              for exception in approved_exceptions:
+                  html_content += f'<div class="issue">{exception}</div>'
+
+          if incompatible_licenses:
+              html_content += "<h2>❌ License Conflicts</h2>"
+              for issue in incompatible_licenses:
+                  html_content += f'<div class="issue">{issue}</div>'
+
+          if warnings:
+              html_content += "<h2>⚠️ License Warnings</h2>"
+              for warning in warnings:
+                  html_content += f'<div class="issue">{warning}</div>'
+
+          if not incompatible_licenses and not warnings and not approved_exceptions:
+              html_content += '<div class="summary"><h2>✅ All Clear!</h2><p>No license compatibility issues detected.</p></div>'
+
+          html_content += "</body></html>"
+
+          with open('license-compatibility.html', 'w') as f:
+              f.write(html_content)
+
+          # Print summary
+          print(f"License Compatibility Check: {report['status']}")
+          print(f"Project License: {project_license_type}")
+          print(f"Dependencies: {report['total_dependencies']}")
+          print(f"Conflicts: {report['incompatible_count']}")
+          print(f"Approved Exceptions: {report['exception_count']}")
+          print(f"Warnings: {report['warning_count']}")
+
+          if approved_exceptions:
+              print("\nApproved license exceptions:")
+              for exception in approved_exceptions:
+                  print(f"  {exception}")
+
+          if incompatible_licenses:
+              print("\nIncompatible licenses found:")
+              for issue in incompatible_licenses:
+                  print(f"  {issue}")
+
+          if warnings:
+              print("\nWarnings:")
+              for warning in warnings:
+                  print(f"  {warning}")
+
+          # Exit with error code if there are incompatible licenses
+          sys.exit(1 if incompatible_licenses else 0)
+          EOF
+
+          python license_check.py
+
+      - name: Upload compliance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-reports
+          path: |
+            license-report.json
+            license-report.html
+            license-report.md
+            license-compatibility.json
+            license-compatibility.html
+
+  deploy-infrastructure:
+    permissions:
+      id-token: write
+      contents: read
+
+    name: Deploy test infrastructure (if template.yaml exists)
+    runs-on: ubuntu-latest
+    needs: [security-scan]
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && vars.TESTING_PIPELINE_EXECUTION_ROLE != '' && vars.TESTING_PIPELINE_EXECUTION_ROLE != null
+    outputs:
+      stack-name: ${{ steps.set-stack-name.outputs.stack-name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Get branch name. Name the stack based on branch name. Main branch will use { github.event.repository.name }-main
+      # dev branch will use { github.event.repository.name }-dev and /feat and /fix branches will drop the prefix and use the rest of the branch name as the stack name suffix (i.e. feat/new-feature will become { github.event.repository.name }-new-feature and fix/bug-fix will become { github.event.repository.name }-bug-fix)
+      - name: Set stack name based on branch
+        id: set-stack-name
+        run: |
+            # Get the branch name and sanitize for AWS stack naming
+            BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}" | sed 's/feat\///; s/fix\///; s/perf\///; s/docs\///; s/refactor\///')
+            # Replace forward slashes with hyphens and limit length
+            BRANCH_NAME=$(echo "${BRANCH_NAME}" | sed 's/\//-/g' | cut -c1-40)
+            STACK_NAME="${{ github.event.repository.name }}-${BRANCH_NAME}"
+            echo "STACK_NAME=${STACK_NAME}" >> $GITHUB_ENV
+            echo "stack-name=${STACK_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Set up SAM CLI
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: Build resources
+        run: sam build --use-container
+
+      - name: Assume pipeline role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          aws-region: ${{ env.TESTING_REGION }}
+          role-session-name: testing-infra
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Package artifacts
+        run: |
+          sam package \
+            --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
+            --region ${TESTING_REGION} \
+            --output-template-file packaged-testing.yaml
+
+      - name: Validate packaged template
+        run: sam validate --lint -t packaged-testing.yaml
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packaged-testing.yaml
+          path: packaged-testing.yaml
+
+      - name: Deploy stack wit stack name calculated from branch
+        run: |
+          # Extract role name from ARN
+          PIPELINE_ROLE_NAME=${TESTING_PIPELINE_EXECUTION_ROLE##*/}
+
+          sam deploy \
+            --stack-name ${STACK_NAME} \
+            --template-file packaged-testing.yaml \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --region ${TESTING_REGION} \
+            --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
+            --no-fail-on-empty-changeset \
+            --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
+            --parameter-overrides PipelineExecutionRoleName=${PIPELINE_ROLE_NAME}
+
+
+  run-unit-tests:
+    permissions:
+      contents: read
+
+    name: Run fast unit tests
+    needs: [run-pre-commit-tests]
+    runs-on: ubuntu-latest
+
+    steps:
+      #----------------------------------------------
+      #       check-out repo and set-up python
+      #----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+        #----------------------------------------------
+        #  -----  install & configure poetry  -----
+        #----------------------------------------------
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+        #----------------------------------------------
+        #       load cached venv if cache exists
+        #----------------------------------------------
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-unit-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        #----------------------------------------------
+        # install dependencies if cache does not exist
+        #----------------------------------------------
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+        #----------------------------------------------
+        # install your root project, if required
+        #----------------------------------------------
+      - name: Install project
+        run: poetry install --no-interaction
+
+        #----------------------------------------------
+        #              run unit test suite
+        #----------------------------------------------
+      - name: Run type checking
+        run: |
+          poetry run mypy src/
+
+      - name: Run unit tests with pytest
+        run: |
+          env
+          poetry run pytest -m "fast or (not slow and not ci_only and not integration)" --cov=src --cov-report=html --cov-report=xml --cov-report=json --cov-fail-under=90
+
+      - name: upload test output
+        if: |
+          ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-pytest-py${{ env.PYTHON_VERSION }}
+          path: pytest.log
+
+      - name: upload pretty test results
+        if: |
+          ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-html-py${{ env.PYTHON_VERSION }}
+          path: test-report.html
+
+      - name: Upload unit test coverage reports
+        if: |
+          ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-coverage-reports-py${{ env.PYTHON_VERSION }}
+          path: |
+            htmlcov/
+            coverage.xml
+            coverage.json
+
+  run-integration-tests:
+    permissions:
+      id-token: write
+      contents: read
+
+    name: Run integration tests
+    needs: [deploy-infrastructure, run-unit-tests]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    strategy:
+      matrix:
+        python-version: [ "${{ vars.PYTHON_VERSION }}" ]  # Run integration tests on primary Python version for artifact consistency
+        platform: [ ubuntu-latest ]
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      #----------------------------------------------
+      #       check-out repo and set-up python
+      #----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up AWS OIDC credentials for pipeline
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          aws-region: ${{ env.TESTING_REGION }}
+          role-session-name: testing-pipeline
+      - name: Set up python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+        #----------------------------------------------
+        #  -----  install & configure poetry  -----
+        #----------------------------------------------
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+        #----------------------------------------------
+        #       load cached venv if cache exists
+        #----------------------------------------------
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-integration-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        #----------------------------------------------
+        # install dependencies if cache does not exist
+        #----------------------------------------------
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+        #----------------------------------------------
+        # install your root project, if required
+        #----------------------------------------------
+      - name: Install project
+        run: poetry install --no-interaction
+
+        #----------------------------------------------
+        #              run integration test suite
+        #----------------------------------------------
+      - name: Run integration tests with pytest
+        env:
+          STACK_NAME: ${{ needs.deploy-infrastructure.outputs.stack-name }}
+        run: |
+          env
+          poetry run pytest -m "integration or ci_only or slow" --cov=src --cov-report=html --cov-report=xml --cov-report=json
+
+      - name: upload integration test output
+        if: |
+          ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-pytest-py${{ matrix.python-version }}
+          path: pytest.log
+
+      - name: upload integration test results
+        if: |
+          ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-html-py${{ matrix.python-version }}
+          path: test-report.html
+
+      - name: Upload integration coverage reports
+        if: |
+          ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-coverage-reports-py${{ matrix.python-version }}
+          path: |
+            htmlcov/
+            coverage.xml
+            coverage.json
+
+  cleanup-infrastructure:
+    permissions:
+      id-token: write
+      contents: read
+
+    name: Cleanup test infrastructure
+    needs: [run-integration-tests]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' && success()
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SAM CLI
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: Assume pipeline role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          aws-region: ${{ env.TESTING_REGION }}
+          role-session-name: cleanup-infra
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Delete stack
+        run: |
+          echo "Deleting test infrastructure stack to save costs..."
+          sam delete \
+            --stack-name ${STACK_NAME} \
+            --region ${TESTING_REGION} \
+            --no-prompts \
+            --s3-bucket ${TESTING_ARTIFACTS_BUCKET} || echo "Stack may not exist or already deleted"
+
+  release-version:
+    needs: [ run-unit-tests, run-integration-tests, security-scan, compliance-reports ]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    name: Semantic Version Release
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-release-${{ github.ref_name }}
+      cancel-in-progress: false
+    outputs:
+      released: ${{ steps.release.outputs.released }}
+
+    permissions:
+      contents: write
+
+    steps:
+      # Note: We checkout the repository at the branch that triggered the workflow
+      # with the entire history to ensure to match PSR's release branch detection
+      # and history evaluation.
+      # However, we forcefully reset the branch to the workflow sha because it is
+      # possible that the branch was updated while the workflow was running. This
+      # prevents accidentally releasing un-evaluated changes.
+      - name: Setup | Checkout Repository on Release Branch
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Setup | Force release branch to be at workflow sha
+        run: |
+          git reset --hard ${{ github.sha }}
+        #----------------------------------------------
+        #  -----  install & configure python  -----
+        #----------------------------------------------
+      - name: Setup | Set up python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+        #----------------------------------------------
+        #  -----  install & configure poetry  -----
+        #----------------------------------------------
+      - name: Setup | Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+        #----------------------------------------------
+        #       load cached venv if cache exists
+        #----------------------------------------------
+      - name: Setup | Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        #----------------------------------------------
+        # install dependencies if cache does not exist
+        #----------------------------------------------
+      - name: Setup | Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+        #----------------------------------------------
+        # install your root project, if required
+        #----------------------------------------------
+      - name: Setup | Install project
+        run: poetry install --no-interaction
+        #----------------------------------------------
+        # Final safety check before running the release
+        #----------------------------------------------
+      - name: Evaluate | Verify upstream has NOT changed
+        # Last chance to abort before causing an error as another PR/push was applied to
+        # the upstream branch while this workflow was running. This is important
+        # because we are committing a version change (--commit).
+        shell: bash
+        run: |
+          set +o pipefail
+
+          UPSTREAM_BRANCH_NAME="$(git status -sb | head -n 1 | cut -d' ' -f2 | grep -E '\.{3}' | cut -d'.' -f4)"
+          printf '%s\n' "Upstream branch name: $UPSTREAM_BRANCH_NAME"
+
+          set -o pipefail
+
+          if [ -z "$UPSTREAM_BRANCH_NAME" ]; then
+              printf >&2 '%s\n' "::error::Unable to determine upstream branch name!"
+              exit 1
+          fi
+
+          git fetch "${UPSTREAM_BRANCH_NAME%%/*}"
+
+          if ! UPSTREAM_SHA="$(git rev-parse "$UPSTREAM_BRANCH_NAME")"; then
+              printf >&2 '%s\n' "::error::Unable to determine upstream branch sha!"
+              exit 1
+          fi
+
+          HEAD_SHA="$(git rev-parse HEAD)"
+
+          if [ "$HEAD_SHA" != "$UPSTREAM_SHA" ]; then
+              printf >&2 '%s\n' "[HEAD SHA] $HEAD_SHA != $UPSTREAM_SHA [UPSTREAM SHA]"
+              printf >&2 '%s\n' "::error::Upstream has changed, aborting release..."
+              exit 1
+          fi
+
+          printf '%s\n' "Verified upstream branch has not changed, continuing with release..."
+
+
+      - name: Action | Semantic Version Release
+        id: release
+        run: |
+          # Run semantic release to bump the version, update the changelog, commit the change, and create a tag.
+          poetry run semantic-release -v version --print
+          # Check if a release was created by looking for dist directory
+          if [ -d "dist" ] && [ "$(ls -A dist)" ]; then
+            echo "released=true" >> $GITHUB_OUTPUT
+            echo "Release created with artifacts"
+          else
+            echo "released=false" >> $GITHUB_OUTPUT
+            echo "No release created (no version change)"
+          fi
+
+      - name: Publish | Upload to GitHub Release Assets
+        if: steps.release.outputs.released == 'true'
+        uses: python-semantic-release/publish-action@v10.2.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.release.outputs.tag }}
+
+      - name: Upload | Distribution Artifacts
+        if: steps.release.outputs.released == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: distribution-artifacts
+          path: dist
+          if-no-files-found: error
+
+  generate-and-deploy-docs-site:
+    if: github.ref == 'refs/heads/main' && needs.release-version.outputs.released == 'true'
+    name: Generate documentation, gather test results and changelog, and deploy to GitHub Pages
+    needs: release-version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # for gh-pages push
+
+    steps:
+      #----------------------------------------------
+      #       check-out repo and set-up python
+      #----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+        #----------------------------------------------
+        #  -----  install & configure poetry  -----
+        #----------------------------------------------
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+        #----------------------------------------------
+        #       load cached venv if cache exists
+        #----------------------------------------------
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-docs-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        #----------------------------------------------
+        # install dependencies if cache does not exist
+        #----------------------------------------------
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+        #----------------------------------------------
+        # install your root project, if required
+        #----------------------------------------------
+      - name: Install project
+        run: poetry install --no-interaction
+        #----------------------------------------------
+        #              run test suite
+        #----------------------------------------------
+
+      - name: Calculate module name
+        run: |
+          # Convert repository name dashes to underscores for Python module name
+          MODULE_NAME=$(echo "${{ github.event.repository.name }}" | tr - _)
+          echo "MODULE_NAME=${MODULE_NAME}" >> $GITHUB_ENV
+          echo "Calculated module name: ${MODULE_NAME}"
+
+      - name: Generate documentation
+        run: |
+          poetry run pdoc --output-dir docs --template-directory resources/pdoc-templates ${MODULE_NAME}
+
+      - name: Download unit test HTML report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-test-html-py${{ env.PYTHON_VERSION }}
+          path: docs/temp-unit
+        continue-on-error: true
+
+      - name: Download unit test coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-coverage-reports-py${{ env.PYTHON_VERSION }}
+          path: docs
+        continue-on-error: true
+
+      - name: Download integration test HTML report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: integration-test-html-py${{ env.PYTHON_VERSION }}
+          path: docs/temp-integration
+        continue-on-error: true
+
+      - name: Download integration test coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          name: integration-coverage-reports-py${{ env.PYTHON_VERSION }}
+          path: docs
+        continue-on-error: true
+
+      - name: Organize test report files for consistent URLs
+        run: |
+          # Move and rename test report files to match README links
+          if [ -f "docs/temp-unit/test-report.html" ]; then
+            mv "docs/temp-unit/test-report.html" "docs/unit-test-report.html"
+            echo "✅ Unit test report moved to docs/unit-test-report.html"
+          fi
+
+          if [ -f "docs/temp-integration/test-report.html" ]; then
+            mv "docs/temp-integration/test-report.html" "docs/integration-test-report.html"
+            echo "✅ Integration test report moved to docs/integration-test-report.html"
+          fi
+
+          # Also copy pytest logs if they exist
+          if [ -f "docs/temp-unit/pytest.log" ]; then
+            cp "docs/temp-unit/pytest.log" "docs/unit-pytest.log"
+          fi
+
+          if [ -f "docs/temp-integration/pytest.log" ]; then
+            cp "docs/temp-integration/pytest.log" "docs/integration-pytest.log"
+          fi
+
+          # Clean up temp directories
+          rm -rf docs/temp-unit docs/temp-integration
+
+          # List final files for debugging
+          echo "Final files in docs directory:"
+          find docs -name "*.html" | sort
+
+      - name: Download security scan results
+        uses: actions/download-artifact@v4
+        with:
+          name: security-scan-results
+          path: docs
+        continue-on-error: true
+
+      - name: Download compliance reports
+        uses: actions/download-artifact@v4
+        with:
+          name: compliance-reports
+          path: docs
+        continue-on-error: true
+
+      - name: Deploy docs to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GH_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+
+  publish-to-pypi:
+    needs: release-version
+    # 1. Separate out the publish to pypi step from the publish to github step to run each step at
+    #    the least amount of token privilege and to use github's artifact system to store the release
+    # 2. Also, deployments can fail, and its better to have a separate job if you need to retry
+    #    and it won't require reversing the release.
+    name: Upload release to PyPI or TestPyPI
+    runs-on: ubuntu-latest
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && needs.release-version.outputs.released == 'true'
+    environment:
+      name: pypi
+      url: https://pypi.org/p/${{ github.event.repository.name }}
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+    steps:
+      - name: Setup | Download Build Artifacts
+        uses: actions/download-artifact@v4
+        id: artifact-download
+        with:
+          name: distribution-artifacts
+          path: dist/
+
+      - name: Publish package distributions to PyPI Test
+        if: github.ref == 'refs/heads/dev'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+      - name: Publish package distributions to PyPI
+        if: github.ref == 'refs/heads/main'
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  auto-merge:
+    name: Auto-merge development branches
+    runs-on: ubuntu-latest
+    # Wait for ALL required checks to complete before attempting auto-merge
+    # This prevents "Pull request is in unstable status" errors
+    needs: [run-pre-commit-tests, security-scan, compliance-reports, run-unit-tests]
+    if: |
+      always() &&
+      !cancelled() &&
+      needs.run-pre-commit-tests.result == 'success' &&
+      needs.security-scan.result == 'success' &&
+      needs.compliance-reports.result == 'success' &&
+      needs.run-unit-tests.result == 'success' &&
+      github.ref != 'refs/heads/main' &&
+      github.ref != 'refs/heads/dev' &&
+      (startsWith(github.ref, 'refs/heads/feat/') ||
+       startsWith(github.ref, 'refs/heads/fix/') ||
+       startsWith(github.ref, 'refs/heads/perf/') ||
+       startsWith(github.ref, 'refs/heads/docs/'))
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Auto-merge PR for current branch
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            const branch = context.ref.replace('refs/heads/', '');
+            console.log(`Looking for PR for branch: ${branch}`);
+
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              state: 'open'
+            });
+
+            if (prs.length === 0) {
+              console.log(`No open PR found for branch: ${branch}`);
+              console.log('Create a PR to enable auto-merge on next push');
+              return;
+            }
+
+            const pr = prs[0];
+            console.log(`✅ Found PR #${pr.number}: ${pr.title}`);
+
+            // Wait a bit to ensure GitHub's internal state is consistent
+            console.log('Waiting 5 seconds for GitHub status to stabilize...');
+            await new Promise(resolve => setTimeout(resolve, 5000));
+
+            // Retry logic for auto-merge enablement
+            let retries = 3;
+            let lastError;
+
+            while (retries > 0) {
+              try {
+                // Enable auto-merge with squash strategy (no approval needed)
+                await github.graphql(`
+                  mutation($pullRequestId: ID!) {
+                    enablePullRequestAutoMerge(input: {
+                      pullRequestId: $pullRequestId,
+                      mergeMethod: SQUASH
+                    }) {
+                      pullRequest {
+                        autoMergeRequest {
+                          enabledAt
+                        }
+                      }
+                    }
+                  }
+                `, {
+                  pullRequestId: pr.node_id
+                });
+
+                // Add informative comment without approval
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  body: '✅ **Auto-merge enabled** - All quality gates passed\n\nThis PR will merge automatically when all required status checks pass.\n\n*Automated by consolidated pipeline*'
+                });
+
+                console.log(`🔄 Auto-merge enabled for PR #${pr.number}`);
+                break; // Success, exit retry loop
+
+              } catch (error) {
+                lastError = error;
+                retries--;
+
+                if (error.message && error.message.includes('Pull request is in unstable status')) {
+                  if (retries > 0) {
+                    console.log(`PR still unstable, waiting 10 seconds before retry ${3 - retries}/3...`);
+                    await new Promise(resolve => setTimeout(resolve, 10000));
+                  }
+                } else {
+                  // Different error, don't retry
+                  throw error;
+                }
+              }
+            }
+
+            if (retries === 0) {
+              console.error('Failed to enable auto-merge after 3 attempts');
+              console.error('This may happen if required status checks are still pending.');
+              console.error('The PR will need to be merged manually or auto-merge enabled manually.');
+              console.error(`Last error: ${lastError.message}`);
+              // Don't fail the job - this is a nice-to-have feature
+            }

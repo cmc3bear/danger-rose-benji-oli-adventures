@@ -1,0 +1,52 @@
+{
+  "character": "rose",
+  "art_style": "kenney_cartoon",
+  "animations": {
+    "idle": {
+      "frames": 4,
+      "frame_rate": 8,
+      "loop": true
+    },
+    "walk": {
+      "frames": 9,
+      "frame_rate": 12,
+      "loop": true
+    },
+    "walk_extra": {
+      "frames": 9,
+      "frame_rate": 12,
+      "loop": true,
+      "description": "Additional walk cycle frames"
+    },
+    "action": {
+      "frames": 6,
+      "frame_rate": 10,
+      "loop": false,
+      "description": "Generic action animation"
+    },
+    "jump": {
+      "frames": 3,
+      "frame_rate": 6,
+      "loop": false
+    },
+    "victory": {
+      "frames": 4,
+      "frame_rate": 8,
+      "loop": false
+    },
+    "hurt": {
+      "frames": 2,
+      "frame_rate": 4,
+      "loop": false
+    },
+    "misc": {
+      "frames": 6,
+      "frame_rate": 8,
+      "loop": false,
+      "description": "Miscellaneous animation frames"
+    }
+  },
+  "source": "kenney_platformer_pack",
+  "license": "CC0",
+  "extracted_date": "2025-07-29"
+}

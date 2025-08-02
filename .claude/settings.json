@@ -1,0 +1,82 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make:*)",
+      "Bash(poetry run:*)",
+      "Bash(python src/main.py:*)",
+      "Bash(python tools/*)",
+      "Bash(python tests/*)",
+      "Bash(pytest:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(rm:*)",
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "WebFetch(domain:kenney.nl)",
+      "WebFetch(domain:opengameart.org)",
+      "WebFetch(domain:freesound.org)",
+      "WebFetch(domain:itch.io)",
+      "WebFetch(domain:pygame.org)"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '🎮 Working on game code...'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -q 'make test' && grep -q 'exit_code\":0' && echo && echo \"✅ All tests passing! Great job!\" || exit 0"
+          },
+          {
+            "type": "command",
+            "command": "grep -q 'python src/main.py' && grep -q 'exit_code\":0' && echo && echo \"🎮 Game launched successfully! Have fun playing!\" || exit 0"
+          },
+          {
+            "type": "command",
+            "command": "grep -q 'pytest' && grep -q 'FAILED' && echo && echo \"🐛 Some tests failed - that's okay! Every bug is a learning opportunity!\" && exit 0 || exit 0"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"$USER_MESSAGE\" | grep -E '\\.py$' | grep -v '__pycache__' && echo && echo \"💡 Remember to test your changes: make test\" || exit 0"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo && echo \"🎉 Great coding session! Remember to commit your progress!\" && echo \"💾 Quick save: git add -A && git commit -m 'Progress on game'\" && echo"
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "PYGAME_HIDE_SUPPORT_PROMPT": "1",
+    "SDL_VIDEO_WINDOW_POS": "100,100",
+    "GAME_DEBUG": "false",
+    "SHOW_FPS": "false",
+    "KID_MODE": "false"
+  }
+}

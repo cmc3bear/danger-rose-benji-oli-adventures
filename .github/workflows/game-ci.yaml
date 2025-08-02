@@ -1,0 +1,549 @@
+name: Danger Rose Game CI/CD 🎮
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main  # Trigger when code is merged to main
+    tags:
+      - 'v*'  # Still trigger on version tags for releases
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.12'
+  GAME_NAME: 'DangerRose'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    name: Pre-commit Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache pre-commit
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run pre-commit hooks
+        run: poetry run pre-commit run --all-files
+
+  quality-checks:
+    name: Code Quality & Tests
+    runs-on: ubuntu-latest
+    needs: pre-commit
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run linting
+        run: |
+          poetry run ruff check src/ tests/
+
+      - name: Run formatting check
+        run: |
+          poetry run ruff format --check src/ tests/
+
+      - name: Run tests
+        run: |
+          poetry run pytest tests/unit -v --cov=src --cov-report=xml --cov-report=html
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            coverage.xml
+            htmlcov/
+
+  test-game:
+    name: Test Game Launch
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Add Poetry to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          echo "C:\Users\runneradmin\.local\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        shell: pwsh
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Test game startup (headless)
+        run: |
+          poetry run python -c "import pygame; pygame.init(); print('Pygame initialized successfully')"
+
+      - name: Verify assets
+        run: |
+          poetry run python -c "import os; import sys; assets_dir = 'assets'; required_dirs = ['audio/music', 'audio/sfx', 'images/characters', 'images/tilesets']; missing = []; [missing.append(os.path.join(assets_dir, d)) for d in required_dirs if not os.path.exists(os.path.join(assets_dir, d))]; print(f'Missing directories: {missing}') if missing else print('All asset directories present'); sys.exit(1) if missing else sys.exit(0)"
+
+  build-executables:
+    name: Build Game Executables
+    needs: [quality-checks, test-game]
+    runs-on: ${{ matrix.os }}
+    # Only build executables on main branch and version tags
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            name: Windows
+            artifact: DangerRose-Windows
+          - os: ubuntu-latest
+            name: Linux
+            artifact: DangerRose-Linux
+          - os: macos-14
+            name: macOS
+            artifact: DangerRose-macOS
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Add Poetry to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          echo "C:\Users\runneradmin\.local\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        shell: pwsh
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Build with PyInstaller
+        run: |
+          poetry run pyinstaller danger-rose-onefile.spec --noconfirm
+
+      - name: Create distribution folder
+        shell: bash
+        run: |
+          mkdir -p dist-upload
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            cp dist/DangerRose.exe dist-upload/
+          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            cp dist/DangerRose dist-upload/DangerRose
+            chmod +x dist-upload/DangerRose
+          else
+            cp dist/DangerRose dist-upload/DangerRose
+            chmod +x dist-upload/DangerRose
+          fi
+
+      - name: Add README to distribution
+        shell: bash
+        run: |
+          cat > dist-upload/README.txt << 'EOF'
+          Danger Rose - Family Adventure Game
+          ===================================
+
+          How to Run:
+          - Windows: Double-click DangerRose.exe
+          - macOS/Linux: Run ./DangerRose in terminal
+
+          Controls:
+          - Arrow Keys: Move
+          - Space: Jump/Select
+          - ESC: Pause/Back
+
+          Enjoy the game!
+          EOF
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist-upload/
+
+  create-release:
+    name: Create GitHub Release
+    needs: build-executables
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Windows build
+        uses: actions/download-artifact@v4
+        with:
+          name: DangerRose-Windows
+          path: builds/windows/
+
+      - name: Download Linux build
+        uses: actions/download-artifact@v4
+        with:
+          name: DangerRose-Linux
+          path: builds/linux/
+
+      - name: Download macOS build
+        uses: actions/download-artifact@v4
+        with:
+          name: DangerRose-macOS
+          path: builds/macos/
+
+      - name: Create zip archives
+        run: |
+          cd builds
+          zip -r ../DangerRose-Windows.zip windows/
+          zip -r ../DangerRose-Linux.zip linux/
+          zip -r ../DangerRose-macOS.zip macos/
+          cd ..
+
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Danger Rose ${{ steps.get_version.outputs.VERSION }}
+          body: |
+            # Danger Rose ${{ steps.get_version.outputs.VERSION }}
+
+            A family-friendly adventure game featuring Danger, Rose, and Dad!
+
+            ## 🎮 Download & Play
+
+            - **Windows**: Download `DangerRose-Windows.zip`, extract, and run `DangerRose.exe`
+            - **macOS**: Download `DangerRose-macOS.zip`, extract, and run `DangerRose`
+            - **Linux**: Download `DangerRose-Linux.zip`, extract, and run `DangerRose`
+
+            ## 🎯 What's New
+
+            Check out the [full changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
+
+            ## 🕹️ Game Features
+
+            - **3 Playable Characters**: Each with unique abilities
+            - **Hub World**: Cozy apartment to explore
+            - **3 Minigames**: Ski adventure, Pool splash, Vegas dash
+            - **Family Fun**: Designed for parents and kids to enjoy together
+
+            ## 🐛 Bug Reports
+
+            Found a bug? Please [create an issue](https://github.com/${{ github.repository }}/issues/new)
+
+            ---
+
+            **System Requirements**:
+            - Windows 10/11, macOS 10.15+, or Linux
+            - 2GB RAM minimum
+            - 200MB free disk space
+          files: |
+            DangerRose-Windows.zip
+            DangerRose-Linux.zip
+            DangerRose-macOS.zip
+          draft: false
+          prerelease: false
+
+  semantic-release:
+    name: Semantic Release
+    needs: build-executables
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    outputs:
+      new-release-published: ${{ steps.semantic.outputs.new_release_published }}
+      new-release-version: ${{ steps.semantic.outputs.new_release_version }}
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: builds/
+
+      - name: Create release assets
+        run: |
+          mkdir -p release-assets
+          cd builds
+
+          # Create zip archives for each platform
+          if [ -d "DangerRose-Windows" ]; then
+            zip -r ../release-assets/DangerRose-Windows-Portable.zip DangerRose-Windows/
+          fi
+
+          if [ -d "DangerRose-Linux" ]; then
+            zip -r ../release-assets/DangerRose-Linux.zip DangerRose-Linux/
+          fi
+
+          if [ -d "DangerRose-macOS" ]; then
+            zip -r ../release-assets/DangerRose-macOS.zip DangerRose-macOS/
+          fi
+
+      - name: Run semantic release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  build-windows-installer:
+    name: Build Windows Installer
+    needs: semantic-release
+    runs-on: windows-latest
+    if: needs.semantic-release.outputs.new-release-published == 'true'
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Add Poetry to PATH (Windows)
+        run: |
+          echo "C:\Users\runneradmin\.local\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        shell: pwsh
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Build executable with PyInstaller
+        run: |
+          poetry run pyinstaller danger-rose-onefile.spec --noconfirm
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          Write-Host "Installing Inno Setup..."
+          $installerUrl = "https://jrsoftware.org/download.php/is.exe"
+          $installerPath = "$env:TEMP\innosetup.exe"
+
+          # Download Inno Setup
+          Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath
+
+          # Install silently
+          Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait
+
+          # Add to PATH
+          $innoPath = "${env:ProgramFiles(x86)}\Inno Setup 6"
+          echo "$innoPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Create Inno Setup script
+        shell: pwsh
+        run: |
+          @"
+          [Setup]
+          AppName=Danger Rose
+          AppVersion=${{ needs.semantic-release.outputs.new-release-version }}
+          AppPublisher=Danger Rose Team
+          AppPublisherURL=https://github.com/svange/danger-rose
+          AppSupportURL=https://github.com/svange/danger-rose/issues
+          DefaultDirName={autopf}\Danger Rose
+          DefaultGroupName=Danger Rose
+          UninstallDisplayIcon={app}\DangerRose.exe
+          Compression=lzma2
+          SolidCompression=yes
+          OutputDir=installer_output
+          OutputBaseFilename=DangerRose-Setup-${{ needs.semantic-release.outputs.new-release-version }}
+          ; SetupIconFile=assets\images\icon.ico
+          WizardStyle=modern
+          ArchitecturesAllowed=x64
+          ArchitecturesInstallIn64BitMode=x64
+
+          [Languages]
+          Name: "english"; MessagesFile: "compiler:Default.isl"
+
+          [Tasks]
+          Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+          Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
+
+          [Files]
+          Source: "dist\DangerRose.exe"; DestDir: "{app}"; Flags: ignoreversion
+          Source: "assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
+          Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
+
+          [Icons]
+          Name: "{group}\Danger Rose"; Filename: "{app}\DangerRose.exe"
+          Name: "{group}\{cm:UninstallProgram,Danger Rose}"; Filename: "{uninstallexe}"
+          Name: "{commondesktop}\Danger Rose"; Filename: "{app}\DangerRose.exe"; Tasks: desktopicon
+          Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\Danger Rose"; Filename: "{app}\DangerRose.exe"; Tasks: quicklaunchicon
+
+          [Run]
+          Filename: "{app}\DangerRose.exe"; Description: "{cm:LaunchProgram,Danger Rose}"; Flags: nowait postinstall skipifsilent
+          "@ | Out-File -FilePath "danger-rose-installer.iss" -Encoding UTF8
+
+      - name: Build installer
+        run: |
+          iscc danger-rose-installer.iss
+
+      - name: Upload installer to existing release
+        shell: pwsh
+        run: |
+          $version = "${{ needs.semantic-release.outputs.new-release-version }}"
+          $installerPath = "installer_output/DangerRose-Setup-$version.exe"
+
+          # Use GitHub CLI to upload the installer to the existing release
+          gh release upload "v$version" "$installerPath" --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  auto-merge:
+    name: Auto-merge development branches
+    runs-on: ubuntu-latest
+    # Only run after pre-commit and quality checks pass on PRs from feature branches
+    needs: [pre-commit, quality-checks]
+    if: |
+      always() &&
+      !cancelled() &&
+      needs.pre-commit.result == 'success' &&
+      needs.quality-checks.result == 'success' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.base.ref == 'main' &&
+      (startsWith(github.event.pull_request.head.ref, 'feat/') ||
+       startsWith(github.event.pull_request.head.ref, 'fix/'))
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Auto-merge PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            console.log(`Processing PR #${pr.number}: ${pr.title}`);
+
+            // Simple direct merge - no auto-merge complexity
+            try {
+              // Wait a bit for any final status updates
+              console.log('Waiting 10 seconds for final status updates...');
+              await new Promise(resolve => setTimeout(resolve, 10000));
+
+              // Merge the PR
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                merge_method: 'squash'
+              });
+
+              console.log(`✅ PR #${pr.number} merged successfully`);
+
+              // Add success comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: '✅ **Auto-merged** - All checks passed!\n\n*Automated by game CI/CD pipeline* 🎮'
+              });
+
+            } catch (error) {
+              console.log(`Could not auto-merge PR #${pr.number}: ${error.message}`);
+              // This is expected if checks are still running or branch needs update
+              // The PR can be merged manually when ready
+            }

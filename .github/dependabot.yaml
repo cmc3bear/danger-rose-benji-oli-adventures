@@ -1,0 +1,56 @@
+version: 2
+updates:
+  # GitHub Actions dependencies
+  # ✅ KEEP THIS - Dependabot works perfectly for GitHub Actions!
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    open-pull-requests-limit: 5
+
+  # Python dependencies - DISABLED due to Poetry conflicts
+  # ❌ REMOVED - Dependabot can't handle Poetry's complex dependency resolution
+  #
+  # Instead, we'll use:
+  # 1. Automated Poetry security workflow (see issue #80)
+  # 2. Manual monthly `poetry update` until automation is ready
+  # 3. Security alerts will still appear in GitHub Security tab
+  #
+  # Original configuration preserved below for reference:
+  # - package-ecosystem: poetry
+  #   directory: /
+  #   schedule:
+  #     interval: weekly
+  #     day: monday
+  #     time: "10:00"
+  #   labels:
+  #     - dependencies
+  #     - python
+  #   commit-message:
+  #     prefix: "build"
+  #     include: "scope"
+  #   groups:
+  #     python-minor-patch:
+  #       patterns:
+  #         - "*"
+  #       update-types:
+  #         - "minor"
+  #         - "patch"
+  #     python-major:
+  #       patterns:
+  #         - "*"
+  #       update-types:
+  #         - "major"
+  #   open-pull-requests-limit: 10
+  #   allow:
+  #     - dependency-type: "production"
+  #     - dependency-type: "development"
+  #   target-branch: main

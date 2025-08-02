@@ -1,0 +1,76 @@
+services:
+  # Main development container with Claude Code installed
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PROJECT_DIR: ${COMPOSE_PROJECT_NAME:-current-project}
+    image: ${COMPOSE_PROJECT_NAME:-project}:dev
+    container_name: ${COMPOSE_PROJECT_NAME:-project}-dev
+    ports:
+      - "5678"
+      - "8000"
+    volumes:
+      # Mount project at root's project directory to maintain CLAUDE.md hierarchy
+      - type: bind
+        source: .
+        target: /root/projects/${COMPOSE_PROJECT_NAME:-current-project}
+        consistency: delegated
+      # Claude configuration for root
+      - ~/.claude:/root/.claude
+      - ~/.claude.json:/root/.claude.json
+      - ~/projects/CLAUDE.md:/root/projects/CLAUDE.md:ro
+      # Git and SSH configuration for root
+      - ~/.ssh:/root/.ssh:ro
+      - ~/.gitconfig:/root/.gitconfig.windows:ro
+      # AWS credentials for root (writable for SSO cache)
+      - ~/.aws:/root/.aws
+      # Poetry cache for performance
+      - poetry-cache:/root/.cache/pypoetry
+      # Mount sibling projects
+      - ~/projects/api-portal:/root/projects/current-project/api-portal
+      - ~/projects/augint-api:/root/projects/current-project/augint-api
+      - ~/projects/augint-web:/root/projects/current-project/augint-web
+      - ~/projects/augint-library:/root/projects/current-project/augint-library
+    environment:
+      # Pass through AWS credentials if set
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_PAGER=
+      # GitHub token for MCP integration
+      - GH_TOKEN=${GH_TOKEN:-}
+      - GITHUB_TOKEN=${GH_TOKEN:-}
+    working_dir: /root/projects/${COMPOSE_PROJECT_NAME:-current-project}
+    # Run as root to avoid Windows/WSL2 permission issues
+    # user: "1000:1000"  # Commented out - running as root
+    # Keep container running
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+
+  # LocalStack for AWS services emulation
+  localstack:
+    image: localstack/localstack:latest
+    container_name: ${COMPOSE_PROJECT_NAME:-project}-localstack
+    ports:
+      - "4566:4566"              # LocalStack main endpoint
+      - "4510-4559:4510-4559"    # External service ports
+    environment:
+      - SERVICES=dynamodb,s3,lambda,sqs,sns
+      - DEBUG=${DEBUG:-0}
+      - DATA_DIR=/tmp/localstack/data
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - localstack-data:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+volumes:
+  # Named volumes for better performance
+  poetry-cache:
+    driver: local
+  localstack-data:
+    driver: local

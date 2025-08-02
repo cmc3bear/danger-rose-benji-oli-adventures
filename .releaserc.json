@@ -1,0 +1,34 @@
+{
+  "branches": ["main"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "release-assets/DangerRose-Windows-Portable.zip",
+            "label": "Windows (Portable)"
+          },
+          {
+            "path": "release-assets/DangerRose-Linux.zip",
+            "label": "Linux"
+          },
+          {
+            "path": "release-assets/DangerRose-macOS.zip",
+            "label": "macOS"
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["CHANGELOG.md"],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ]
+  ]
+}

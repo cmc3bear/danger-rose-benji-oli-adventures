@@ -1,0 +1,31 @@
+{
+  "tracks": [
+    {
+      "id": "highway_dreams",
+      "title": "Highway Dreams",
+      "filename": "highway_dreams.mp3",
+      "bpm": 125,
+      "key": "C major",
+      "mood": "energetic",
+      "description": "Main racing theme"
+    },
+    {
+      "id": "sunset_cruise",
+      "title": "Sunset Cruise",
+      "filename": "sunset_cruise.mp3",
+      "bpm": 108,
+      "key": "G major",
+      "mood": "relaxed",
+      "description": "Peaceful cruising music"
+    },
+    {
+      "id": "turbo_rush",
+      "title": "Turbo Rush",
+      "filename": "turbo_rush.mp3",
+      "bpm": 140,
+      "key": "A minor",
+      "mood": "intense",
+      "description": "High-energy racing"
+    }
+  ]
+}

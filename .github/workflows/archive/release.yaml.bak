@@ -1,0 +1,329 @@
+name: Create Release with Installer 🚀
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0)'
+        required: true
+        type: string
+
+env:
+  PYTHON_VERSION: '3.12'
+  GAME_NAME: 'DangerRose'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-windows-installer:
+    name: Build Windows Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Add Poetry to PATH (Windows)
+        run: |
+          echo "C:\Users\runneradmin\.local\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        shell: pwsh
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Build executable with PyInstaller
+        run: |
+          poetry run pyinstaller danger-rose-onefile.spec --noconfirm
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          Write-Host "Installing Inno Setup..."
+          $installerUrl = "https://jrsoftware.org/download.php/is.exe"
+          $installerPath = "$env:TEMP\innosetup.exe"
+
+          # Download Inno Setup
+          Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath
+
+          # Install silently
+          Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait
+
+          # Add to PATH
+          $innoPath = "${env:ProgramFiles(x86)}\Inno Setup 6"
+          echo "$innoPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Create Inno Setup script
+        shell: pwsh
+        run: |
+          @"
+          [Setup]
+          AppName=Danger Rose
+          AppVersion=${{ github.event.inputs.version || github.ref_name }}
+          AppPublisher=Danger Rose Team
+          AppPublisherURL=https://github.com/svange/danger-rose
+          AppSupportURL=https://github.com/svange/danger-rose/issues
+          DefaultDirName={autopf}\Danger Rose
+          DefaultGroupName=Danger Rose
+          UninstallDisplayIcon={app}\DangerRose.exe
+          Compression=lzma2
+          SolidCompression=yes
+          OutputDir=installer_output
+          OutputBaseFilename=DangerRose-Setup-${{ github.event.inputs.version || github.ref_name }}
+          SetupIconFile=assets\images\icon.ico
+          WizardStyle=modern
+          ArchitecturesAllowed=x64
+          ArchitecturesInstallIn64BitMode=x64
+
+          [Languages]
+          Name: "english"; MessagesFile: "compiler:Default.isl"
+
+          [Tasks]
+          Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+          Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
+
+          [Files]
+          Source: "dist\DangerRose.exe"; DestDir: "{app}"; Flags: ignoreversion
+          Source: "assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
+          Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
+          Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+
+          [Icons]
+          Name: "{group}\Danger Rose"; Filename: "{app}\DangerRose.exe"
+          Name: "{group}\{cm:UninstallProgram,Danger Rose}"; Filename: "{uninstallexe}"
+          Name: "{commondesktop}\Danger Rose"; Filename: "{app}\DangerRose.exe"; Tasks: desktopicon
+          Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\Danger Rose"; Filename: "{app}\DangerRose.exe"; Tasks: quicklaunchicon
+
+          [Run]
+          Filename: "{app}\DangerRose.exe"; Description: "{cm:LaunchProgram,Danger Rose}"; Flags: nowait postinstall skipifsilent
+          "@ | Out-File -FilePath "danger-rose-installer.iss" -Encoding UTF8
+
+      - name: Build installer
+        run: |
+          iscc danger-rose-installer.iss
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: installer_output/*.exe
+
+  build-game-executables:
+    name: Build Game Executables
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            name: Windows
+            artifact: DangerRose-Windows
+          - os: ubuntu-latest
+            name: Linux
+            artifact: DangerRose-Linux
+          - os: macos-14
+            name: macOS
+            artifact: DangerRose-macOS
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Add Poetry to PATH (Windows)
+        run: |
+          echo "C:\Users\runneradmin\.local\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        shell: pwsh
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Build with PyInstaller
+        run: |
+          poetry run pyinstaller danger-rose-onefile.spec --noconfirm
+
+      - name: Create distribution folder
+        shell: bash
+        run: |
+          mkdir -p dist-upload
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            cp dist/DangerRose.exe dist-upload/
+          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            cp dist/DangerRose dist-upload/DangerRose
+            chmod +x dist-upload/DangerRose
+          else
+            cp dist/DangerRose dist-upload/DangerRose
+            chmod +x dist-upload/DangerRose
+          fi
+
+      - name: Add README to distribution
+        shell: bash
+        run: |
+          cat > dist-upload/README.txt << 'EOF'
+          Danger Rose - Family Adventure Game
+          ===================================
+
+          How to Run:
+          - Windows: Double-click DangerRose.exe
+          - macOS/Linux: Run ./DangerRose in terminal
+
+          Controls:
+          - Arrow Keys: Move
+          - Space: Jump/Select
+          - ESC: Pause/Back
+
+          Enjoy the game!
+          EOF
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist-upload/
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build-windows-installer, build-game-executables]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Windows installer
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          path: installer/
+
+      - name: Download Windows build
+        uses: actions/download-artifact@v4
+        with:
+          name: DangerRose-Windows
+          path: builds/windows/
+
+      - name: Download Linux build
+        uses: actions/download-artifact@v4
+        with:
+          name: DangerRose-Linux
+          path: builds/linux/
+
+      - name: Download macOS build
+        uses: actions/download-artifact@v4
+        with:
+          name: DangerRose-macOS
+          path: builds/macos/
+
+      - name: Create zip archives
+        run: |
+          cd builds
+          zip -r ../DangerRose-Windows-Portable.zip windows/
+          zip -r ../DangerRose-Linux.zip linux/
+          zip -r ../DangerRose-macOS.zip macos/
+          cd ..
+
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREV_TAG=$(git tag --sort=-v:refname | head -n 2 | tail -n 1 || echo "")
+
+          if [ -z "$PREV_TAG" ]; then
+            echo "CHANGELOG=Initial release! 🎉" >> $GITHUB_OUTPUT
+          else
+            # Generate changelog from commits
+            CHANGES=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD | grep -E "^- (feat|fix|docs|perf|refactor|test|chore):" || echo "- Various improvements and bug fixes")
+            echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGES" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          name: Danger Rose ${{ steps.get_version.outputs.VERSION }}
+          body: |
+            # Danger Rose ${{ steps.get_version.outputs.VERSION }}
+
+            A family-friendly adventure game featuring Danger, Rose, and Dad!
+
+            ## 🎮 Download & Play
+
+            ### Windows Users
+            - **Installer (Recommended)**: Download `DangerRose-Setup-*.exe` for easy installation
+            - **Portable Version**: Download `DangerRose-Windows-Portable.zip` if you prefer not to install
+
+            ### macOS Users
+            - Download `DangerRose-macOS.zip`, extract, and run `DangerRose`
+
+            ### Linux Users
+            - Download `DangerRose-Linux.zip`, extract, and run `DangerRose`
+
+            ## 🎯 What's New
+
+            ${{ steps.changelog.outputs.CHANGELOG }}
+
+            ## 🕹️ Game Features
+
+            - **3 Playable Characters**: Each with unique abilities
+            - **Hub World**: Cozy apartment to explore
+            - **3 Minigames**: Ski adventure, Pool splash, Vegas dash
+            - **Save System**: Your progress is automatically saved
+            - **Family Fun**: Designed for parents and kids to enjoy together
+
+            ## 🐛 Bug Reports
+
+            Found a bug? Please [create an issue](https://github.com/${{ github.repository }}/issues/new)
+
+            ---
+
+            **System Requirements**:
+            - Windows 10/11 (64-bit), macOS 10.15+, or Linux
+            - 2GB RAM minimum
+            - 200MB free disk space
+            - Graphics: Any GPU with OpenGL 2.0 support
+          files: |
+            installer/DangerRose-Setup-*.exe
+            DangerRose-Windows-Portable.zip
+            DangerRose-Linux.zip
+            DangerRose-macOS.zip
+          draft: false
+          prerelease: false

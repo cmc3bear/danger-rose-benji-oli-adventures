@@ -1,0 +1,47 @@
+{
+  "timestamp": "2025-08-01T19:24:08.401486",
+  "results": [
+    {
+      "name": "ev_car_professional",
+      "variation": 1,
+      "file": "ev_car_professional_v1.png",
+      "path": "C:\\dev\\danger-rose\\assets\\images\\vehicles\\ev_car_professional_v1.png",
+      "revised_prompt": "Create a top-down view pixel art sprite of a modern electric vehicle. The vehicle, sized at 128x192 pixels, should have an 8-bit retro gaming aesthetic marked by clean lines and vibrant colors. The car should be designed with a sleek, aerodynamic structure and rounded edges, similar to popular electric vehicles. Using a bright electric blue color for the body with silver or white accents, the vehicle should make a bold statement. The windows are to be colored black with glowing cyan highlights at the front and rear to represent electric power. Not forgetting subtle details like door lines, side mirrors, charging port indicator, and LED headlight strips. The sprite should be in isometric-style, creating a slight 3D perspective for suitable racing game use. The background should be transparent. The art style should depict smooth pixel art with anti-aliasing and carry a family-friendly cartoon aesthetic, much like the 16-bit racing games such as OutRun. The design needs to be clear and recognizable even at a 64x96 display size."
+    },
+    {
+      "name": "ev_car_professional",
+      "variation": 2,
+      "file": "ev_car_professional_v2.png",
+      "path": "C:\\dev\\danger-rose\\assets\\images\\vehicles\\ev_car_professional_v2.png",
+      "revised_prompt": "Create a pixel art sprite of a sleek modern electric vehicle, sized at 128x192 pixels. The design should have top-down view and an 8-bit retro gaming aesthetic with clean lines and vibrant colors. The car is to be aerodynamic with rounded edges, similar to popular electric vehicles. It should have a bright electric blue body with silver or white accents and black windows. Cyan highlights on the front and rear are also to be added to signify electric power. Subtle details like door lines, side mirrors, charging port indicator, and LED headlight strips are to be included. The sprite should have a slight 3D perspective, resembling isometric style, for racing game use with a transparent background. The Art style is to be smooth pixel art with anti-aliasing, a family-friendly cartoon aesthetic reminiscent of 16-bit racing games like those in bygone eras. The design should still be clear and recognizable at a reduced display size of 64x96."
+    },
+    {
+      "name": "ev_car_professional",
+      "variation": 3,
+      "file": "ev_car_professional_v3.png",
+      "path": "C:\\dev\\danger-rose\\assets\\images\\vehicles\\ev_car_professional_v3.png",
+      "revised_prompt": "Design a pixel art sprite that is in the style of 8-bit retro gaming aesthetic with dimensions of 128x192 pixels and a top-down perspective. The sprite should depict a modern, sleek, aerodynamic electric vehicle that is reminiscent of the cutting-edge designs seen in contemporary electric vehicles. The body of the car is going to be painted electric blue with silver/white accents while the windows will be black. To signify the presence of electric power, the front and rear of the car should have glowing cyan highlights. The sprite should also include small but noteworthy details such as the lines of the doors, side mirrors, LED strips for headlights, and an easily distinguishable indicator for the charging port. The background of the sprite will be transparent and it will have a smooth, anti-aliased, family-friendly cartoon aesthetic that is reminiscent of 16-bit racing games like OutRun. The sprite, though having a slight 3D perspective (isometric-style) for racing game use, should still be easily recognizable when displayed at the size of 64x96 pixels."
+    },
+    {
+      "name": "ev_car_kids_drawing",
+      "variation": 1,
+      "file": "ev_car_kids_drawing_v1.png",
+      "path": "C:\\dev\\danger-rose\\assets\\images\\vehicles\\ev_car_kids_drawing_v1.png",
+      "revised_prompt": "Create a pixel art sprite that features a top-down view of a box-shaped electric car, crafted in the style of a child's crayon drawing - imperfect, charming and seemingly created by a 6-year-old. The car boasts oversized brown/black wheels, a vibrant green body with noticeable crayon texture, and windows illustrated with out-of-the-line blue scribbles. The car bares childlike attributes, like a smiley face on the front grille, yellow lightning bolt stickers, doodled flowers or stars on its sides, and possibly a tiny antenna topped with a flag. The color scheme is limited to primary colors, with the green of the car and the blue of the windows standing out, and red and yellow adorning the stickers and doodles. Despite adhering to a top-down racing perspective, the sprite radiates warmth, amusement and a sense of pride, as if a child would easily present it to their parents. The background of the image is transparent, allowing the focus to remain solely on the hand-drawn electric car."
+    },
+    {
+      "name": "ev_car_kids_drawing",
+      "variation": 2,
+      "file": "ev_car_kids_drawing_v2.png",
+      "path": "C:\\dev\\danger-rose\\assets\\images\\vehicles\\ev_car_kids_drawing_v2.png",
+      "revised_prompt": "Craft a pixel art sprite resembling a child's crayon drawing. Imagine the view is from the top down, measuring 128x192 pixels. The structure should have an intentional and endearing level of imperfection, resembling a 6-year-old's drawing with irregular lines and uneven filling. Visualize a simple, boxy electric car with exaggerated attributes. This includes oversized wheels in shades of brown and black and a bright green body with crayon-texture effects. Blue-tinted windows should be colored in with a free hand leading to a few stray marks. Enhance it with visuals appealing to kids: a happy face on the grill, lightning bolt stickers in yellow, flowers or stars doodled on the sides, and perhaps a small antenna with a flag. The color scheme should reveal a typical crayon set's primary colors (red, blue, yellow, green) with distinctive 'coloring outside the lines' effects. Despite adhering to the top-down race car perspective, the piece should retain a charming, handmade quality. Its background needs to be transparent. The final feel should resemble a wholesome, amusing, and moving drawing one might find a child proudly presenting to their parents."
+    },
+    {
+      "name": "ev_car_kids_drawing",
+      "variation": 3,
+      "file": "ev_car_kids_drawing_v3.png",
+      "path": "C:\\dev\\danger-rose\\assets\\images\\vehicles\\ev_car_kids_drawing_v3.png",
+      "revised_prompt": "Generate a 128x192 pixel art sprite reminiscent of a child's crayon drawing featuring a top-down view of an electric car. The artwork should be aesthetically imperfect and charming. The car should take the form of a boxy electric vehicle with exaggerated details such as oversized wheels in brown or black. Its bright green body should boast a crayon-texture effect, accompanied by windows painted with exuberant blue scribbles that go beyond the lines. Vibrant childlike embellishments can include a friendly smiley face on the front \"grille,\" yellow lightning bolt stickers, and a bouquet of flowers or stars doodled on the sides of the car. A small antenna waving a flag could be a fitting addition. Please utilize a limited crayon color palette that includes primary colors (red, blue, yellow, green) and visible \"coloring outside the lines\" effects. The sprite should maintain the top-down racing perspective combined with a delightful hand-drawn quality. The background should remain transparent to accentuate the aura of wholesomeness, humor, and warmth akin to a drawing a child would eagerly present to their parents."
+    }
+  ]
+}

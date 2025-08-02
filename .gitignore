@@ -1,0 +1,66 @@
+.idea
+test-artifacts/
+
+# Coverage files
+.coverage
+.coverage.*
+htmlcov/
+*.cover
+*.py,cover
+
+# Testing & Quality reports
+bandit-report.json
+*-report.json
+*-report.html
+*-report.xml
+pytest_html_report.html
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Profiling
+*.stats
+profile.stats
+*.prof
+
+# PyInstaller
+build/
+dist/
+*.spec.bak
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Environment & config
+.env
+.env.local
+.claude/settings.local.json
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Python
+__pycache__/
+*/__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+dist/
+*.egg-info/
+
+# IDE
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Game saves (during development)
+saves/
+debug_saves/
