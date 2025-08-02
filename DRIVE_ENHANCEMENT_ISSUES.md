@@ -609,6 +609,58 @@ Based on the master plan, the next development phase should focus on:
 
 ---
 
+### Issue #14: Dynamic Hazards (Oil Slicks & Debris) ✅
+**Status**: COMPLETED  
+**Assignee**: Claude  
+**Labels**: enhancement, phase-3.2, hazard-system, gameplay  
+
+**From State:**
+- Only static hazards (cones, barriers) in construction zones
+- Predictable hazard placement with no environmental variety
+- No hazards that affect vehicle handling beyond simple collision
+- Limited dynamic challenge elements
+
+**To State:**
+- Oil slicks spawn behind trucks causing temporary loss of control
+- Road debris (tire chunks, metal scraps, cargo) creates damage hazards
+- Dynamic spawning creates unpredictable challenges
+- Hazard effects system with duration-based physics modifications
+- Visual feedback for active effects
+
+**Rationale:**
+- Dynamic hazards add replayability through unpredictability
+- Different hazard types require different player strategies
+- Oil slicks add skill-based challenge (maintaining control while slipping)
+- Debris adds risk/reward decisions (speed vs safety)
+- Environmental storytelling (trucks leak oil, highways have debris)
+
+**Implementation Notes:**
+- ✅ Extended Hazard dataclass with dynamic properties
+- ✅ Added effect system (slip, damage) with duration tracking
+- ✅ Oil slicks: 70% steering reduction for 1.5 seconds
+- ✅ Debris: 15% instant speed reduction, various visual types
+- ✅ Slip factor integrated into steering physics
+- ✅ Visual effects: Rainbow oil sheen, irregular debris shapes
+- ✅ "SLIPPERY!" warning with countdown timer
+- ✅ Screen edge wave effect during slip
+- ✅ Dynamic spawning: Oil from trucks, random debris
+
+**Results:**
+- Dynamic hazards successfully add unpredictable challenge
+- Slip physics feel realistic and recoverable with skill
+- Visual feedback clearly communicates hazard effects
+- Performance impact minimal with efficient spawning
+- Gameplay enhanced with risk/reward decisions
+
+**Technical Details:**
+- Hazard effects stored in active_effects list
+- Slip factor multiplicatively affects steering
+- Effects expire based on duration timers
+- Dynamic hazards removed after collision (consumed)
+- Spawn rates adjustable for difficulty tuning
+
+---
+
 ## Phase 3.2: Asset Generation & Visual Enhancement
 
 ### Issue #16: ChatGPT API Sprite Generation for Traffic Assets

@@ -157,6 +157,29 @@ class DriveGame:
         self.scenery_types = ["forest", "mountains", "city", "lake", "desert"]
         self.next_scenery_change = 1000   # Distance until next scenery change
         
+        # Comic Text Taunt System
+        self.comic_text_timer = random.uniform(10.0, 15.0)  # Time until next taunt
+        self.current_comic_text = None    # Current text being displayed
+        self.comic_text_duration = 3.0    # How long to show the text
+        self.comic_text_fade_timer = 0.0  # Timer for fade animation
+        self.comic_taunts = [
+            "Learn how to drive!",
+            "Nice driving, grandma!",
+            "Did you get your license from a cereal box?",
+            "Sunday driver alert!",
+            "Is this your first time?",
+            "The gas pedal is on the right!",
+            "Speed limit's just a suggestion!",
+            "Move it or lose it!",
+            "You drive like my neighbor!",
+            "Beep beep! Coming through!",
+            "Are we there yet?",
+            "I've seen snails go faster!",
+            "Driving school dropout?",
+            "Born to be mild!",
+            "Wake me when we get there..."
+        ]
+        
         # Music selector doesn't need callbacks - we handle events in handle_event
         
         # Racing mechanics
@@ -376,6 +399,9 @@ class DriveGame:
         
         # Update active hazard effects
         self._update_hazard_effects(dt)
+        
+        # Update comic text taunts
+        self._update_comic_text(dt)
         
         # Check for collisions with traffic
         self._check_traffic_collisions(dt)
@@ -1446,6 +1472,27 @@ class DriveGame:
         if self.effect_visual_timer > 0:
             self.effect_visual_timer -= dt
     
+    def _update_comic_text(self, dt: float):
+        """Update comic text taunt system."""
+        # Update timer for next taunt
+        if self.current_comic_text is None:
+            self.comic_text_timer -= dt
+            
+            # Time to show a new taunt
+            if self.comic_text_timer <= 0:
+                # Pick a random taunt
+                self.current_comic_text = random.choice(self.comic_taunts)
+                self.comic_text_fade_timer = self.comic_text_duration
+                # Reset timer for next taunt
+                self.comic_text_timer = random.uniform(10.0, 15.0)
+        else:
+            # Update fade timer for current text
+            self.comic_text_fade_timer -= dt
+            
+            # Remove text when timer expires
+            if self.comic_text_fade_timer <= 0:
+                self.current_comic_text = None
+    
     def _get_lane_x_position(self, lane: int) -> float:
         """Get the normalized X position for a given lane."""
         # Get current road boundaries
@@ -2061,6 +2108,56 @@ class DriveGame:
                         pygame.draw.rect(screen, (64, 64, 128), 
                                        (self.screen_width - wave_amount, 0, wave_amount, self.screen_height))
                     effect_y -= 60
+        
+        # Draw comic text bubble
+        if self.current_comic_text:
+            # Calculate fade alpha
+            fade_alpha = min(255, int(255 * min(1.0, self.comic_text_fade_timer)))
+            
+            # Position near the car
+            car_screen_x = int(self.player_x * self.screen_width)
+            bubble_x = car_screen_x + 50
+            bubble_y = self.screen_height - 200
+            
+            # Measure text for bubble size
+            text_surface = self.font_large.render(self.current_comic_text, True, COLOR_BLACK)
+            text_rect = text_surface.get_rect()
+            
+            # Create bubble background
+            bubble_padding = 20
+            bubble_rect = text_rect.inflate(bubble_padding * 2, bubble_padding)
+            bubble_rect.center = (bubble_x, bubble_y)
+            
+            # Draw comic bubble with transparency
+            bubble_surface = pygame.Surface((bubble_rect.width, bubble_rect.height), pygame.SRCALPHA)
+            
+            # White bubble with black border
+            pygame.draw.rect(bubble_surface, (255, 255, 255, fade_alpha), 
+                           (0, 0, bubble_rect.width, bubble_rect.height), 
+                           border_radius=15)
+            pygame.draw.rect(bubble_surface, (0, 0, 0, fade_alpha), 
+                           (0, 0, bubble_rect.width, bubble_rect.height), 
+                           width=3, border_radius=15)
+            
+            # Draw bubble tail pointing to car
+            tail_points = [
+                (bubble_rect.width // 2 - 10, bubble_rect.height - 2),
+                (bubble_rect.width // 2 + 10, bubble_rect.height - 2),
+                (bubble_rect.width // 2 - 20, bubble_rect.height + 20)
+            ]
+            pygame.draw.polygon(bubble_surface, (255, 255, 255, fade_alpha), tail_points)
+            pygame.draw.lines(bubble_surface, (0, 0, 0, fade_alpha), False, 
+                            [(tail_points[0][0] - 1, tail_points[0][1]),
+                             (tail_points[2][0] - 1, tail_points[2][1]),
+                             (tail_points[1][0] + 1, tail_points[1][1])], 3)
+            
+            # Blit bubble to screen
+            screen.blit(bubble_surface, bubble_rect)
+            
+            # Draw text with fade
+            text_surface.set_alpha(fade_alpha)
+            text_rect.center = bubble_rect.center
+            screen.blit(text_surface, text_rect)
         
         # Control hints
         control_text = "Press Q to return to Hub"
