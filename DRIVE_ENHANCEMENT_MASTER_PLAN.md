@@ -23,54 +23,62 @@ Transform The Drive minigame into a polished racing experience with realistic ro
   - Critical Review Agents (risk assessment)
   - Mediation Agents (final approval)
 
-## 🗓️ Master Schedule
+## 🗓️ Master Schedule (Maturity-Based)
 
-### Phase 1: Road System Overhaul (Week 1: Aug 2-9, 2025)
-**Milestone 1.1: Road Consistency**
+### Phase 1: Road System Foundation
+**Maturity Level 1.1: Road Consistency (Prototype)**
 - Issue #1: Fix road width oscillation
 - Issue #2: Implement subtle movement effects
-- Testing Checkpoint: Aug 5
+- **Maturity Gate**: Road renders consistently, width variance <10%, basic movement effects visible
+- **Testing**: Unit tests pass, visual inspection confirms improvement
 
-**Milestone 1.2: Turn System**
+**Maturity Level 1.2: Turn System (Alpha)**
 - Issue #3: Design turn algorithm
 - Issue #4: Implement turn rendering
 - Issue #5: Add turn timing system
-- Testing Checkpoint: Aug 9
+- **Maturity Gate**: Turns alternate predictably, timing is configurable, visual rendering works
+- **Testing**: Algorithm produces expected patterns, no visual artifacts
 
-### Phase 2: Vehicle Physics Enhancement (Week 2: Aug 10-16, 2025)
-**Milestone 2.1: Turn Response**
+### Phase 2: Vehicle Physics Foundation
+**Maturity Level 2.1: Turn Response (Prototype)**
 - Issue #6: Gradual position adjustment
 - Issue #7: Sprite rotation during turns
-- Testing Checkpoint: Aug 12
+- **Maturity Gate**: Vehicle moves toward turn direction, sprite rotates 15-20%, feels responsive
+- **Testing**: Controls feel natural, rotation is smooth and proportional
 
-**Milestone 2.2: Physics Tuning**
+**Maturity Level 2.2: Physics Refinement (Alpha)**
 - Issue #8: Speed adjustment in turns
 - Issue #9: Momentum and drift effects
-- Testing Checkpoint: Aug 16
+- **Maturity Gate**: Realistic speed behavior in turns, momentum feels natural
+- **Testing**: Physics feel realistic, no jarring behavior, maintains fun factor
 
-### Phase 3: Traffic & Hazards (Week 3: Aug 17-23, 2025)
-**Milestone 3.1: Traffic System**
+### Phase 3: Traffic & Hazards Foundation
+**Maturity Level 3.1: Traffic System (Prototype)**
 - Issue #10: NPC car spawning
 - Issue #11: Traffic AI behavior
 - Issue #12: Collision detection
-- Testing Checkpoint: Aug 19
+- **Maturity Gate**: Traffic spawns reliably, basic AI works, collisions detect properly
+- **Testing**: No crashes, traffic behavior is predictable, collisions are fair
 
-**Milestone 3.2: Hazard Implementation**
+**Maturity Level 3.2: Hazard System (Alpha)**
 - Issue #13: Static hazards (cones, barriers)
 - Issue #14: Dynamic hazards (oil slicks, debris)
-- Testing Checkpoint: Aug 23
+- **Maturity Gate**: Hazards add challenge without frustration, variety is engaging
+- **Testing**: Difficulty feels balanced, hazards enhance rather than break gameplay
 
-### Phase 4: Polish & Integration (Week 4: Aug 24-30, 2025)
-**Milestone 4.1: Visual Polish**
+### Phase 4: Integration & Polish
+**Maturity Level 4.1: Visual Integration (Beta)**
 - Issue #15: Turn indicators/signs
 - Issue #16: Road textures and markings
-- Testing Checkpoint: Aug 26
+- **Maturity Gate**: All visual elements work together cohesively, UI is clear
+- **Testing**: Visual hierarchy is clear, no confusing elements, aesthetically pleasing
 
-**Milestone 4.2: Final Integration**
+**Maturity Level 4.2: System Integration (Release Candidate)**
 - Issue #17: Performance optimization
 - Issue #18: Difficulty balancing
 - Issue #19: Save system updates
-- Final Testing: Aug 30
+- **Maturity Gate**: All systems work together, performance targets met, ready for release
+- **Testing**: Full integration test suite passes, performance benchmarks met
 
 ## 🤖 Agent Structure
 
@@ -91,20 +99,40 @@ Transform The Drive minigame into a polished racing experience with realistic ro
 2. **game-director**: Overall vision alignment
 3. **quality-assurance-lead**: Release readiness
 
-## 📊 Testing Checkpoints
+## 📊 Maturity Gates & Testing
 
-### Checkpoint Requirements
-1. **Unit Tests**: New code coverage >90%
-2. **Integration Tests**: All systems work together
-3. **Performance Tests**: Maintain 60 FPS
-4. **Playtesting**: Fun factor validation
+### Maturity Gate Requirements
+Each maturity level must meet these criteria before advancing:
 
-### Validation Criteria
-- Road renders correctly at all speeds
-- Turns feel natural and responsive
-- Traffic provides challenge without frustration
-- Vehicle controls are intuitive
+#### Prototype Level
+- **Functional**: Core feature works in isolation
+- **Unit Tests**: >80% coverage for new code
+- **Performance**: No significant regression
+- **Manual Testing**: Basic functionality verified
+
+#### Alpha Level  
+- **Integration**: Works with existing systems
+- **Unit Tests**: >90% coverage
+- **Performance**: Maintains 60 FPS target
+- **User Testing**: Controls feel natural
+
+#### Beta Level
+- **Polish**: Visual and audio elements complete
+- **Integration Tests**: Full system compatibility
+- **Performance**: Optimized and stable
+- **Playtesting**: Fun factor validated
+
+#### Release Candidate
+- **Quality**: All acceptance criteria met
+- **Performance**: Benchmarks exceeded
+- **Testing**: Comprehensive test suite passes
+- **Documentation**: Complete and accurate
+
+### Universal Validation Criteria (All Levels)
 - No regression in existing features
+- Code follows established patterns
+- Agent review process completed
+- Risk assessment documented
 
 ## 🔄 Change Management Template
 

@@ -44,45 +44,50 @@ Your grand vision for The Drive minigame enhancement is now fully planned and re
 3. **Traffic & Hazards** - Other cars and obstacles on the road
 4. **Realistic Vehicle Physics** - Gradual turn movement, 15-20% sprite rotation
 
-### 4-Week Schedule
-- **Week 1:** Road System Overhaul (Aug 2-9)
-- **Week 2:** Vehicle Physics Enhancement (Aug 10-16)  
-- **Week 3:** Traffic & Hazards (Aug 17-23)
-- **Week 4:** Polish & Integration (Aug 24-30)
+### Maturity-Based Development Phases
+- **Phase 1:** Road System Foundation (Prototype → Alpha)
+- **Phase 2:** Vehicle Physics Foundation (Prototype → Alpha)
+- **Phase 3:** Traffic & Hazards Foundation (Prototype → Alpha)
+- **Phase 4:** Integration & Polish (Beta → Release Candidate)
 
 ## 📝 Next Steps (Manual GitHub Setup)
 
 Create these GitHub issues manually:
 
-### Milestone 1.1: Road Consistency (Due: Aug 5, 2025)
+### Maturity Level 1.1: Road Consistency (Prototype)
 
 **Issue #1: Fix Road Width Oscillation**
 - Labels: `enhancement`, `phase-1`, `road-system`, `high-priority`
+- **Maturity Gate**: Width variance <10%, basic consistency achieved
 - Goal: Reduce width oscillation from 75% to ±5%
 
 **Issue #2: Implement Subtle Movement Effects**  
 - Labels: `enhancement`, `phase-1`, `visual-effects`, `medium-priority`
+- **Maturity Gate**: Movement effects visible and configurable
 - Goal: Add speed-based movement perception
 
-### Milestone 1.2: Turn System (Due: Aug 9, 2025)
+### Maturity Level 1.2: Turn System (Alpha)
 
 **Issue #3: Design Turn Algorithm**
 - Labels: `enhancement`, `phase-1`, `turn-system`, `high-priority`
+- **Maturity Gate**: Algorithm produces predictable turn patterns
 - Goal: Alternating left/right turns every 8-10 seconds
 
 **Issue #4: Implement Turn Rendering**
-- Labels: `enhancement`, `phase-1`, `rendering`, `high-priority`  
+- Labels: `enhancement`, `phase-1`, `rendering`, `high-priority`
+- **Maturity Gate**: Turns render smoothly without visual artifacts
 - Goal: Visual rendering of new turn system
 
 **Issue #5: Add Turn Timing System**
 - Labels: `enhancement`, `phase-1`, `timing-system`, `medium-priority`
+- **Maturity Gate**: Timing system is accurate and configurable
 - Goal: Precise timing control for turn frequency
 
 ## 🔄 Master Instructions for Each Development Session
 
 **Always begin each development prompt with:**
 
-> "Working on Drive Enhancement following Master Plan. Current focus: [Milestone X.Y]. 
+> "Working on Drive Enhancement following Master Plan. Current focus: [Maturity Level X.Y]. 
 > 
 > Implementing agents: [relevant agents]
 > Review agents: [relevant review agents]  
@@ -90,7 +95,9 @@ Create these GitHub issues manually:
 >
 > Requirements: Road consistency (±5% width), dynamic turns (8-10s intervals), traffic/hazards, realistic vehicle physics (15-20% sprite rotation).
 >
-> Following issue-driven development with From/To state documentation, risk assessment, and 60 FPS performance target."
+> Following maturity-driven development with From/To state documentation, risk assessment, and 60 FPS performance target.
+> 
+> Current Maturity Gate: [specific criteria to achieve for this level]"
 
 ## 📈 Success Metrics
 - **Technical:** 60 FPS, <5% road width variance, ±0.5s turn timing accuracy
@@ -108,6 +115,7 @@ Every change must pass:
 
 **Status:** ✅ Ready for Implementation  
 **Repository:** https://github.com/cmc3bear/danger-rose-benji-oli-adventures  
-**Next Milestone:** 1.1 - Road Consistency (Due: Aug 5, 2025)  
+**Next Maturity Level:** 1.1 - Road Consistency (Prototype)  
+**Maturity Gate:** Width variance <10%, basic movement effects visible
 
 The foundation is set. Time to build your enhanced Drive minigame! 🎮🏁
