@@ -287,8 +287,8 @@ class DriveGame:
         
         # Add gentle freeway curves in addition to discrete turns
         # Use low-frequency sine waves for gradual highway curves
-        freeway_curve_freq = 0.03  # Very slow curves like real highways
-        freeway_curve_amplitude = 0.25  # Gentle curves
+        freeway_curve_freq = 0.02  # Slower curves for more noticeable effect
+        freeway_curve_amplitude = 0.4  # More noticeable curves (was 0.25)
         
         # Base freeway curve
         freeway_curve = math.sin(self.road_position * freeway_curve_freq) * freeway_curve_amplitude
@@ -366,7 +366,7 @@ class DriveGame:
     def _update_road_boundaries(self):
         """Calculate current road boundaries based on road geometry."""
         # Calculate road center and width (same logic as drawing)
-        road_center_pixels = self.screen_width // 2 + int(self.road_curve * 50)
+        road_center_pixels = self.screen_width // 2 + int(self.road_curve * 100)  # Doubled curve effect
         
         # Apply road width variations
         base_width_variation = int(self.width_oscillation)
@@ -1110,11 +1110,11 @@ class DriveGame:
             return
             
         # Get player collision rectangle in normalized coordinates
-        player_collision_width = 0.05  # Player car width in normalized coords (~64px at 1280px width)
-        player_collision_height = 0.1   # Player car height in normalized coords
+        player_collision_width = 0.03  # Smaller collision box (~40px at 1280px width)
+        player_collision_height = 0.06  # Smaller height for more forgiving collisions
         player_left = self.player_x - player_collision_width / 2
         player_right = self.player_x + player_collision_width / 2
-        player_top = 0.4   # Player Y position (fixed in center-ish area)
+        player_top = 0.42   # Player Y position (slightly adjusted)
         player_bottom = player_top + player_collision_height
         
         # Check collision with each traffic car
@@ -1329,11 +1329,11 @@ class DriveGame:
             return
             
         # Get player collision rectangle
-        player_collision_width = 0.05
-        player_collision_height = 0.1
+        player_collision_width = 0.03  # Smaller collision box
+        player_collision_height = 0.06  # Smaller height
         player_left = self.player_x - player_collision_width / 2
         player_right = self.player_x + player_collision_width / 2
-        player_top = 0.4
+        player_top = 0.42
         player_bottom = player_top + player_collision_height
         
         # Check collision with each hazard
@@ -1437,7 +1437,7 @@ class DriveGame:
         screen.fill((34, 139, 34), ground_rect)  # Forest green
         
         # Enhanced road with natural variation
-        road_center = self.screen_width // 2 + int(self.road_curve * 50)  # Curve affects center position only
+        road_center = self.screen_width // 2 + int(self.road_curve * 100)  # Doubled curve effect for visibility
         
         # Apply multiple layers of variation for realistic road
         base_width_variation = int(self.width_oscillation)  # Primary width changes
