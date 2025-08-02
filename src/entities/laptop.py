@@ -3,6 +3,7 @@
 import pygame
 from typing import Optional, Tuple
 from src.utils.asset_paths import get_image_path
+from src.config.constants import SCENE_HACKER_TYPING
 
 
 class Laptop:
@@ -150,7 +151,7 @@ class Laptop:
         
         if self.is_open:
             # Transition to hacker typing scene
-            return "hacker_typing"
+            return SCENE_HACKER_TYPING
         
         return None
     

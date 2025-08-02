@@ -76,7 +76,7 @@ class ElevenLabsSoundGenerator:
         for directory in directories:
             directory.mkdir(parents=True, exist_ok=True)
             
-        print(f"✓ Created directory structure under {self.output_base}")
+        print(f"* Created directory structure under {self.output_base}")
         
     def get_priority_sounds(self) -> Dict[str, List[Dict]]:
         """Get priority sound definitions for Hub and Drive areas.
@@ -172,26 +172,42 @@ class ElevenLabsSoundGenerator:
             response = requests.post(url, json=data, headers=self.headers)
             
             if response.status_code == 200:
-                # Save as MP3 first
-                mp3_path = self.temp_dir / f"{output_path.stem}.mp3"
-                with open(mp3_path, 'wb') as f:
-                    f.write(response.content)
-                
-                # Convert to OGG
-                success = self.convert_to_ogg(mp3_path, output_path)
-                
-                # Clean up temp file
-                if mp3_path.exists():
-                    mp3_path.unlink()
+                # If ffmpeg is not available, save as MP3
+                if not self._check_ffmpeg_available():
+                    mp3_output = output_path.with_suffix('.mp3')
+                    with open(mp3_output, 'wb') as f:
+                        f.write(response.content)
+                    print(f"  [OK] Saved as MP3: {mp3_output.name}")
+                    return True
+                else:
+                    # Save as MP3 first, then convert to OGG
+                    mp3_path = self.temp_dir / f"{output_path.stem}.mp3"
+                    with open(mp3_path, 'wb') as f:
+                        f.write(response.content)
                     
-                return success
+                    # Convert to OGG
+                    success = self.convert_to_ogg(mp3_path, output_path)
+                    
+                    # Clean up temp file
+                    if mp3_path.exists():
+                        mp3_path.unlink()
+                        
+                    return success
             else:
-                print(f"✗ API error for {output_path.name}: {response.status_code}")
+                print(f"[ERROR] API error for {output_path.name}: {response.status_code}")
                 print(f"  Response: {response.text}")
                 return False
                 
         except Exception as e:
-            print(f"✗ Error generating {output_path.name}: {str(e)}")
+            print(f"[ERROR] Error generating {output_path.name}: {str(e)}")
+            return False
+            
+    def _check_ffmpeg_available(self) -> bool:
+        """Check if ffmpeg is available for conversion."""
+        try:
+            subprocess.run(["ffmpeg", "-version"], capture_output=True, check=True)
+            return True
+        except:
             return False
             
     def convert_to_ogg(self, input_path: Path, output_path: Path) -> bool:
@@ -215,14 +231,14 @@ class ElevenLabsSoundGenerator:
             result = subprocess.run(cmd, capture_output=True, text=True)
             
             if result.returncode == 0 and output_path.exists():
-                print(f"  ✓ Converted to OGG: {output_path.name}")
+                print(f"  [OK] Converted to OGG: {output_path.name}")
                 return True
             else:
-                print(f"  ✗ Conversion failed: {result.stderr}")
+                print(f"  [ERROR] Conversion failed: {result.stderr}")
                 return False
                 
         except FileNotFoundError:
-            print("✗ ffmpeg not found. Please install ffmpeg for audio conversion.")
+            print("[ERROR] ffmpeg not found. Please install ffmpeg for audio conversion.")
             return False
             
     def generate_priority_sounds(self, limit: Optional[int] = None):
@@ -234,13 +250,13 @@ class ElevenLabsSoundGenerator:
         sounds = self.get_priority_sounds()
         total_sounds = sum(len(category) for category in sounds.values())
         
-        print(f"\n🎵 Generating {total_sounds} priority sounds for Hub and Drive areas...")
+        print(f"\n>>> Generating {total_sounds} priority sounds for Hub and Drive areas...")
         
         generated = 0
         failed = 0
         
         for category, sound_list in sounds.items():
-            print(f"\n📁 Category: {category}")
+            print(f"\n[Category: {category}]")
             
             # Determine output subdirectory
             if category.startswith("hub_character"):
@@ -258,17 +274,17 @@ class ElevenLabsSoundGenerator:
                 
             for sound in sound_list:
                 if limit and generated >= limit:
-                    print(f"\n⚠️  Reached limit of {limit} sounds")
+                    print(f"\n!!! Reached limit of {limit} sounds")
                     return
                     
                 output_path = subdir / f"{sound['name']}.ogg"
                 
                 # Skip if already exists
                 if output_path.exists():
-                    print(f"  ⏩ Skipping {sound['name']} (already exists)")
+                    print(f"  >> Skipping {sound['name']} (already exists)")
                     continue
                     
-                print(f"  🔊 Generating: {sound['name']}...", end="", flush=True)
+                print(f"  >> Generating: {sound['name']}...", end="", flush=True)
                 
                 # Get voice ID
                 voice_id = self.voice_presets.get(sound['voice'], self.voice_presets['narrator'])
@@ -277,18 +293,18 @@ class ElevenLabsSoundGenerator:
                 success = self.generate_sound(sound['text'], voice_id, output_path)
                 
                 if success:
-                    print(" ✓")
+                    print(" [OK]")
                     generated += 1
                 else:
-                    print(" ✗")
+                    print(" [FAIL]")
                     failed += 1
                     
                 # Rate limiting
                 time.sleep(0.5)  # Be respectful to the API
                 
-        print(f"\n📊 Summary:")
-        print(f"  ✓ Generated: {generated} sounds")
-        print(f"  ✗ Failed: {failed} sounds")
+        print(f"\n=== Summary ===")
+        print(f"  Generated: {generated} sounds")
+        print(f"  Failed: {failed} sounds")
         print(f"  Total: {generated + failed} attempts")
         
     def generate_remaining_sounds(self):
@@ -303,22 +319,22 @@ class ElevenLabsSoundGenerator:
         Returns:
             Dictionary mapping file paths to validation status
         """
-        print("\n🔍 Validating generated sounds...")
+        print("\n>>> Validating generated sounds...")
         
         results = {}
         
         for root, dirs, files in os.walk(self.output_base):
             for file in files:
-                if file.endswith('.ogg'):
+                if file.endswith(('.ogg', '.mp3')):
                     file_path = Path(root) / file
                     
                     # Basic validation - file exists and has content
                     if file_path.exists() and file_path.stat().st_size > 1024:
                         results[str(file_path)] = True
-                        print(f"  ✓ Valid: {file_path.relative_to(self.output_base)}")
+                        print(f"  [OK] Valid: {file_path.relative_to(self.output_base)}")
                     else:
                         results[str(file_path)] = False
-                        print(f"  ✗ Invalid: {file_path.relative_to(self.output_base)}")
+                        print(f"  [FAIL] Invalid: {file_path.relative_to(self.output_base)}")
                         
         return results
         
@@ -342,24 +358,24 @@ def load_api_key() -> Optional[str]:
                 with open(vault_path, 'r') as f:
                     api_key = f.read().strip()
                     if api_key:
-                        print(f"✓ Loaded API key from: {vault_path}")
+                        print(f"* Loaded API key from: {vault_path}")
                         return api_key
             except Exception as e:
-                print(f"✗ Error reading API key from {vault_path}: {e}")
+                print(f"[ERROR] Error reading API key from {vault_path}: {e}")
                 
-    print("✗ Could not find 11labs API key in vault")
+    print("[ERROR] Could not find 11labs API key in vault")
     return None
 
 
 def main():
     """Main function to generate sounds."""
-    print("🎮 Danger Rose Sound Generation Tool")
-    print("====================================\n")
+    print("*** Danger Rose Sound Generation Tool ***")
+    print("==========================================\n")
     
     # Load API key
     api_key = load_api_key()
     if not api_key:
-        print("\n❌ Cannot proceed without API key")
+        print("\n[ERROR] Cannot proceed without API key")
         print("Please ensure 11labs API key is in the vault:")
         print("  C:/dev/api-key-forge/vault/11LABS/api_key.txt")
         return 1
@@ -367,11 +383,10 @@ def main():
     # Check for ffmpeg
     try:
         subprocess.run(["ffmpeg", "-version"], capture_output=True, check=True)
-        print("✓ ffmpeg is available")
+        print("* ffmpeg is available - will generate OGG files")
     except:
-        print("✗ ffmpeg not found. Please install ffmpeg for audio conversion")
-        print("  Download from: https://ffmpeg.org/download.html")
-        return 1
+        print("* ffmpeg not found - will generate MP3 files instead")
+        print("  (Install ffmpeg from https://ffmpeg.org/download.html for OGG conversion)")
         
     # Initialize generator
     generator = ElevenLabsSoundGenerator(api_key)
@@ -380,7 +395,7 @@ def main():
     generator.setup_directories()
     
     # Generate priority sounds (Hub and Drive)
-    print("\n🎯 Focusing on priority areas: Hub World and Drive Game")
+    print("\n>>> Focusing on priority areas: Hub World and Drive Game")
     
     # Optional: Set a limit for testing
     # generator.generate_priority_sounds(limit=5)
@@ -394,13 +409,13 @@ def main():
     valid_count = sum(1 for v in validation_results.values() if v)
     total_count = len(validation_results)
     
-    print(f"\n✅ Generation complete!")
+    print(f"\n=== Generation complete! ===")
     print(f"   Valid sounds: {valid_count}/{total_count}")
     
     if valid_count < total_count:
-        print("\n⚠️  Some sounds failed validation. Check the output above.")
+        print("\n!!! Some sounds failed validation. Check the output above.")
         
-    print("\n📝 Next steps:")
+    print("\n=== Next steps ===")
     print("1. Test sounds in the game")
     print("2. Adjust generation parameters if needed")
     print("3. Generate remaining game sounds")

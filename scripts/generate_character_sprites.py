@@ -98,7 +98,9 @@ The character should be centered and facing slightly toward the camera."""
             return None
             
     except Exception as e:
-        print(f"Error generating sprite for {character_name} - {animation} - {scene}: {e}")
+        print(f"Error generating sprite for {character_name} - {animation} - {scene}: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 
@@ -201,9 +203,9 @@ def main():
     # Check for API key
     try:
         api_key = get_api_key("OPENAI")
-        print("✓ OpenAI API key found")
+        print("[OK] OpenAI API key found")
     except ValueError as e:
-        print(f"✗ Error: {e}")
+        print(f"[ERROR] {e}")
         print("\nPlease ensure your OpenAI API key is available:")
         print("1. Set OPENAI_API_KEY environment variable, or")
         print("2. Place key in C:\\dev\\api-key-forge\\vault\\OPENAI\\api_key.txt")

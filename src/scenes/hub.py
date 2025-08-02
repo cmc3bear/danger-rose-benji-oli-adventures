@@ -8,6 +8,7 @@ import pygame
 from src.config.constants import SCREEN_HEIGHT, SCREEN_WIDTH
 from src.entities.couch import Couch
 from src.entities.door import Door
+from src.entities.laptop import Laptop
 from src.entities.player import Player
 from src.entities.trophy_shelf import TrophyShelf
 from src.ui.notification import SaveNotification
@@ -78,6 +79,9 @@ class HubWorld:
         # Create couch save point
         self.couch = Couch(350, 400)
 
+        # Create laptop on table (positioned in front of couch)
+        self.laptop = Laptop(360, 320)  # Centered on table in front of couch
+
         # Save notification
         self.save_notification = SaveNotification(self.font, self.small_font)
 
@@ -98,6 +102,11 @@ class HubWorld:
                     else:
                         # Show trophy stats popup
                         self.trophy_shelf.show_stats_popup(self.selected_character)
+                # Check if player is near laptop
+                elif self.laptop.is_glowing:
+                    next_scene = self.laptop.handle_interaction()
+                    if next_scene:
+                        return next_scene
                 # Check if player is near couch
                 elif self.couch.is_highlighted:
                     # Save the game
@@ -136,6 +145,9 @@ class HubWorld:
         # Check couch proximity
         self.couch.is_highlighted = self.couch.check_player_proximity(self.player.rect)
 
+        # Update laptop with player position
+        self.laptop.update(dt, (self.player.rect.centerx, self.player.rect.centery))
+
         # Check trophy shelf proximity
         self.trophy_shelf.is_highlighted = self.trophy_shelf.check_player_proximity(
             self.player.rect
@@ -166,6 +178,9 @@ class HubWorld:
 
         # Draw couch
         self.couch.draw(screen, self.small_font)
+
+        # Draw laptop
+        self.laptop.draw(screen)
 
         # Draw trophy shelf
         self.trophy_shelf.draw(

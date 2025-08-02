@@ -1,0 +1,57 @@
+[
+  {
+    "id": "cmd_list_1",
+    "name": "List Directory",
+    "text": "ls -la",
+    "difficulty": 2,
+    "wpm_target": 20,
+    "accuracy_target": 85,
+    "time_limit": 30,
+    "description": "List all files including hidden ones",
+    "hints": ["Unix command", "Shows detailed file info"]
+  },
+  {
+    "id": "cmd_nav_1",
+    "name": "Navigate System",
+    "text": "cd /home/user/Documents",
+    "difficulty": 2,
+    "wpm_target": 25,
+    "accuracy_target": 85,
+    "time_limit": 35,
+    "description": "Change to user documents folder",
+    "hints": ["Change directory command", "Absolute path"]
+  },
+  {
+    "id": "cmd_search_1",
+    "name": "Find Files",
+    "text": "find /var/log -name '*.log'",
+    "difficulty": 2,
+    "wpm_target": 25,
+    "accuracy_target": 88,
+    "time_limit": 40,
+    "description": "Search for log files in system directory", 
+    "hints": ["File search command", "Wildcard pattern"]
+  },
+  {
+    "id": "cmd_network_1",
+    "name": "Network Scan",
+    "text": "nmap -sS 192.168.1.0/24",
+    "difficulty": 2,
+    "wmp_target": 30,
+    "accuracy_target": 90,
+    "time_limit": 35,
+    "description": "Stealth scan of local network",
+    "hints": ["Network mapper", "SYN stealth scan"]
+  },
+  {
+    "id": "cmd_process_1",
+    "name": "Check Processes",
+    "text": "ps aux | grep ssh",
+    "difficulty": 2,
+    "wpm_target": 30,
+    "accuracy_target": 90,
+    "time_limit": 30,
+    "description": "Find SSH processes running",
+    "hints": ["Process status command", "Pipeline with grep"]
+  }
+]

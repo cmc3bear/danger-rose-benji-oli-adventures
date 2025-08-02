@@ -13,6 +13,7 @@ from src.config.constants import (
     SCENE_TITLE,
     SCENE_VEGAS_GAME,
     SCENE_DRIVE_GAME,
+    SCENE_HACKER_TYPING,
 )
 from src.managers.sound_manager import SoundManager
 from src.scenes.hub import HubWorld
@@ -25,6 +26,7 @@ from src.scenes.ski import SkiGame
 from src.scenes.title_screen import TitleScreen
 from src.scenes.vegas import VegasGame
 from src.scenes.drive import DriveGame
+from src.scenes.hacker_typing import HackerTypingScene
 from src.utils.asset_paths import get_music_path
 from src.utils.save_manager import SaveManager
 
@@ -67,6 +69,7 @@ class SceneManager:
         self.scenes[SCENE_SKI_GAME] = SkiGame(self)
         self.scenes[SCENE_POOL_GAME] = PoolGame(self)
         self.scenes[SCENE_DRIVE_GAME] = DriveGame(self)
+        self.scenes[SCENE_HACKER_TYPING] = HackerTypingScene(self)
         self.scenes[SCENE_PAUSE] = PauseMenu(
             screen_width, screen_height, self.sound_manager
         )
@@ -120,6 +123,8 @@ class SceneManager:
                 self.switch_scene(SCENE_POOL_GAME)
             elif result == "drive":
                 self.switch_scene(SCENE_DRIVE_GAME)
+            elif result == "hacker_typing":
+                self.switch_scene(SCENE_HACKER_TYPING)
             elif (
                 result in self.pause_allowed_scenes
                 and previous_scene_name == SCENE_SETTINGS

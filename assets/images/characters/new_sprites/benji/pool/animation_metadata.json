@@ -1,6 +1,7 @@
 {
   "character": "benji",
-  "art_style": "placeholder",
+  "art_style": "kenney_cartoon",
+  "special_ability": "tech_boost",
   "animations": {
     "idle": {
       "frames": 4,
@@ -38,6 +39,7 @@
       "loop": false
     }
   },
-  "source": "placeholder",
-  "license": "placeholder"
+  "source": "dall_e_generated",
+  "license": "custom",
+  "extracted_date": "2025-08-02"
 }

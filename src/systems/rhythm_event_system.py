@@ -5,7 +5,7 @@ from typing import Callable, Dict, List, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
 
-from .bpm_tracker import BeatEvent, BeatStrength
+from .bpm_tracker import BeatEvent
 
 
 class EventPriority(Enum):

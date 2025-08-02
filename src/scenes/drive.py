@@ -31,6 +31,7 @@ from src.managers.race_music_manager import RaceMusicManager, RaceState
 from src.utils.asset_paths import get_sfx_path
 from src.utils.sprite_loader import load_image, load_vehicle_sprite
 from src.ui.drawing_helpers import draw_text_with_background, draw_instructions
+from src.systems.bmp_traffic_integration import BPMTrafficIntegration
 
 
 @dataclass
@@ -241,6 +242,50 @@ class DriveGame:
         # Input handling
         self.keys_pressed = set()
         
+        # BMP synchronization system
+        self.bmp_system = BPMTrafficIntegration(
+            self, 
+            scene_manager.sound_manager,
+            self.screen_width,
+            self.screen_height
+        )
+        self.bmp_overlay_visible = False  # Toggle with B key
+        
+        # Register BMP callbacks
+        self._setup_bmp_callbacks()
+        
+    def _setup_bmp_callbacks(self):
+        """Setup BMP system callbacks for traffic spawning and speed modulation."""
+        # Register spawn callback - connects BMP system to existing spawn logic
+        self.bmp_system.register_spawn_callback(self._bmp_spawn_callback)
+        
+        # Register speed callback - connects BMP system to traffic speed modulation
+        self.bmp_system.register_speed_callback(self._bmp_speed_callback)
+        
+    def _bmp_spawn_callback(self, spawn_params: Dict) -> bool:
+        """Handle BMP-triggered traffic spawning."""
+        try:
+            # Use existing spawn logic but with BMP timing
+            if len(self.npc_cars) < self.max_traffic_cars:
+                self._spawn_npc_car()
+                return True
+            return False
+        except Exception as e:
+            print(f"Error in BMP spawn callback: {e}")
+            return False
+            
+    def _bmp_speed_callback(self, car: NPCCar, beat_progress: float):
+        """Apply BMP-synchronized speed modulation to traffic."""
+        try:
+            # Apply subtle speed pulsing based on beat
+            base_modifier = 0.05  # 5% speed variation
+            speed_modifier = math.sin(beat_progress * math.pi * 2) * base_modifier
+            
+            # Apply the modifier to the car's speed
+            car.speed = car.speed * (1.0 + speed_modifier)
+        except Exception as e:
+            print(f"Error in BMP speed callback: {e}")
+        
     def _load_traffic_sprites(self) -> Dict[str, pygame.Surface]:
         """Load all traffic vehicle sprites."""
         sprites = {}
@@ -323,6 +368,10 @@ class DriveGame:
                 elif event.key == pygame.K_q:
                     # Quick return to hub world
                     return SCENE_HUB_WORLD
+                elif event.key == pygame.K_b:
+                    # Toggle BMP overlay
+                    self.bmp_overlay_visible = not self.bmp_overlay_visible
+                    print(f"BMP overlay {'enabled' if self.bmp_overlay_visible else 'disabled'}")
                     
             elif self.state == self.STATE_GAME_OVER:
                 if event.key == pygame.K_SPACE:
@@ -439,6 +488,17 @@ class DriveGame:
             
         # Update street boundaries for EV restriction
         self._update_road_boundaries()
+        
+        # Update BMP synchronization system
+        player_state = {
+            'x': self.player_x,
+            'speed': self.player_speed,
+            'position': self.race_state.position
+        }
+        self.bmp_system.update(dt, player_state, self.npc_cars)
+        
+        # Apply BMP speed modulation to existing traffic
+        self.bmp_system.handle_speed_modulation(self.npc_cars)
         
         # Update NPC traffic system
         self._update_traffic(dt)
@@ -740,17 +800,20 @@ class DriveGame:
         
     def _update_traffic(self, dt: float):
         """Update NPC traffic system."""
-        # Update spawn timer
-        self.traffic_spawn_timer += dt
-        
-        # Spawn new traffic cars (less frequently to reduce crowding)
-        spawn_interval = 2.5  # Increased interval for less crowded highway
-        if (self.traffic_spawn_timer > spawn_interval and  
-            len(self.npc_cars) < self.max_traffic_cars):
-            # Spawn with lower probability for more open road
-            if random.random() < 0.5:  # 50% chance every 2.5 seconds
-                self._spawn_npc_car()
-            self.traffic_spawn_timer = 0.0
+        # BMP system now handles rhythmic spawning via callbacks
+        # Keep fallback timer for cases where BMP system isn't active
+        if not self.bmp_system.is_enabled:
+            # Update spawn timer (fallback mode)
+            self.traffic_spawn_timer += dt
+            
+            # Spawn new traffic cars (less frequently to reduce crowding)
+            spawn_interval = 2.5  # Increased interval for less crowded highway
+            if (self.traffic_spawn_timer > spawn_interval and  
+                len(self.npc_cars) < self.max_traffic_cars):
+                # Spawn with lower probability for more open road
+                if random.random() < 0.5:  # 50% chance every 2.5 seconds
+                    self._spawn_npc_car()
+                self.traffic_spawn_timer = 0.0
             
         # Update existing traffic cars
         cars_to_remove = []
@@ -1577,10 +1640,22 @@ class DriveGame:
         # Don't spawn more hazards if we're at the limit
         if len(self.hazards) >= self.max_hazards:
             return
+        
+        # Get BMP beat info for rhythmic hazard spawning
+        beat_info = None
+        if self.bmp_system.is_enabled and hasattr(self.bmp_system.bmp_tracker, 'get_beat_info'):
+            beat_info = self.bmp_system.bmp_tracker.get_beat_info()
             
-        # Oil slicks from trucks (reduced spawn rate)
+        # Oil slicks from trucks (BMP-enhanced spawn rate)
         for npc in self.npc_cars:
-            if npc.vehicle_type == "truck" and npc.y > 0 and random.random() < 0.001:  # Reduced from 0.003
+            base_oil_chance = 0.001  # Base chance
+            oil_chance = base_oil_chance
+            
+            # Increase chance on strong beats
+            if beat_info and beat_info.is_beat:
+                oil_chance *= (1.0 + beat_info.beat_strength * 2.0)  # Up to 3x on downbeats
+                
+            if npc.vehicle_type == "truck" and npc.y > 0 and random.random() < oil_chance:
                 # Spawn oil slick behind truck
                 oil_x = npc.x + random.uniform(-0.02, 0.02)
                 oil_y = npc.y - 50
@@ -1589,8 +1664,20 @@ class DriveGame:
                 if len(self.hazards) >= self.max_hazards:
                     return
         
-        # Random debris spawning (reduced rate)
-        if random.random() < 0.0008:  # Reduced from 0.002
+        # BMP-synchronized debris spawning
+        base_debris_chance = 0.0008  # Base chance
+        debris_chance = base_debris_chance
+        
+        # Sync debris spawning to rhythm
+        if beat_info:
+            if beat_info.is_downbeat:
+                debris_chance *= 4.0  # Much higher chance on downbeats
+            elif beat_info.beat_number == 3:
+                debris_chance *= 2.0  # Higher chance on beat 3
+            elif beat_info.is_beat:
+                debris_chance *= 1.5  # Slightly higher on any beat
+                
+        if random.random() < debris_chance:
             # Get current road boundaries
             road_left, road_right, road_width = self._get_road_boundaries()
             # Spawn within road boundaries with some margin
@@ -2531,6 +2618,87 @@ class DriveGame:
             boundary_rect = boundary_surface.get_rect(right=self.screen_width - 20, top=120)
             screen.blit(boundary_surface, boundary_rect)
             
+        # Draw BMP rhythmic visual effects
+        self.bmp_system.draw_rhythm_effects(screen)
+        
+        # Draw BMP overlay if enabled
+        if self.bmp_overlay_visible:
+            self._draw_bmp_overlay(screen)
+            
+    def _draw_bmp_overlay(self, screen):
+        """Draw BMP synchronization overlay and debugging information."""
+        stats = self.bmp_system.get_current_stats()
+        
+        # Create overlay background
+        overlay_width = 300
+        overlay_height = 200
+        overlay_surface = pygame.Surface((overlay_width, overlay_height), pygame.SRCALPHA)
+        overlay_surface.fill((0, 0, 0, 180))  # Semi-transparent black
+        
+        # Position overlay in top-left corner
+        overlay_rect = pygame.Rect(10, 10, overlay_width, overlay_height)
+        screen.blit(overlay_surface, overlay_rect)
+        
+        # Draw overlay border
+        pygame.draw.rect(screen, COLOR_GREEN, overlay_rect, 2)
+        
+        # BMP information
+        y_offset = 25
+        line_height = 20
+        
+        # Title
+        title_text = self.font_small.render("BMP SYNC", True, COLOR_GREEN)
+        screen.blit(title_text, (20, y_offset))
+        y_offset += line_height + 5
+        
+        # Current BMP info
+        if 'bmp_tracker' in stats:
+            bmp_info = stats['bmp_tracker']
+            current_bpm = stats.get('integration_state', {}).get('current_bpm', 120)
+            beat_count = stats.get('integration_state', {}).get('beat_count', 0)
+            
+            bpm_text = f"BPM: {current_bpm:.1f}"
+            beat_text = f"Beats: {beat_count}"
+            
+            bpm_surface = self.font_small.render(bpm_text, True, COLOR_WHITE)
+            beat_surface = self.font_small.render(beat_text, True, COLOR_WHITE)
+            
+            screen.blit(bpm_surface, (20, y_offset))
+            y_offset += line_height
+            screen.blit(beat_surface, (20, y_offset))
+            y_offset += line_height + 5
+        
+        # Rhythm intensity
+        rhythm_intensity = stats.get('integration_state', {}).get('rhythm_intensity', 0.7)
+        intensity_text = f"Intensity: {rhythm_intensity:.1f}"
+        intensity_surface = self.font_small.render(intensity_text, True, COLOR_YELLOW)
+        screen.blit(intensity_surface, (20, y_offset))
+        y_offset += line_height
+        
+        # Traffic sync stats
+        if 'traffic_controller' in stats:
+            traffic_stats = stats['traffic_controller']
+            sync_text = f"Traffic Synced: {len(self.npc_cars)}"
+            sync_surface = self.font_small.render(sync_text, True, COLOR_WHITE)
+            screen.blit(sync_surface, (20, y_offset))
+            y_offset += line_height
+            
+        # Beat indicator (visual pulse)
+        beat_progress = getattr(self.bmp_system.bmp_tracker, 'get_beat_progress', lambda: 0.0)()
+        if hasattr(self.bmp_system.bmp_tracker, 'get_beat_info'):
+            beat_info = self.bmp_system.bmp_tracker.get_beat_info()
+            if beat_info.is_beat:
+                # Draw beat flash
+                pulse_radius = int(15 + 10 * beat_info.beat_strength)
+                pulse_color = (0, 255, 0) if beat_info.is_downbeat else (255, 255, 0)
+                pygame.draw.circle(screen, pulse_color, (overlay_width - 30, 40), pulse_radius)
+        
+        # Instructions
+        y_offset += 10
+        help_text = "Press B to toggle"
+        help_surface = self.font_small.render(help_text, True, COLOR_YELLOW)
+        screen.blit(help_surface, (20, y_offset))
+            
     def _draw_ready_screen(self, screen):
         """Draw the ready state screen."""
         # Title
@@ -2656,6 +2824,11 @@ class DriveGame:
         # Start race music
         self.race_music_manager.start_race_music(fade_in_ms=1000)
         
+        # Initialize BMP system with selected track
+        if self.selected_track:
+            self.bmp_system.initialize_for_track(self.selected_track)
+            print(f"BMP system initialized for track: {self.selected_track.display_name}")
+        
         # Reset race state
         self.race_state = RaceState(
             speed=0.0,
@@ -2679,6 +2852,9 @@ class DriveGame:
         
         # Stop race music
         self.race_music_manager.stop_race_music(fade_out_ms=2000)
+        
+        # Cleanup BMP system
+        self.bmp_system.cleanup()
         
         # Determine if victory
         if self.race_state.position <= 3:

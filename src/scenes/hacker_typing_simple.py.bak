@@ -1,0 +1,196 @@
+"""Hacker typing mini-game scene."""
+
+import random
+import pygame
+from typing import Any
+
+from src.config.constants import SCREEN_HEIGHT, SCREEN_WIDTH
+from src.scenes.base_scene import Scene
+
+
+class HackerTypingScene(Scene):
+    """A simple hacker typing mini-game scene."""
+    
+    def __init__(self, scene_manager):
+        """Initialize the hacker typing scene."""
+        self.scene_manager = scene_manager
+        self.font = pygame.font.Font(None, 36)
+        self.small_font = pygame.font.Font(None, 24)
+        
+        # Terminal styling
+        self.bg_color = (0, 20, 0)  # Dark green background
+        self.text_color = (0, 255, 0)  # Matrix green text
+        self.prompt_color = (100, 255, 100)  # Lighter green for prompts
+        
+        # Game state
+        self.typing_text = ""
+        self.target_phrases = [
+            "ACCESSING MAINFRAME...",
+            "BYPASSING FIREWALL...", 
+            "DOWNLOADING FILES...",
+            "CRACKING ENCRYPTION...",
+            "UPLOADING VIRUS...",
+            "SYSTEM COMPROMISED!",
+        ]
+        self.current_phrase = ""
+        self.phrase_index = 0
+        self.cursor_blink_timer = 0
+        self.show_cursor = True
+        self.completion_timer = 0
+        self.is_complete = False
+        
+        # Terminal output lines
+        self.terminal_lines = [
+            "> Initializing neural interface...",
+            "> Connection established",
+            "> Welcome, hacker",
+            "",
+            "Type the following phrase to continue:",
+        ]
+        
+        # Start with first phrase
+        self._next_phrase()
+        
+    def _next_phrase(self):
+        """Move to the next phrase."""
+        if self.phrase_index < len(self.target_phrases):
+            self.current_phrase = self.target_phrases[self.phrase_index]
+            self.typing_text = ""
+            self.phrase_index += 1
+        else:
+            self.is_complete = True
+            self.completion_timer = 3.0  # Show completion message for 3 seconds
+            
+    def handle_event(self, event: pygame.event.Event) -> str | None:
+        """Handle input events."""
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                return "hub"
+                
+            if self.is_complete:
+                # Any key returns to hub after completion
+                return "hub"
+                
+            # Handle typing
+            if event.key == pygame.K_BACKSPACE:
+                if self.typing_text:
+                    self.typing_text = self.typing_text[:-1]
+            elif event.unicode and event.unicode.isprintable():
+                # Only accept characters that match the target
+                target_char = self.current_phrase[len(self.typing_text):len(self.typing_text)+1]
+                if target_char.upper() == event.unicode.upper():
+                    self.typing_text += target_char
+                    
+                    # Check if phrase is complete
+                    if self.typing_text == self.current_phrase:
+                        self.terminal_lines.append(f"> {self.current_phrase}")
+                        self.terminal_lines.append("> SUCCESS! Moving to next task...")
+                        self.terminal_lines.append("")
+                        self._next_phrase()
+                        
+        return None
+        
+    def update(self, dt: float) -> None:
+        """Update the scene state."""
+        # Update cursor blink
+        self.cursor_blink_timer += dt
+        if self.cursor_blink_timer >= 0.5:
+            self.show_cursor = not self.show_cursor
+            self.cursor_blink_timer = 0
+            
+        # Update completion timer
+        if self.is_complete and self.completion_timer > 0:
+            self.completion_timer -= dt
+            
+    def draw(self, screen: pygame.Surface) -> None:
+        """Draw the hacker typing scene."""
+        # Clear screen with dark background
+        screen.fill(self.bg_color)
+        
+        # Draw scanlines effect
+        for y in range(0, SCREEN_HEIGHT, 4):
+            pygame.draw.line(screen, (0, 40, 0), (0, y), (SCREEN_WIDTH, y))
+            
+        # Draw terminal content
+        y_offset = 50
+        line_height = 30
+        
+        # Draw previous terminal lines
+        for line in self.terminal_lines[-10:]:  # Show last 10 lines
+            if line.strip():
+                text_surface = self.small_font.render(line, True, self.text_color)
+                screen.blit(text_surface, (50, y_offset))
+            y_offset += line_height
+            
+        if not self.is_complete:
+            # Draw current target phrase
+            y_offset += 20
+            target_surface = self.font.render(f"Target: {self.current_phrase}", True, self.prompt_color)
+            screen.blit(target_surface, (50, y_offset))
+            
+            # Draw typing progress
+            y_offset += 50
+            progress_text = f"Type: {self.typing_text}"
+            if self.show_cursor:
+                progress_text += "_"
+            progress_surface = self.font.render(progress_text, True, self.text_color)
+            screen.blit(progress_surface, (50, y_offset))
+            
+            # Show remaining characters faintly
+            remaining = self.current_phrase[len(self.typing_text):]
+            if remaining:
+                remaining_surface = self.font.render(remaining, True, (0, 100, 0))
+                remaining_x = 50 + progress_surface.get_width()
+                screen.blit(remaining_surface, (remaining_x, y_offset))
+                
+        else:
+            # Draw completion message
+            y_offset += 50
+            complete_lines = [
+                "MISSION ACCOMPLISHED!",
+                "",
+                f"Files downloaded: {random.randint(100, 999)}",
+                f"Security level: BREACHED",
+                f"Time to escape: {self.completion_timer:.1f}s",
+                "",
+                "Press any key to return..."
+            ]
+            
+            for line in complete_lines:
+                if line.strip():
+                    color = self.prompt_color if "MISSION" in line else self.text_color
+                    text_surface = self.font.render(line, True, color)
+                    screen.blit(text_surface, (50, y_offset))
+                y_offset += line_height
+                
+        # Draw instructions at bottom
+        instructions = [
+            "ESC - Return to Hub",
+            "Type the green text exactly as shown"
+        ]
+        
+        y_pos = SCREEN_HEIGHT - 80
+        for instruction in instructions:
+            inst_surface = self.small_font.render(instruction, True, (0, 150, 0))
+            screen.blit(inst_surface, (50, y_pos))
+            y_pos += 25
+            
+    def on_enter(self, previous_scene: str | None = None, data: dict[str, Any] | None = None) -> None:
+        """Called when entering the scene."""
+        # Reset the game
+        self.typing_text = ""
+        self.phrase_index = 0
+        self.is_complete = False
+        self.completion_timer = 0
+        self.terminal_lines = [
+            "> Initializing neural interface...",
+            "> Connection established", 
+            "> Welcome, hacker",
+            "",
+            "Type the following phrase to continue:",
+        ]
+        self._next_phrase()
+        
+    def on_exit(self) -> dict[str, Any]:
+        """Called when leaving the scene."""
+        return {"from_scene": "hacker_typing"}

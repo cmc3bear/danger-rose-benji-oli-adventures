@@ -5,8 +5,16 @@ from typing import Dict, Any, Optional, Tuple
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 
-from .bmp_tracker import BeatStrength
+from .bpm_tracker import BeatEvent
 from .rhythm_event_system import QuantizationMode
+
+
+class BeatStrength(Enum):
+    """Beat strength levels for rhythm systems."""
+    WEAK = "weak"
+    STRONG = "strong"
+    DOWNBEAT = "downbeat"
+    ACCENT = "accent"
 
 
 class DifficultyLevel(Enum):
