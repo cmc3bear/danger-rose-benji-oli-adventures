@@ -272,12 +272,14 @@ def handle_character_abilities(self):
 - [ ] Test animation playback in all scenes
 
 ### **Sprint 4: Special Abilities Core** (Week 5-6)
+**→ See Issue #29: Character Abilities System**
 - [ ] Design and implement ability system architecture
 - [ ] Create base ability classes
 - [ ] Implement cooldown and activation systems
 - [ ] Add visual feedback for ability states
 
 ### **Sprint 5: Scene Integration** (Week 7-8)
+**→ See Issue #30: Character Abilities Scene Integration**
 - [ ] Integrate abilities into Pool minigame
 - [ ] Integrate abilities into Ski minigame  
 - [ ] Integrate abilities into Vegas minigame
@@ -372,3 +374,13 @@ def handle_character_abilities(self):
 **Low Priority**: Advanced visual effects and polish
 
 This feature will significantly expand gameplay variety and give players more reasons to replay minigames with different characters!
+
+## 🔗 Related Issues
+
+This comprehensive feature has been split into focused development tasks:
+
+1. **Issue #28** (This Issue): Character creation, animations, and selection UI (Sprints 1-3, 6)
+2. **Issue #29**: Special Abilities System implementation (Sprint 4)
+3. **Issue #30**: Scene Integration for abilities (Sprint 5)
+
+Each issue can be developed independently by different team members for parallel progress.
