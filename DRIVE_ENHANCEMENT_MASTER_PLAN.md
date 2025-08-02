@@ -60,15 +60,15 @@ Transform The Drive minigame into a polished racing experience with realistic ro
 - **✅ Maturity Gate**: Traffic spawns reliably, directional flow works, road boundaries enforced
 - **✅ Testing**: No crashes, traffic behavior is realistic, boundaries function properly
 
-**🔄 Maturity Level 3.2: Hazard System (Alpha)**
+**✅ Maturity Level 3.2: Hazard System (Alpha)**
 - ✅ Issue #13: Static hazards (cones, barriers)
-- 🔲 Issue #14: Dynamic hazards (oil slicks, debris)
+- ✅ Issue #14: Dynamic hazards (oil slicks, debris)
 - ✅ Issue #15: Collision detection with traffic
 - 🔲 Issue #16: ChatGPT API sprite generation for traffic assets
 - ✅ Issue #19: Gentle freeway curves
 - ✅ Issue #20: Scenery asset generation
-- **Maturity Gate**: Hazards add challenge without frustration, variety is engaging
-- **Testing**: Difficulty feels balanced, hazards enhance rather than break gameplay
+- **✅ Maturity Gate**: Hazards add challenge without frustration, variety is engaging
+- **✅ Testing**: Difficulty feels balanced, hazards enhance rather than break gameplay
 
 ### Phase 4: Integration & Polish
 **Maturity Level 4.1: Visual Integration (Beta)**
@@ -214,12 +214,19 @@ Testing Plan:
 
 ## ✅ LATEST COMPLETION STATUS
 
-### ✅ Phase 3.2: Hazard System (85% Complete)
+### ✅ Phase 3.2: Hazard System (95% Complete)
 - ✅ **Issue #13**: Static Hazards - COMPLETED
   - Construction zones with traffic cones and barriers
   - Warning signs before hazard areas
   - Collision detection with 10% penalty for cones, 30% for barriers
   - Visual variety with orange cones and gray barriers
+
+- ✅ **Issue #14**: Dynamic Hazards - COMPLETED
+  - Oil slicks spawn behind trucks causing 70% steering reduction
+  - Random debris (tire, metal, cargo) with 15% speed penalties
+  - Hazard effect system with duration tracking
+  - Visual feedback including "SLIPPERY!" warning and screen effects
+  - Slip factor physics integration for realistic loss of control
   
 - ✅ **Issue #15**: Collision Detection with Traffic - COMPLETED
   - Rectangle-based collision detection system implemented
@@ -239,9 +246,10 @@ Testing Plan:
   - Complete scenery folders: trees, mountains, buildings, desert, water
   - Foundation ready for scenic background implementation
 
-### 🔄 Next Sprint Ready: Issues #14, #16, #18
-- 🔲 **Issue #14**: Dynamic hazards (oil slicks, debris)  
+### 🔄 Next Sprint Ready: Issues #16, #18, Phase 4
 - 🔲 **Issue #16**: ChatGPT API sprite generation for traffic assets
 - 🔲 **Issue #18**: Scenic background rendering system
+- 🔲 **Phase 4.1**: Visual Integration (turn indicators, road markings)
+- 🔲 **Phase 4.2**: System Integration & Performance
 
-### 🎯 Current Completion: ~85% of Phase 3.2
+### 🎯 Current Completion: ~95% of Phase 3.2
