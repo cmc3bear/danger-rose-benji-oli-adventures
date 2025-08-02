@@ -439,7 +439,7 @@ Based on the master plan, the next development phase should focus on:
 ✅ **Master Plan Maintenance**: Core requirements updated with completion status  
 ✅ **User Feedback Integration**: Controls refined based on user input  
 
-**Total Issues Completed**: 11 major enhancements  
+**Total Issues Completed**: 13 major enhancements  
 **Performance Target**: 60 FPS maintained throughout  
 **Code Quality**: All changes follow established patterns  
 **Documentation**: Comprehensive tracking and rationale provided
@@ -464,9 +464,89 @@ Based on the master plan, the next development phase should focus on:
 
 **Results**: Oncoming traffic now visually faces the correct direction, improving realism and immersion.
 
+### Issue #18: Scenic Background System 📋
+**Status**: Created  
+**Type**: Enhancement  
+**Assignee**: TBD  
+**Labels**: enhancement, visual, immersion  
+
+**Goal**: Add dynamic scenic backgrounds that change as you drive through different areas.
+
+**Planned Features**:
+- 5 scenery types: forest, mountains, city, lake, desert
+- Smooth transitions between areas
+- Parallax scrolling for depth
+- Distance-based scenery changes
+
+### Issue #19: Gentle Freeway Curves ✅
+**Status**: COMPLETED  
+**Type**: Enhancement  
+**Assignee**: Claude  
+**Labels**: enhancement, road-system, realism  
+
+**Problem**: Highway only had discrete sharp turns, not realistic gentle curves.
+
+**Solution**: 
+- Added low-frequency sine waves for gentle curves
+- 0.03 frequency for slow, realistic curves
+- 0.25 amplitude for subtle movement
+- Combines with existing turn system
+
+**Results**: Highway now has realistic gentle curves like real freeways, enhancing immersion.
+
 ---
 
 ## Phase 3.2: Hazard System Implementation
+
+### Issue #13: Static Hazards (Cones & Barriers) ✅
+**Status**: COMPLETED  
+**Assignee**: Claude  
+**Labels**: enhancement, phase-3.2, hazard-system  
+
+**From State:**
+- Highway contains only traffic vehicles as obstacles
+- No static hazards or construction zones
+- Limited variety in obstacles to avoid
+- No environmental hazards on the road
+
+**To State:**
+- Traffic cones appearing in construction zones
+- Concrete barriers for lane closures
+- Static hazards spawn in patterns (construction areas)
+- Visual warning signs before hazard zones
+- Collision detection for static hazards
+- Different penalty levels for different hazards
+
+**Rationale:**
+- Adds variety to obstacle types beyond just traffic
+- Creates construction zone challenges
+- Static hazards provide predictable but challenging obstacles
+- Foundation for more complex hazard patterns
+
+**Implementation Plan:**
+- Create Hazard dataclass for static obstacles
+- Add hazard spawning system with zone-based generation
+- Implement collision detection for static hazards
+- Add visual variety (orange cones, gray barriers)
+- Create construction zone patterns
+- Add warning sign system
+
+**Technical Requirements:**
+- Hazard types: traffic_cone, concrete_barrier, warning_sign
+- Cone size: 16x24 pixels, Barrier size: 48x32 pixels
+- Collision penalties: Cone (10% speed), Barrier (30% speed + damage)
+- Construction zones: 200-400 pixel sections
+- Warning signs appear 100 pixels before zones
+
+**Acceptance Criteria:**
+- [x] Static hazards spawn in construction zone patterns
+- [x] Different hazard types with unique visuals
+- [x] Collision detection works for all hazard types
+- [x] Warning signs provide advance notice
+- [x] Performance impact minimal (<5% FPS reduction)
+- [x] Hazards integrate with existing traffic system
+
+---
 
 ### Issue #15: Collision Detection with Traffic ✅
 **Status**: COMPLETED  

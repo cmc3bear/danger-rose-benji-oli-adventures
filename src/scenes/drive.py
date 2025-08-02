@@ -49,6 +49,19 @@ class NPCCar:
     collision_zone: tuple = (32, 48)  # Collision detection size (width, height)
 
 
+@dataclass
+class Hazard:
+    """Represents a static hazard on the road (cones, barriers, etc)."""
+    x: float               # Horizontal position (0.0-1.0)
+    y: float               # Vertical position (distance ahead/behind player)
+    lane: int              # Lane number where hazard is placed
+    hazard_type: str       # "cone", "barrier", "warning_sign"
+    width: int = 16        # Hazard width in pixels
+    height: int = 24       # Hazard height in pixels
+    collision_zone: tuple = (16, 24)  # Collision detection size
+    color: tuple = (255, 140, 0)  # Default orange for cones
+
+
 class DriveGame:
     """
     The Drive - OutRun-inspired racing minigame.
@@ -114,8 +127,21 @@ class DriveGame:
         self.collision_damage = 0.0       # Accumulated collision damage (0.0-1.0)
         self.collision_speed_penalty = 0.0  # Current speed penalty from collisions
         self.collision_recovery_rate = 0.5   # How fast collision penalties recover
-        self.last_collision_type = None   # "car" or "truck" for feedback
+        self.last_collision_type = None   # "car", "truck", "cone", "barrier" for feedback
         self.collision_flash_timer = 0.0  # Timer for visual collision feedback
+        
+        # Static Hazard System
+        self.hazards: List[Hazard] = []   # List of active hazards
+        self.construction_zones = []       # List of (start_y, end_y) for construction zones
+        self.next_construction_y = 500     # Y position for next construction zone
+        self.construction_spawn_timer = 0.0 # Timer for spawning construction zones
+        
+        # Scenic Background System
+        self.scenery_distance = 0.0       # Distance traveled for scenery changes
+        self.current_scenery = "forest"   # Current scenery type
+        self.scenery_transition = 0.0     # Transition between scenery types (0-1)
+        self.scenery_types = ["forest", "mountains", "city", "lake", "desert"]
+        self.next_scenery_change = 1000   # Distance until next scenery change
         
         # Music selector doesn't need callbacks - we handle events in handle_event
         
@@ -259,6 +285,27 @@ class DriveGame:
         # Update road position based on speed
         self.road_position += self.player_speed * dt * 10
         
+        # Add gentle freeway curves in addition to discrete turns
+        # Use low-frequency sine waves for gradual highway curves
+        freeway_curve_freq = 0.03  # Very slow curves like real highways
+        freeway_curve_amplitude = 0.25  # Gentle curves
+        
+        # Base freeway curve
+        freeway_curve = math.sin(self.road_position * freeway_curve_freq) * freeway_curve_amplitude
+        
+        # Add slight variation with a second wave
+        freeway_variation = math.sin(self.road_position * freeway_curve_freq * 1.7) * freeway_curve_amplitude * 0.3
+        
+        # Combine freeway curves with turn system curves
+        # When in a discrete turn, reduce freeway curve influence
+        if self.turn_state != "straight":
+            freeway_influence = 0.3  # Reduce freeway curves during sharp turns
+        else:
+            freeway_influence = 1.0  # Full freeway curves on straights
+            
+        # Apply combined road curve
+        self.road_curve = (self.road_curve * 0.7) + ((freeway_curve + freeway_variation) * freeway_influence * 0.3)
+        
         # Natural road width variation system (±5% = ±25 pixels from 500px base)
         # Use layered noise for more natural variation
         primary_freq = 0.08 + self.player_speed * 0.05  # Slower, broader changes
@@ -304,8 +351,14 @@ class DriveGame:
         # Update NPC traffic system
         self._update_traffic(dt)
         
+        # Update static hazards system
+        self._update_hazards(dt)
+        
         # Check for collisions with traffic
         self._check_traffic_collisions(dt)
+        
+        # Check for collisions with hazards
+        self._check_hazard_collisions(dt)
         
         # Update race music
         self.race_music_manager.update_race_state(self.race_state)
@@ -1128,6 +1181,224 @@ class DriveGame:
             car.y += 50  # Push car ahead
         else:  # Oncoming traffic
             car.y -= 50  # Push car back
+    
+    def _update_hazards(self, dt: float):
+        """Update static hazard system with construction zones."""
+        # Update construction zone spawn timer
+        self.construction_spawn_timer += dt
+        
+        # Spawn new construction zones periodically
+        if self.construction_spawn_timer > 8.0 and len(self.construction_zones) < 2:
+            self._spawn_construction_zone()
+            self.construction_spawn_timer = 0.0
+        
+        # Update hazard positions relative to player
+        hazards_to_remove = []
+        for i, hazard in enumerate(self.hazards):
+            # Move hazards relative to player speed
+            hazard.y -= self.player_speed * dt * 100
+            
+            # Remove hazards that are too far behind
+            if hazard.y < -300:
+                hazards_to_remove.append(i)
+        
+        # Remove old hazards
+        for i in reversed(hazards_to_remove):
+            del self.hazards[i]
+            
+        # Update construction zones
+        zones_to_remove = []
+        for i, (start_y, end_y) in enumerate(self.construction_zones):
+            # Move zones with player
+            self.construction_zones[i] = (
+                start_y - self.player_speed * dt * 100,
+                end_y - self.player_speed * dt * 100
+            )
+            # Remove zones that have passed
+            if self.construction_zones[i][1] < -300:
+                zones_to_remove.append(i)
+                
+        for i in reversed(zones_to_remove):
+            del self.construction_zones[i]
+    
+    def _spawn_construction_zone(self):
+        """Spawn a construction zone with cones and barriers."""
+        # Determine zone length and lanes affected
+        zone_length = random.randint(200, 400)
+        start_y = self.next_construction_y
+        end_y = start_y + zone_length
+        
+        # Choose which lanes to block (1-2 lanes)
+        num_lanes_blocked = random.choice([1, 2])
+        if num_lanes_blocked == 1:
+            # Block one lane
+            blocked_lane = random.choice([1, 2, 3, 4])
+            lanes_to_block = [blocked_lane]
+        else:
+            # Block two adjacent lanes
+            if random.random() < 0.5:
+                # Block player direction lanes
+                lanes_to_block = random.choice([[3, 4]])
+            else:
+                # Block oncoming lanes
+                lanes_to_block = random.choice([[1, 2]])
+        
+        # Add construction zone
+        self.construction_zones.append((start_y, end_y))
+        
+        # Spawn warning sign before zone
+        warning_y = start_y - 100
+        self._spawn_hazard("warning_sign", 0.5, warning_y, 0)  # Center of road
+        
+        # Spawn cones at start and end of blocked lanes
+        for lane in lanes_to_block:
+            # Get lane position
+            lane_x = self._get_lane_x_position(lane)
+            
+            # Cones at intervals
+            for y in range(int(start_y), int(end_y), 40):
+                self._spawn_hazard("cone", lane_x, y, lane)
+                
+            # Barriers for longer blockages
+            if zone_length > 300:
+                barrier_y = start_y + zone_length // 2
+                self._spawn_hazard("barrier", lane_x, barrier_y, lane)
+        
+        # Update next construction zone position
+        self.next_construction_y = end_y + random.randint(400, 800)
+    
+    def _spawn_hazard(self, hazard_type: str, x: float, y: float, lane: int):
+        """Spawn a single hazard at the specified position."""
+        if hazard_type == "cone":
+            hazard = Hazard(
+                x=x,
+                y=y,
+                lane=lane,
+                hazard_type="cone",
+                width=16,
+                height=24,
+                collision_zone=(16, 24),
+                color=(255, 140, 0)  # Orange
+            )
+        elif hazard_type == "barrier":
+            hazard = Hazard(
+                x=x,
+                y=y,
+                lane=lane,
+                hazard_type="barrier",
+                width=48,
+                height=32,
+                collision_zone=(48, 32),
+                color=(128, 128, 128)  # Gray
+            )
+        elif hazard_type == "warning_sign":
+            hazard = Hazard(
+                x=x,
+                y=y,
+                lane=lane,
+                hazard_type="warning_sign",
+                width=32,
+                height=32,
+                collision_zone=(0, 0),  # No collision for signs
+                color=(255, 255, 0)  # Yellow
+            )
+        
+        self.hazards.append(hazard)
+    
+    def _get_lane_x_position(self, lane: int) -> float:
+        """Get the normalized X position for a given lane."""
+        # Get current road boundaries
+        road_left, road_right, road_width = self._get_road_boundaries()
+        
+        # Calculate lane positions
+        direction_width = road_width / 2
+        lane_width = direction_width / 2
+        road_center = road_left + road_width / 2
+        
+        if lane in [1, 2]:  # Oncoming lanes (left side)
+            lane_offset = lane - 1  # Convert to 0, 1
+            return road_left + lane_width * (lane_offset + 0.5)
+        else:  # Player direction lanes (right side)
+            lane_offset = lane - 3  # Convert to 0, 1
+            return road_center + lane_width * (lane_offset + 0.5)
+    
+    def _check_hazard_collisions(self, dt: float):
+        """Check for collisions between player and static hazards."""
+        # Skip if in collision cooldown
+        if self.collision_cooldown > 0:
+            return
+            
+        # Get player collision rectangle
+        player_collision_width = 0.05
+        player_collision_height = 0.1
+        player_left = self.player_x - player_collision_width / 2
+        player_right = self.player_x + player_collision_width / 2
+        player_top = 0.4
+        player_bottom = player_top + player_collision_height
+        
+        # Check collision with each hazard
+        for hazard in self.hazards:
+            # Skip warning signs (no collision)
+            if hazard.hazard_type == "warning_sign":
+                continue
+                
+            # Convert hazard position to collision rectangle
+            hazard_collision_width = hazard.collision_zone[0] / self.screen_width
+            hazard_collision_height = hazard.collision_zone[1] / 200
+            
+            hazard_left = hazard.x - hazard_collision_width / 2
+            hazard_right = hazard.x + hazard_collision_width / 2
+            
+            # Convert hazard Y position to screen space
+            hazard_screen_y = 0.5 - (hazard.y / 400)
+            hazard_top = hazard_screen_y - hazard_collision_height / 2
+            hazard_bottom = hazard_screen_y + hazard_collision_height / 2
+            
+            # Check for collision
+            if (player_right > hazard_left and player_left < hazard_right and
+                player_bottom > hazard_top and player_top < hazard_bottom):
+                
+                # Handle collision based on hazard type
+                self._handle_hazard_collision(hazard)
+                break
+    
+    def _handle_hazard_collision(self, hazard: Hazard):
+        """Handle collision with a static hazard."""
+        # Set collision cooldown
+        self.collision_cooldown = 0.5  # Shorter cooldown for hazards
+        
+        # Different penalties for different hazards
+        if hazard.hazard_type == "cone":
+            speed_penalty = 0.1  # 10% speed reduction
+            self.collision_damage += 0.05  # Minor damage
+            self.last_collision_type = "cone"
+        elif hazard.hazard_type == "barrier":
+            speed_penalty = 0.3  # 30% speed reduction
+            self.collision_damage += 0.15  # Significant damage
+            self.last_collision_type = "barrier"
+            
+        # Apply speed penalty
+        self.collision_speed_penalty = max(self.collision_speed_penalty, speed_penalty)
+        
+        # Cap damage
+        self.collision_damage = min(1.0, self.collision_damage)
+        
+        # Visual feedback
+        self.collision_flash_timer = 0.2  # Shorter flash for hazards
+        
+        # Audio feedback
+        if hasattr(self.scene_manager, 'sound_manager') and self.scene_manager.sound_manager:
+            try:
+                if hazard.hazard_type == "cone":
+                    self.scene_manager.sound_manager.play_sfx("cone_hit")
+                else:
+                    self.scene_manager.sound_manager.play_sfx("barrier_hit")
+            except:
+                pass
+                
+        # Remove cone after hit (barriers stay)
+        if hazard.hazard_type == "cone":
+            self.hazards.remove(hazard)
         
     def draw(self, screen):
         """Draw the game."""
@@ -1250,6 +1521,67 @@ class DriveGame:
                 pygame.draw.line(screen, right_color,
                                (right_edge + 1, line_y),
                                (right_edge + 1, line_y + 15), 3)
+    
+    def _draw_hazards(self, screen):
+        """Draw static hazards (cones, barriers, warning signs)."""
+        for hazard in self.hazards:
+            # Convert hazard position to screen coordinates
+            hazard_screen_x = int(hazard.x * self.screen_width)
+            hazard_screen_y = int(self.screen_height - 100 - hazard.y)
+            
+            # Only draw if visible on screen
+            if -50 <= hazard_screen_y <= self.screen_height + 50:
+                if hazard.hazard_type == "cone":
+                    # Draw traffic cone (triangle shape)
+                    cone_points = [
+                        (hazard_screen_x, hazard_screen_y - hazard.height // 2),  # Top
+                        (hazard_screen_x - hazard.width // 2, hazard_screen_y + hazard.height // 2),  # Bottom left
+                        (hazard_screen_x + hazard.width // 2, hazard_screen_y + hazard.height // 2)   # Bottom right
+                    ]
+                    pygame.draw.polygon(screen, hazard.color, cone_points)
+                    # Add white stripe
+                    stripe_y = hazard_screen_y - hazard.height // 4
+                    pygame.draw.line(screen, COLOR_WHITE,
+                                   (hazard_screen_x - hazard.width // 3, stripe_y),
+                                   (hazard_screen_x + hazard.width // 3, stripe_y), 2)
+                    
+                elif hazard.hazard_type == "barrier":
+                    # Draw concrete barrier (rectangle)
+                    barrier_rect = pygame.Rect(
+                        hazard_screen_x - hazard.width // 2,
+                        hazard_screen_y - hazard.height // 2,
+                        hazard.width,
+                        hazard.height
+                    )
+                    pygame.draw.rect(screen, hazard.color, barrier_rect)
+                    # Add warning stripes
+                    stripe_width = hazard.width // 4
+                    for i in range(0, hazard.width, stripe_width * 2):
+                        stripe_rect = pygame.Rect(
+                            barrier_rect.x + i,
+                            barrier_rect.y,
+                            stripe_width,
+                            barrier_rect.height
+                        )
+                        pygame.draw.rect(screen, COLOR_YELLOW, stripe_rect)
+                    # Outline
+                    pygame.draw.rect(screen, COLOR_BLACK, barrier_rect, 2)
+                    
+                elif hazard.hazard_type == "warning_sign":
+                    # Draw warning sign (diamond shape)
+                    sign_points = [
+                        (hazard_screen_x, hazard_screen_y - hazard.height // 2),  # Top
+                        (hazard_screen_x + hazard.width // 2, hazard_screen_y),   # Right
+                        (hazard_screen_x, hazard_screen_y + hazard.height // 2),  # Bottom
+                        (hazard_screen_x - hazard.width // 2, hazard_screen_y)    # Left
+                    ]
+                    pygame.draw.polygon(screen, hazard.color, sign_points)
+                    pygame.draw.polygon(screen, COLOR_BLACK, sign_points, 2)
+                    # Add exclamation mark
+                    font = pygame.font.Font(None, 20)
+                    text = font.render("!", True, COLOR_BLACK)
+                    text_rect = text.get_rect(center=(hazard_screen_x, hazard_screen_y))
+                    screen.blit(text, text_rect)
     
     def _draw_npc_cars(self, screen):
         """Draw NPC traffic cars with proper directional orientation."""
@@ -1381,6 +1713,9 @@ class DriveGame:
     def _draw_racing_scene(self, screen):
         """Draw the main racing scene."""
         self._draw_road_background(screen)
+        
+        # Draw static hazards (cones, barriers, signs)
+        self._draw_hazards(screen)
         
         # Draw NPC traffic cars
         self._draw_npc_cars(screen)
