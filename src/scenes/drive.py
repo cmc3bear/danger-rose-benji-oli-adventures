@@ -138,7 +138,7 @@ class DriveGame:
         self.npc_cars: List[NPCCar] = []  # List of active NPC cars
         self.traffic_spawn_timer = 0.0    # Timer for spawning new traffic
         self.traffic_density = 0.3        # Probability of spawning traffic
-        self.max_traffic_cars = 10        # Maximum number of NPC cars on screen (increased for better flow)
+        self.max_traffic_cars = 6         # Maximum number of NPC cars on screen (reduced for less crowding)
         
         # Collision Detection System
         self.collision_cooldown = 0.0     # Cooldown timer to prevent multiple collisions
@@ -150,6 +150,7 @@ class DriveGame:
         
         # Static Hazard System
         self.hazards: List[Hazard] = []   # List of active hazards
+        self.max_hazards = 4               # Maximum number of hazards on screen
         self.construction_zones = []       # List of (start_y, end_y) for construction zones
         self.next_construction_y = 500     # Y position for next construction zone
         self.construction_spawn_timer = 0.0 # Timer for spawning construction zones
@@ -742,12 +743,12 @@ class DriveGame:
         # Update spawn timer
         self.traffic_spawn_timer += dt
         
-        # Spawn new traffic cars
-        spawn_interval = 1.5  # Spawn more frequently for consistent traffic
+        # Spawn new traffic cars (less frequently to reduce crowding)
+        spawn_interval = 2.5  # Increased interval for less crowded highway
         if (self.traffic_spawn_timer > spawn_interval and  
             len(self.npc_cars) < self.max_traffic_cars):
-            # Spawn with higher probability to ensure consistent traffic flow
-            if random.random() < 0.7:  # 70% chance every 1.5 seconds
+            # Spawn with lower probability for more open road
+            if random.random() < 0.5:  # 50% chance every 2.5 seconds
                 self._spawn_npc_car()
             self.traffic_spawn_timer = 0.0
             
@@ -843,10 +844,32 @@ class DriveGame:
             spawn_ahead = random.choice([True, False])
             if spawn_ahead:
                 y_position = random.uniform(150, 400)  # Ahead of player
-                npc_speed = random.uniform(0.4, 0.9)   # Slower than player typically
+                # Create more diverse traffic patterns
+                traffic_behavior = random.random()
+                if traffic_behavior < 0.15:  # 15% - Very slow drivers (elderly, cautious)
+                    npc_speed = random.uniform(0.3, 0.5)
+                elif traffic_behavior < 0.35:  # 20% - Slow/cautious drivers
+                    npc_speed = random.uniform(0.5, 0.7)
+                elif traffic_behavior < 0.70:  # 35% - Normal speed drivers
+                    npc_speed = random.uniform(0.7, 0.9)
+                elif traffic_behavior < 0.90:  # 20% - Fast drivers
+                    npc_speed = random.uniform(0.9, 1.1)
+                else:  # 10% - Speed demons/aggressive drivers
+                    npc_speed = random.uniform(1.1, 1.4)
             else:
                 y_position = random.uniform(-150, -50)  # Behind player
-                npc_speed = random.uniform(0.6, 1.2)    # Mix of speeds
+                # Cars spawning behind are more likely to be faster (catching up)
+                traffic_behavior = random.random()
+                if traffic_behavior < 0.10:  # 10% - Slow drivers even from behind
+                    npc_speed = random.uniform(0.5, 0.7)
+                elif traffic_behavior < 0.30:  # 20% - Moderate speed
+                    npc_speed = random.uniform(0.8, 1.0)
+                elif traffic_behavior < 0.60:  # 30% - Matching player speed
+                    npc_speed = random.uniform(1.0, 1.2)
+                elif traffic_behavior < 0.85:  # 25% - Fast drivers
+                    npc_speed = random.uniform(1.2, 1.5)
+                else:  # 15% - Very fast/aggressive drivers
+                    npc_speed = random.uniform(1.5, 1.8)
         else:
             # Oncoming traffic (lanes 1-2)
             direction = -1
@@ -854,7 +877,16 @@ class DriveGame:
             
             # Oncoming cars start far ahead and move toward player
             y_position = random.uniform(300, 600)  # Start far ahead
-            npc_speed = random.uniform(0.5, 1.0)   # Oncoming speed
+            # Oncoming traffic also has varied speeds
+            traffic_behavior = random.random()
+            if traffic_behavior < 0.20:  # 20% - Slow oncoming traffic
+                npc_speed = random.uniform(0.4, 0.6)
+            elif traffic_behavior < 0.60:  # 40% - Normal oncoming speed
+                npc_speed = random.uniform(0.6, 0.9)
+            elif traffic_behavior < 0.85:  # 25% - Fast oncoming traffic
+                npc_speed = random.uniform(0.9, 1.2)
+            else:  # 15% - Very fast oncoming (dangerous!)
+                npc_speed = random.uniform(1.2, 1.5)
             
         # Convert lane to screen position using ACTUAL road boundaries
         # Use the same road calculation as the drawing code
@@ -942,6 +974,14 @@ class DriveGame:
                     (128, 0, 128),  # Purple
                 ]
             vehicle_color = random.choice(car_colors)
+        
+        # Adjust speed for trucks (typically slower, especially uphill)
+        if vehicle_type == "truck":
+            # Trucks are generally 20-40% slower than their initial speed
+            npc_speed *= random.uniform(0.6, 0.8)
+            # Very rarely you get a speeding truck driver
+            if random.random() < 0.05:  # 5% chance
+                npc_speed *= random.uniform(1.2, 1.4)  # Speed demon trucker!
         
         npc_car = NPCCar(
             x=x_position,
@@ -1534,16 +1574,23 @@ class DriveGame:
     
     def _update_dynamic_hazard_spawning(self, dt: float):
         """Update spawning of dynamic hazards based on traffic and conditions."""
-        # Oil slicks from trucks
+        # Don't spawn more hazards if we're at the limit
+        if len(self.hazards) >= self.max_hazards:
+            return
+            
+        # Oil slicks from trucks (reduced spawn rate)
         for npc in self.npc_cars:
-            if npc.vehicle_type == "truck" and npc.y > 0 and random.random() < 0.003:  # Moderate spawn rate
+            if npc.vehicle_type == "truck" and npc.y > 0 and random.random() < 0.001:  # Reduced from 0.003
                 # Spawn oil slick behind truck
                 oil_x = npc.x + random.uniform(-0.02, 0.02)
                 oil_y = npc.y - 50
                 self._spawn_dynamic_hazard("oil_slick", oil_x, oil_y, "truck")
+                # Stop if we've hit the limit
+                if len(self.hazards) >= self.max_hazards:
+                    return
         
-        # Random debris spawning
-        if random.random() < 0.002:  # Moderate spawn rate
+        # Random debris spawning (reduced rate)
+        if random.random() < 0.0008:  # Reduced from 0.002
             # Get current road boundaries
             road_left, road_right, road_width = self._get_road_boundaries()
             # Spawn within road boundaries with some margin
