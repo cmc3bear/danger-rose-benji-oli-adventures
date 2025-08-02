@@ -67,6 +67,14 @@
   - Implement fade transitions
   - Plan 25-30 second cycle timing
 
+#### Issue #28: New Characters (Benji, Olive, Uncle Bear)
+- **Status**: 🔄 In Progress
+- **Progress**: 
+  - ✅ Placeholder sprites created for all characters
+  - ✅ Character selection UI expanded to 6 slots
+  - ✅ Animation system supports new characters
+  - 📋 Waiting for DALL-E API key to generate final sprites
+
 ### 📋 New Feature Issues
 
 #### Issue #27: Typing Tutor Minigame
@@ -93,6 +101,26 @@
 - **Scope**: Integrate abilities into all 4 minigames
 - **Timeline**: Sprint 5 (Weeks 7-8)
 
+#### Issue #31: Traffic Passing Logic System
+- **Status**: 📋 Ready for Development
+- **File**: `github-issues/issue-31-traffic-passing-logic.md`
+- **Scope**: Intelligent AI for when traffic should pass slower vehicles
+- **Features**: 
+  - Traffic awareness scanning
+  - Driver personality profiles
+  - Safe passing decisions
+  - Turn signal system
+
+#### Issue #32: Road-Locked Traffic and Hazard Tracking
+- **Status**: 📋 Ready for Development
+- **File**: `github-issues/issue-32-road-locked-traffic-hazard-tracking.md`
+- **Scope**: Lock traffic and hazards to road geometry
+- **Features**:
+  - Road-relative positioning system
+  - Proper curve tracking
+  - Lane-locked movement
+  - Foundation for complex road shapes
+
 ## 🎯 Development Priorities
 
 ### High Priority (Next Sprint)
@@ -101,7 +129,12 @@
    - Unique abilities per character
    - Enhanced replay value
 
-2. **BPM Traffic System** (Issue #18)
+2. **Drive Minigame Polish** (Issues #31-32)
+   - Road-locked traffic system
+   - Intelligent passing logic
+   - Foundation for BPM sync
+
+3. **BPM Traffic System** (Issue #18)
    - Music-reactive gameplay
    - Visual rhythm feedback
    - Enhanced Drive minigame
@@ -219,5 +252,5 @@
 
 ---
 
-**Last Updated**: August 2, 2025
-**Next Review**: After character implementation sprint
+**Last Updated**: August 2, 2025 (Session 2)
+**Next Review**: After traffic system improvements
