@@ -33,11 +33,22 @@ def get_api_key(key_type: str, vault_base: str = None) -> str:
             "vault"
         )
     
+    # Try standard filename first
     vault_file = os.path.join(vault_base, key_type.upper(), "api_key.txt")
     
     if os.path.exists(vault_file):
         with open(vault_file, 'r') as f:
             return f.read().strip()
+    
+    # For OPENAI, also try key_* pattern
+    if key_type.upper() == "OPENAI":
+        vault_dir = os.path.join(vault_base, "OPENAI")
+        if os.path.exists(vault_dir):
+            for filename in os.listdir(vault_dir):
+                if filename.startswith("key_") and filename.endswith(".txt"):
+                    key_file = os.path.join(vault_dir, filename)
+                    with open(key_file, 'r') as f:
+                        return f.read().strip()
     
     raise ValueError(f"API key for {key_type} not found in environment or vault")
 
@@ -56,13 +67,26 @@ def check_vault_security():
         return False
     
     # Check for common key types
-    key_types = ["OPENAI", "GITHUB", "SUNO"]
+    key_types = ["OPENAI", "GITHUB", "SUNO", "11LABS"]
     found_keys = []
     
     for key_type in key_types:
         vault_file = os.path.join(vault_base, key_type, "api_key.txt")
         if os.path.exists(vault_file):
             found_keys.append(key_type)
+        else:
+            # Special cases
+            if key_type == "OPENAI":
+                vault_dir = os.path.join(vault_base, "OPENAI")
+                if os.path.exists(vault_dir):
+                    for filename in os.listdir(vault_dir):
+                        if filename.startswith("key_") and filename.endswith(".txt"):
+                            found_keys.append(key_type)
+                            break
+            elif key_type == "11LABS":
+                vault_file = os.path.join(vault_base, "11LABS", "API-KEY.txt")
+                if os.path.exists(vault_file):
+                    found_keys.append(key_type)
     
     print(f"Vault security check:")
     print(f"- Vault location: {vault_base}")

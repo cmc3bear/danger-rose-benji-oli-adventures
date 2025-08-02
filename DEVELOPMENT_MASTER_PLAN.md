@@ -284,13 +284,48 @@
 
 ### API Keys (Secured)
 - **Location**: `C:\dev\api-key-forge\vault\`
-- **Types**: OPENAI, GITHUB, SUNO
+- **Available**: OPENAI, GITHUB, SUNO, 11LABS
 - **Access**: Via `scripts/vault_utils.py`
+- **Security**: See `docs/API_KEY_SECURITY.md`
 
 ### Documentation
 - **README.md**: User-facing documentation
 - **CLAUDE.md**: AI development guide
 - **github-issues/**: All feature specifications
+- **docs/API_KEY_SECURITY.md**: API key management guide
+
+## 🛠️ Development Tools
+
+### Character Sprite Generation
+```bash
+# Generate sprites for new characters using DALL-E
+python scripts/generate_character_sprites.py
+```
+- Uses OpenAI API key from vault
+- Generates sprites for Benji, Olive, and Uncle Bear
+- Creates scene-specific variations (hub, pool, ski, vegas)
+- Outputs to `assets/images/characters/new_sprites/`
+
+### Sound Generation
+```bash
+# Generate sound effects using 11labs
+python tools/generate_sounds_11labs.py
+
+# Apply retro processing to sounds
+python tools/retro_sound_processor.py assets/audio/sfx --preset 16bit
+```
+- Uses 11labs API key from vault
+- Focuses on Hub and Drive sounds first
+- Includes retro processing for 8-bit/16-bit aesthetic
+
+### API Key Security Check
+```bash
+# Verify vault setup and available keys
+python scripts/vault_utils.py
+```
+- Checks vault location and security
+- Lists available API keys
+- Ensures keys are outside repository
 
 ## 📝 Session Summary
 
