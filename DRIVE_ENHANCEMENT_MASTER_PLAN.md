@@ -61,10 +61,12 @@ Transform The Drive minigame into a polished racing experience with realistic ro
 - **✅ Testing**: No crashes, traffic behavior is realistic, boundaries function properly
 
 **🔄 Maturity Level 3.2: Hazard System (Alpha)**
-- 🔲 Issue #13: Static hazards (cones, barriers)
+- ✅ Issue #13: Static hazards (cones, barriers)
 - 🔲 Issue #14: Dynamic hazards (oil slicks, debris)
 - ✅ Issue #15: Collision detection with traffic
 - 🔲 Issue #16: ChatGPT API sprite generation for traffic assets
+- ✅ Issue #19: Gentle freeway curves
+- ✅ Issue #20: Scenery asset generation
 - **Maturity Gate**: Hazards add challenge without frustration, variety is engaging
 - **Testing**: Difficulty feels balanced, hazards enhance rather than break gameplay
 
@@ -212,7 +214,13 @@ Testing Plan:
 
 ## ✅ LATEST COMPLETION STATUS
 
-### ✅ Phase 3.2: Hazard System (Partially Complete)
+### ✅ Phase 3.2: Hazard System (85% Complete)
+- ✅ **Issue #13**: Static Hazards - COMPLETED
+  - Construction zones with traffic cones and barriers
+  - Warning signs before hazard areas
+  - Collision detection with 10% penalty for cones, 30% for barriers
+  - Visual variety with orange cones and gray barriers
+  
 - ✅ **Issue #15**: Collision Detection with Traffic - COMPLETED
   - Rectangle-based collision detection system implemented
   - Differential penalties: Cars (20%), Trucks (40%) speed reduction  
@@ -221,9 +229,19 @@ Testing Plan:
   - Collision cooldown and recovery systems functional
   - Performance optimized (<5% FPS impact)
 
-### 🔄 Next Sprint Ready: Issues #13, #14, #16
-- 🔲 **Issue #13**: Static hazards (cones, barriers)
+- ✅ **Issue #19**: Gentle Freeway Curves - COMPLETED
+  - Low-frequency sine waves for realistic highway curves
+  - Subtle 0.4 amplitude curves that enhance driving feel
+  - Combines with discrete turn system for variety
+  
+- ✅ **Issue #20**: Scenery Asset Generation - COMPLETED
+  - DALL-E generated water sprites (lakes and rivers)
+  - Complete scenery folders: trees, mountains, buildings, desert, water
+  - Foundation ready for scenic background implementation
+
+### 🔄 Next Sprint Ready: Issues #14, #16, #18
 - 🔲 **Issue #14**: Dynamic hazards (oil slicks, debris)  
 - 🔲 **Issue #16**: ChatGPT API sprite generation for traffic assets
+- 🔲 **Issue #18**: Scenic background rendering system
 
-### 🎯 Current Completion: ~75% of Phase 3.2
+### 🎯 Current Completion: ~85% of Phase 3.2

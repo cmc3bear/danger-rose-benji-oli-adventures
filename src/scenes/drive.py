@@ -51,15 +51,22 @@ class NPCCar:
 
 @dataclass
 class Hazard:
-    """Represents a static hazard on the road (cones, barriers, etc)."""
+    """Represents a hazard on the road (static or dynamic)."""
     x: float               # Horizontal position (0.0-1.0)
     y: float               # Vertical position (distance ahead/behind player)
     lane: int              # Lane number where hazard is placed
-    hazard_type: str       # "cone", "barrier", "warning_sign"
+    hazard_type: str       # "cone", "barrier", "warning_sign", "oil_slick", "debris", "water_puddle"
     width: int = 16        # Hazard width in pixels
     height: int = 24       # Hazard height in pixels
     collision_zone: tuple = (16, 24)  # Collision detection size
     color: tuple = (255, 140, 0)  # Default orange for cones
+    
+    # Dynamic hazard properties
+    is_dynamic: bool = False      # True for oil slicks, debris, etc.
+    effect_type: str = "damage"   # "damage", "slip", "slow"
+    effect_duration: float = 0.0  # How long the effect lasts
+    effect_strength: float = 1.0  # Multiplier for effect intensity
+    spawn_source: str = None      # What caused this hazard (e.g., "truck" for oil)
 
 
 class DriveGame:
@@ -109,6 +116,11 @@ class DriveGame:
         self.car_rotation = 0.0          # Current car sprite rotation angle
         self.momentum_x = 0.0            # Horizontal momentum for drift effects
         self.drift_factor = 0.0          # Current drift intensity
+        
+        # Dynamic hazard effects
+        self.active_effects = []         # List of active hazard effects
+        self.slip_factor = 1.0          # Steering multiplier (1.0 = normal, 0.3 = slippery)
+        self.effect_visual_timer = 0.0   # Timer for visual feedback
         
         # Street boundary system
         self.off_road_timer = 0.0        # Time spent off-road
@@ -357,6 +369,12 @@ class DriveGame:
         # Update static hazards system
         self._update_hazards(dt)
         
+        # Update dynamic hazard spawning
+        self._update_dynamic_hazard_spawning(dt)
+        
+        # Update active hazard effects
+        self._update_hazard_effects(dt)
+        
         # Check for collisions with traffic
         self._check_traffic_collisions(dt)
         
@@ -537,7 +555,7 @@ class DriveGame:
         
         # Reduce steering responsiveness when off-road or penalized
         steering_penalty = self.off_road_penalty * 0.5  # Up to 30% steering reduction
-        effective_steering_speed = base_steering_speed * (1.0 - steering_penalty)
+        effective_steering_speed = base_steering_speed * (1.0 - steering_penalty) * self.slip_factor
         
         if pygame.K_LEFT in self.keys_pressed or pygame.K_a in self.keys_pressed:
             self.player_x = max(0.0, self.player_x - effective_steering_speed)
@@ -1308,6 +1326,110 @@ class DriveGame:
         
         self.hazards.append(hazard)
     
+    def _spawn_dynamic_hazard(self, hazard_type: str, x: float, y: float, source: str = None):
+        """Spawn a dynamic hazard like oil slick or debris."""
+        if hazard_type == "oil_slick":
+            hazard = Hazard(
+                x=x,
+                y=y,
+                lane=-1,  # Not lane-specific
+                hazard_type="oil_slick",
+                width=64,
+                height=32,
+                collision_zone=(60, 28),
+                color=(32, 32, 48),  # Dark with blue tint
+                is_dynamic=True,
+                effect_type="slip",
+                effect_duration=1.5,
+                effect_strength=0.3,  # 70% steering reduction
+                spawn_source=source
+            )
+        elif hazard_type == "debris":
+            # Random debris types
+            debris_types = ["tire", "metal", "cargo"]
+            debris_choice = random.choice(debris_types)
+            
+            hazard = Hazard(
+                x=x,
+                y=y,
+                lane=-1,
+                hazard_type=f"debris_{debris_choice}",
+                width=random.randint(16, 32),
+                height=random.randint(16, 32),
+                collision_zone=(24, 24),
+                color=(64, 48, 32),  # Dark brown
+                is_dynamic=True,
+                effect_type="damage",
+                effect_duration=0.0,  # Instant
+                effect_strength=0.15,  # 15% speed reduction
+                spawn_source=source
+            )
+        elif hazard_type == "water_puddle":
+            hazard = Hazard(
+                x=x,
+                y=y,
+                lane=-1,
+                hazard_type="water_puddle",
+                width=48,
+                height=24,
+                collision_zone=(44, 20),
+                color=(64, 128, 192),  # Light blue
+                is_dynamic=True,
+                effect_type="slip",
+                effect_duration=0.8,
+                effect_strength=0.7,  # 30% steering reduction
+                spawn_source="weather"
+            )
+        
+        self.hazards.append(hazard)
+    
+    def _update_dynamic_hazard_spawning(self, dt: float):
+        """Update spawning of dynamic hazards based on traffic and conditions."""
+        # Oil slicks from trucks
+        for npc in self.npc_cars:
+            if npc.vehicle_type == "truck" and npc.y > 0 and random.random() < 0.01:  # Increased rate for testing
+                # Spawn oil slick behind truck
+                oil_x = npc.x + random.uniform(-0.02, 0.02)
+                oil_y = npc.y - 50
+                self._spawn_dynamic_hazard("oil_slick", oil_x, oil_y, "truck")
+        
+        # Random debris spawning
+        if random.random() < 0.005:  # Increased rate for testing
+            debris_x = random.uniform(0.2, 0.8)
+            debris_y = self.horizon_y + 500
+            self._spawn_dynamic_hazard("debris", debris_x, debris_y, "random")
+        
+        # Water puddles (if we add weather later)
+        # Currently disabled - could be enabled with weather system
+    
+    def _update_hazard_effects(self, dt: float):
+        """Update active hazard effects on the player."""
+        # Reset slip factor
+        self.slip_factor = 1.0
+        
+        # Update active effects
+        effects_to_remove = []
+        for i, effect in enumerate(self.active_effects):
+            # Decrease timer
+            effect["timer"] -= dt
+            
+            # Apply effect
+            if effect["type"] == "slip":
+                # Reduce steering control (multiplicative for multiple effects)
+                self.slip_factor *= effect["strength"]
+            
+            # Remove expired effects
+            if effect["timer"] <= 0:
+                effects_to_remove.append(i)
+        
+        # Remove expired effects
+        for i in reversed(effects_to_remove):
+            self.active_effects.pop(i)
+        
+        # Update visual timer
+        if self.effect_visual_timer > 0:
+            self.effect_visual_timer -= dt
+    
     def _get_lane_x_position(self, lane: int) -> float:
         """Get the normalized X position for a given lane."""
         # Get current road boundaries
@@ -1366,28 +1488,55 @@ class DriveGame:
                 break
     
     def _handle_hazard_collision(self, hazard: Hazard):
-        """Handle collision with a static hazard."""
-        # Set collision cooldown
-        self.collision_cooldown = 0.5  # Shorter cooldown for hazards
-        
-        # Different penalties for different hazards
-        if hazard.hazard_type == "cone":
-            speed_penalty = 0.1  # 10% speed reduction
-            self.collision_damage += 0.05  # Minor damage
-            self.last_collision_type = "cone"
-        elif hazard.hazard_type == "barrier":
-            speed_penalty = 0.3  # 30% speed reduction
-            self.collision_damage += 0.15  # Significant damage
-            self.last_collision_type = "barrier"
+        """Handle collision with hazards (static or dynamic)."""
+        # Handle dynamic hazards differently
+        if hazard.is_dynamic:
+            # Apply effect based on type
+            if hazard.effect_type == "slip":
+                # Add slip effect
+                self.active_effects.append({
+                    "type": "slip",
+                    "duration": hazard.effect_duration,
+                    "strength": hazard.effect_strength,
+                    "timer": hazard.effect_duration
+                })
+                self.effect_visual_timer = hazard.effect_duration
+                self.last_collision_type = f"slippery_{hazard.hazard_type}"
+                
+            elif hazard.effect_type == "damage":
+                # Instant damage and speed reduction
+                self.collision_damage += hazard.effect_strength
+                self.player_speed *= (1.0 - hazard.effect_strength)
+                self.collision_flash_timer = 0.3
+                self.last_collision_type = hazard.hazard_type
+                
+            # Remove dynamic hazards after collision (they're consumed)
+            if hazard in self.hazards:
+                self.hazards.remove(hazard)
+                
+        else:
+            # Static hazard handling (existing code)
+            # Set collision cooldown
+            self.collision_cooldown = 0.5  # Shorter cooldown for hazards
             
-        # Apply speed penalty
-        self.collision_speed_penalty = max(self.collision_speed_penalty, speed_penalty)
-        
-        # Cap damage
-        self.collision_damage = min(1.0, self.collision_damage)
-        
-        # Visual feedback
-        self.collision_flash_timer = 0.2  # Shorter flash for hazards
+            # Different penalties for different hazards
+            if hazard.hazard_type == "cone":
+                speed_penalty = 0.1  # 10% speed reduction
+                self.collision_damage += 0.05  # Minor damage
+                self.last_collision_type = "cone"
+            elif hazard.hazard_type == "barrier":
+                speed_penalty = 0.3  # 30% speed reduction
+                self.collision_damage += 0.15  # Significant damage
+                self.last_collision_type = "barrier"
+                
+            # Apply speed penalty
+            self.collision_speed_penalty = max(self.collision_speed_penalty, speed_penalty)
+            
+            # Cap damage
+            self.collision_damage = min(1.0, self.collision_damage)
+            
+            # Visual feedback
+            self.collision_flash_timer = 0.2  # Shorter flash for hazards
         
         # Audio feedback
         if hasattr(self.scene_manager, 'sound_manager') and self.scene_manager.sound_manager:
@@ -1526,7 +1675,7 @@ class DriveGame:
                                (right_edge + 1, line_y + 15), 3)
     
     def _draw_hazards(self, screen):
-        """Draw static hazards (cones, barriers, warning signs)."""
+        """Draw all hazards (static and dynamic)."""
         for hazard in self.hazards:
             # Convert hazard position to screen coordinates
             hazard_screen_x = int(hazard.x * self.screen_width)
@@ -1585,6 +1734,62 @@ class DriveGame:
                     text = font.render("!", True, COLOR_BLACK)
                     text_rect = text.get_rect(center=(hazard_screen_x, hazard_screen_y))
                     screen.blit(text, text_rect)
+                    
+                elif hazard.hazard_type == "oil_slick":
+                    # Draw oil slick (elongated ellipse with glossy effect)
+                    oil_rect = pygame.Rect(
+                        hazard_screen_x - hazard.width // 2,
+                        hazard_screen_y - hazard.height // 2,
+                        hazard.width,
+                        hazard.height
+                    )
+                    # Dark base
+                    pygame.draw.ellipse(screen, hazard.color, oil_rect)
+                    # Rainbow sheen effect
+                    sheen_rect = oil_rect.inflate(-10, -6)
+                    pygame.draw.ellipse(screen, (48, 48, 80), sheen_rect, 2)
+                    # Glossy highlight
+                    highlight_rect = pygame.Rect(
+                        oil_rect.x + oil_rect.width // 4,
+                        oil_rect.y + 4,
+                        oil_rect.width // 3,
+                        6
+                    )
+                    pygame.draw.ellipse(screen, (64, 64, 128), highlight_rect)
+                    
+                elif hazard.hazard_type.startswith("debris_"):
+                    # Draw debris (irregular shapes)
+                    debris_type = hazard.hazard_type.split("_")[1]
+                    if debris_type == "tire":
+                        # Draw tire chunk
+                        pygame.draw.circle(screen, hazard.color, 
+                                         (hazard_screen_x, hazard_screen_y), 
+                                         hazard.width // 2, 3)
+                        pygame.draw.circle(screen, (32, 32, 32), 
+                                         (hazard_screen_x, hazard_screen_y), 
+                                         hazard.width // 3)
+                    else:
+                        # Draw generic debris
+                        debris_points = [
+                            (hazard_screen_x - hazard.width // 2, hazard_screen_y),
+                            (hazard_screen_x - hazard.width // 3, hazard_screen_y - hazard.height // 2),
+                            (hazard_screen_x + hazard.width // 3, hazard_screen_y - hazard.height // 3),
+                            (hazard_screen_x + hazard.width // 2, hazard_screen_y + hazard.height // 3),
+                            (hazard_screen_x, hazard_screen_y + hazard.height // 2)
+                        ]
+                        pygame.draw.polygon(screen, hazard.color, debris_points)
+                    
+                elif hazard.hazard_type == "water_puddle":
+                    # Draw water puddle
+                    puddle_rect = pygame.Rect(
+                        hazard_screen_x - hazard.width // 2,
+                        hazard_screen_y - hazard.height // 2,
+                        hazard.width,
+                        hazard.height
+                    )
+                    pygame.draw.ellipse(screen, hazard.color, puddle_rect)
+                    # Reflection effect
+                    pygame.draw.ellipse(screen, (96, 160, 224), puddle_rect, 2)
     
     def _draw_npc_cars(self, screen):
         """Draw NPC traffic cars with proper directional orientation."""
@@ -1816,6 +2021,30 @@ class DriveGame:
             final_rect = final_text.get_rect(center=(self.screen_width // 2, 140))
             screen.blit(final_text, final_rect)
             
+        # Hazard effect indicators
+        if self.active_effects:
+            effect_y = self.screen_height - 100
+            for effect in self.active_effects:
+                if effect["type"] == "slip":
+                    # Draw slippery warning
+                    slip_text = f"SLIPPERY! ({int(effect['timer'])}s)"
+                    slip_surface = self.font_large.render(slip_text, True, COLOR_YELLOW)
+                    slip_rect = slip_surface.get_rect(center=(self.screen_width // 2, effect_y))
+                    # Draw background
+                    bg_rect = slip_rect.inflate(20, 10)
+                    pygame.draw.rect(screen, (32, 32, 48), bg_rect)
+                    pygame.draw.rect(screen, COLOR_YELLOW, bg_rect, 3)
+                    screen.blit(slip_surface, slip_rect)
+                    
+                    # Visual effect - slightly wavy screen edges
+                    if self.effect_visual_timer > 0:
+                        wave_amount = int(10 * math.sin(self.effect_visual_timer * 20))
+                        pygame.draw.rect(screen, (64, 64, 128), 
+                                       (0, 0, wave_amount, self.screen_height))
+                        pygame.draw.rect(screen, (64, 64, 128), 
+                                       (self.screen_width - wave_amount, 0, wave_amount, self.screen_height))
+                    effect_y -= 60
+        
         # Control hints
         control_text = "Press Q to return to Hub"
         control_surface = self.font_small.render(control_text, True, COLOR_YELLOW)
