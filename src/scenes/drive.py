@@ -1306,10 +1306,10 @@ class DriveGame:
                         car_rect.height // 3
                     )
                 else:
-                    # Oncoming traffic - windshield at front (top) since they face us
+                    # Oncoming traffic - windshield at front (bottom) since they're coming toward us
                     windshield_rect = pygame.Rect(
                         car_rect.x + 4,
-                        car_rect.y + 4,
+                        car_rect.y + car_rect.height * 2 // 3 - 4,
                         car_rect.width - 8,
                         car_rect.height // 3
                     )
@@ -1318,17 +1318,29 @@ class DriveGame:
                 
                 # Headlights/taillights to show direction
                 if car.direction == 1:
-                    # Same direction - white headlights at front (top)
-                    pygame.draw.circle(screen, (255, 255, 255), 
-                                     (car_rect.x + 8, car_rect.y + 2), 3)
-                    pygame.draw.circle(screen, (255, 255, 255), 
-                                     (car_rect.x + car_rect.width - 8, car_rect.y + 2), 3)
+                    # Same direction - white headlights at front (top), red taillights at back (bottom)
+                    # Headlights
+                    pygame.draw.circle(screen, (255, 255, 200), 
+                                     (car_rect.x + 8, car_rect.y + 5), 3)
+                    pygame.draw.circle(screen, (255, 255, 200), 
+                                     (car_rect.x + car_rect.width - 8, car_rect.y + 5), 3)
+                    # Taillights
+                    pygame.draw.circle(screen, (200, 0, 0), 
+                                     (car_rect.x + 8, car_rect.y + car_rect.height - 5), 2)
+                    pygame.draw.circle(screen, (200, 0, 0), 
+                                     (car_rect.x + car_rect.width - 8, car_rect.y + car_rect.height - 5), 2)
                 else:
-                    # Oncoming traffic - white headlights at front (top) since they face us
-                    pygame.draw.circle(screen, (255, 255, 255), 
-                                     (car_rect.x + 8, car_rect.y + 2), 3)
-                    pygame.draw.circle(screen, (255, 255, 255), 
-                                     (car_rect.x + car_rect.width - 8, car_rect.y + 2), 3)
+                    # Oncoming traffic - white headlights at front (bottom), red taillights at back (top)
+                    # Headlights (at bottom since they're coming toward us)
+                    pygame.draw.circle(screen, (255, 255, 200), 
+                                     (car_rect.x + 8, car_rect.y + car_rect.height - 5), 4)
+                    pygame.draw.circle(screen, (255, 255, 200), 
+                                     (car_rect.x + car_rect.width - 8, car_rect.y + car_rect.height - 5), 4)
+                    # Taillights (at top)
+                    pygame.draw.circle(screen, (200, 0, 0), 
+                                     (car_rect.x + 8, car_rect.y + 5), 2)
+                    pygame.draw.circle(screen, (200, 0, 0), 
+                                     (car_rect.x + car_rect.width - 8, car_rect.y + 5), 2)
                 
                 # Wheels (simple black rectangles)
                 wheel_width = 4
