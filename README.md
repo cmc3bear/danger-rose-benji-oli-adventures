@@ -206,10 +206,19 @@ The apartment is your home base! Walk around and interact with:
 OutRun-inspired racing through dynamic highway traffic!
 - **The Challenge**: Race for 2 minutes while avoiding crashes
 - **Traffic System**: 4-lane highway with realistic bidirectional flow
-- **Obstacles**: Cars and semi trucks with collision penalties
+  - Lanes 1-2: Oncoming traffic heading toward you
+  - Lanes 3-4: Traffic moving in your direction
+- **Obstacles**: 
+  - Cars: 20% speed penalty on collision
+  - Semi trucks: 40% speed penalty (bigger hazard!)
+  - Construction zones: Static hazards (cones, barriers)
+- **Dynamic Features**:
+  - Gentle freeway curves that affect handling
+  - Scenic backgrounds: Mountains, forests, cities, lakes, deserts
+  - EV movement physics with realistic steering
 - **Music Selection**: Choose your driving soundtrack from 3 tracks
 - **Vehicle Choice**: Pick from 3 different EV cars with unique handling
-- **Pro Tip**: Trucks cause 40% speed penalty vs 20% for cars!
+- **Pro Tip**: Watch for traffic patterns and use lane changes wisely!
 - **High Score Target**: 15,000+ points
 
 ### 🎿 Ski Downhill
