@@ -231,6 +231,9 @@ class DriveGame:
             elif self.state == self.STATE_RACING:
                 if event.key == pygame.K_ESCAPE:
                     self._end_race()
+                elif event.key == pygame.K_q:
+                    # Quick return to hub world
+                    return SCENE_HUB_WORLD
                     
             elif self.state == self.STATE_GAME_OVER:
                 if event.key == pygame.K_SPACE:
@@ -1813,6 +1816,12 @@ class DriveGame:
             final_rect = final_text.get_rect(center=(self.screen_width // 2, 140))
             screen.blit(final_text, final_rect)
             
+        # Control hints
+        control_text = "Press Q to return to Hub"
+        control_surface = self.font_small.render(control_text, True, COLOR_YELLOW)
+        control_rect = control_surface.get_rect(bottomleft=(20, self.screen_height - 20))
+        screen.blit(control_surface, control_rect)
+        
         # Turn indicators for enhanced racing experience
         if self.turn_state != "straight":
             turn_direction = self.turn_state.replace("turning_", "").upper()
