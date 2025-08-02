@@ -107,7 +107,7 @@ class DriveGame:
         self.npc_cars: List[NPCCar] = []  # List of active NPC cars
         self.traffic_spawn_timer = 0.0    # Timer for spawning new traffic
         self.traffic_density = 0.3        # Probability of spawning traffic
-        self.max_traffic_cars = 6         # Maximum number of NPC cars on screen
+        self.max_traffic_cars = 10        # Maximum number of NPC cars on screen (increased for better flow)
         
         # Collision Detection System
         self.collision_cooldown = 0.0     # Cooldown timer to prevent multiple collisions
@@ -590,10 +590,12 @@ class DriveGame:
         self.traffic_spawn_timer += dt
         
         # Spawn new traffic cars
-        if (self.traffic_spawn_timer > 2.0 and  # Spawn every 2 seconds
-            len(self.npc_cars) < self.max_traffic_cars and
-            random.random() < self.traffic_density):
-            self._spawn_npc_car()
+        spawn_interval = 1.5  # Spawn more frequently for consistent traffic
+        if (self.traffic_spawn_timer > spawn_interval and  
+            len(self.npc_cars) < self.max_traffic_cars):
+            # Spawn with higher probability to ensure consistent traffic flow
+            if random.random() < 0.7:  # 70% chance every 1.5 seconds
+                self._spawn_npc_car()
             self.traffic_spawn_timer = 0.0
             
         # Update existing traffic cars
@@ -607,11 +609,16 @@ class DriveGame:
             else:
                 # Oncoming traffic - from player POV they approach from ahead
                 # They should appear to come toward player and pass by naturally
-                oncoming_relative_speed = car.speed + self.player_speed  # Combined approach speed
+                # Use base speed + player speed for realistic relative motion
+                base_oncoming_speed = 0.7  # Base speed for oncoming traffic when player is stopped
+                oncoming_relative_speed = base_oncoming_speed + self.player_speed  # Combined approach speed
                 car.y -= oncoming_relative_speed * dt * 100  # Approach from ahead (toward player)
             
             # Update AI behavior
             self._update_npc_ai(car, dt)
+            
+            # Check for traffic-to-traffic collision avoidance
+            self._avoid_traffic_collisions(car, dt)
             
             # Enforce road boundaries for traffic cars
             self._enforce_traffic_boundaries(car)
@@ -857,10 +864,16 @@ class DriveGame:
         
         # Check for collisions with other cars in target lane
         for other_car in self.npc_cars:
-            if other_car != car and abs(other_car.x - target_x) < 0.08:  # Reduced collision distance
-                # Car is in target lane, check distance
-                if abs(other_car.y - car.y) < 80:  # Too close
-                    return False
+            if other_car != car:
+                # Check if other car is in or near the target lane
+                if other_car.lane == target_lane or abs(other_car.x - target_x) < 0.08:
+                    # Car is in target lane, check distance
+                    if abs(other_car.y - car.y) < 100:  # Increased safety distance
+                        return False
+                # Also check if a car is currently changing into the target lane
+                if hasattr(other_car, 'target_x') and abs(other_car.target_x - target_x) < 0.08:
+                    if abs(other_car.y - car.y) < 120:  # Even more distance for merging cars
+                        return False
                     
         # Check distance from player (only for same-direction traffic)
         if car.direction == 1 and abs(target_x - self.player_x) < 0.15 and abs(car.y) < 100:
@@ -939,6 +952,92 @@ class DriveGame:
             if abs(car.x - ideal_x) > lane_width * 0.4:  # If drifting too far from lane center
                 correction = (ideal_x - car.x) * lane_drift_correction * 0.02  # Correction per frame
                 car.x += correction
+    
+    def _avoid_traffic_collisions(self, car: NPCCar, dt: float):
+        """Make traffic cars avoid collisions with each other."""
+        # Define safe following distance based on relative speeds
+        min_safe_distance = 60  # Minimum distance in pixels
+        brake_distance = 120    # Distance at which to start braking
+        
+        for other_car in self.npc_cars:
+            if other_car == car:
+                continue
+                
+            # Check if cars are in same or adjacent lanes
+            lane_diff = abs(car.lane - other_car.lane)
+            if lane_diff > 1:  # Cars are too far apart laterally
+                continue
+                
+            # Check if cars are in the same direction
+            if car.direction != other_car.direction:
+                # For oncoming traffic, only check if they're in exact same lane (head-on)
+                if car.lane != other_car.lane:
+                    continue
+                # Head-on collision avoidance - emergency lane change
+                if car.y > -50 and car.y < 50 and other_car.y > -50 and other_car.y < 50:
+                    # Try to change lanes to avoid head-on collision
+                    if car.ai_state == "cruising":
+                        emergency_lane = None
+                        if car.direction == 1:  # Same as player
+                            emergency_lane = 4 if car.lane == 3 else 3
+                        else:  # Oncoming
+                            emergency_lane = 2 if car.lane == 1 else 1
+                        
+                        if emergency_lane and self._is_lane_change_safe(car, emergency_lane):
+                            car.ai_state = "changing_lanes"
+                            car.lane = emergency_lane
+                            car.lane_change_timer = 0.0
+                continue
+            
+            # Same direction collision avoidance
+            # Check if other car is ahead and too close
+            if car.direction == 1:  # Same direction as player
+                distance = other_car.y - car.y  # Positive if other car is ahead
+            else:  # Oncoming traffic
+                distance = car.y - other_car.y  # Positive if other car is ahead
+                
+            if distance > 0 and distance < brake_distance:
+                # Other car is ahead and within braking distance
+                if lane_diff == 0:  # Same lane
+                    if distance < min_safe_distance:
+                        # Emergency brake
+                        car.speed = max(0.1, car.speed - 2.0 * dt)
+                    else:
+                        # Gradual speed matching
+                        speed_diff = car.speed - other_car.speed
+                        if speed_diff > 0:  # We're going faster
+                            brake_force = (1.0 - distance / brake_distance) * speed_diff
+                            car.speed = max(other_car.speed * 0.9, car.speed - brake_force * dt)
+                    
+                    # Try to change lanes if stuck behind for too long
+                    if car.ai_state == "cruising" and distance < brake_distance * 0.7:
+                        # Increase chance of lane change when following closely
+                        if random.random() < 0.02 * dt:  # 2% chance per second
+                            # Try to change lanes
+                            target_lane = None
+                            if car.direction == 1:
+                                target_lane = 4 if car.lane == 3 else 3
+                            else:
+                                target_lane = 2 if car.lane == 1 else 1
+                                
+                            if target_lane and self._is_lane_change_safe(car, target_lane):
+                                car.ai_state = "changing_lanes"
+                                # Store target for lane change
+                                road_center_normalized = 0.5
+                                road_width_normalized = 0.6
+                                left_road_edge = road_center_normalized - road_width_normalized / 2
+                                direction_width = road_width_normalized / 2
+                                lane_width = direction_width / 2
+                                
+                                if car.direction == 1:  # Same direction (right half)
+                                    lane_offset = target_lane - 3
+                                    car.target_x = road_center_normalized + lane_width * (lane_offset + 0.5)
+                                else:  # Oncoming (left half)
+                                    lane_offset = target_lane - 1
+                                    car.target_x = left_road_edge + lane_width * (lane_offset + 0.5)
+                                
+                                car.lane = target_lane
+                                car.lane_change_timer = 0.0
     
     def _check_traffic_collisions(self, dt: float):
         """Check for collisions between player and traffic vehicles."""
