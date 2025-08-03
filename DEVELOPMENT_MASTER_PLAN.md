@@ -160,11 +160,19 @@
 - **Scope**: Integrate abilities into all 4 minigames
 
 #### Issue #31: Traffic Passing Logic System
-- **Status**: 📋 Ready for Development
+- **Status**: ⚠️ BLOCKED - OQE Compliance Required
 - **File**: `github-issues/issue-31-traffic-passing-logic.md`
 - **Scope**: Intelligent AI for when traffic should pass slower vehicles
-- **Features**: 
-  - Traffic awareness scanning
+- **Implementation**: COMPLETE but lacks objective evidence
+- **OQE Status**: 
+  - ❌ No baseline measurements
+  - ❌ Integration tests missing (4/8 complete)
+  - ❌ Performance claims unverified
+- **Required Actions**:
+  - Build metrics collection infrastructure
+  - Complete test suite implementation
+  - Run 30-minute baseline comparison
+  - Verify all claims with evidence
   - Driver personality profiles
   - Safe passing decisions
   - Turn signal system
@@ -403,6 +411,18 @@ python tools/retro_sound_processor.py assets/audio/sfx --preset 16bit
 - Maintained 60 FPS performance with new features
 - Secure API key management throughout
 - AI-optimized development metrics
+
+### ⚠️ OQE Compliance Standards
+**All features must provide Objective Qualified Evidence:**
+- **VERIFIED**: Measured with actual data
+- **MEASURED**: Quantified with specific metrics
+- **DOCUMENTED**: Test results with timestamps
+- **NEVER ASSUMED**: No claims without evidence
+
+**Current OQE Status:**
+- ✅ Agent Pipeline: Full OQE compliance in design
+- ⚠️ Issue #31: Implementation complete, evidence missing
+- 📋 Future Issues: Must build measurement first
 
 ### Development Velocity (AI-Driven Metrics)
 - Session 5: 4 major features completed
