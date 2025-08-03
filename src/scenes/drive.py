@@ -143,8 +143,8 @@ class DriveGame:
         # NPC Traffic System
         self.npc_cars: List[NPCCar] = []  # List of active NPC cars
         self.traffic_spawn_timer = 0.0    # Timer for spawning new traffic
-        self.traffic_density = 0.3        # Probability of spawning traffic
-        self.max_traffic_cars = 6         # Maximum number of NPC cars on screen (reduced for less crowding)
+        self.traffic_density = 0.36       # Probability of spawning traffic (increased 20% from 0.3)
+        self.max_traffic_cars = 8         # Maximum number of NPC cars on screen (increased 20% from 6)
         
         # Collision Detection System
         self.collision_cooldown = 0.0     # Cooldown timer to prevent multiple collisions
@@ -226,8 +226,8 @@ class DriveGame:
         
         # Visual elements
         self.horizon_y = self.screen_height // 2
-        self.road_width = 500  # Increased 25% from 400 to 500 for proper 4-lane highway
-        self.max_road_width = 1000  # Increased proportionally from 800 to 1000
+        self.road_width = 700  # Increased to 700 for easier tracking and visibility
+        self.max_road_width = 1200  # Increased proportionally for wider road
         self.car_width = 64  # Display width (scaled from 128)
         self.car_height = 96  # Display height (scaled from 192)
         
@@ -265,10 +265,12 @@ class DriveGame:
     def _setup_bmp_callbacks(self):
         """Setup BMP system callbacks for traffic spawning and speed modulation."""
         # Register spawn callback - connects BMP system to existing spawn logic
-        self.bmp_system.register_spawn_callback(self._bmp_spawn_callback)
+        # TODO: Fix BPM spawn system - temporarily disabled to allow normal traffic spawning
+        # self.bmp_system.register_spawn_callback(self._bmp_spawn_callback)
         
         # Register speed callback - connects BMP system to traffic speed modulation
-        self.bmp_system.register_speed_callback(self._bmp_speed_callback)
+        # TODO: Fix BPM speed modulation - temporarily disabled
+        # self.bmp_system.register_speed_callback(self._bmp_speed_callback)
         
     def _bmp_spawn_callback(self, spawn_params: Dict) -> bool:
         """Handle BMP-triggered traffic spawning."""
@@ -503,10 +505,11 @@ class DriveGame:
             'speed': self.player_speed,
             'position': self.race_state.position
         }
-        self.bmp_system.update(dt, player_state, self.npc_cars)
+        # TODO: Fix BMP system missing methods (is_tracking, etc)
+        # self.bmp_system.update(dt, player_state, self.npc_cars)
         
         # Apply BMP speed modulation to existing traffic
-        self.bmp_system.handle_speed_modulation(self.npc_cars)
+        # self.bmp_system.handle_speed_modulation(self.npc_cars)
         
         # Update NPC traffic system
         self._update_traffic(dt)
@@ -808,20 +811,20 @@ class DriveGame:
         
     def _update_traffic(self, dt: float):
         """Update NPC traffic system."""
-        # BMP system now handles rhythmic spawning via callbacks
-        # Keep fallback timer for cases where BMP system isn't active
-        if not self.bmp_system.is_enabled:
-            # Update spawn timer (fallback mode)
-            self.traffic_spawn_timer += dt
-            
-            # Spawn new traffic cars (less frequently to reduce crowding)
-            spawn_interval = 2.5  # Increased interval for less crowded highway
-            if (self.traffic_spawn_timer > spawn_interval and  
-                len(self.npc_cars) < self.max_traffic_cars):
-                # Spawn with lower probability for more open road
-                if random.random() < 0.5:  # 50% chance every 2.5 seconds
-                    self._spawn_npc_car()
-                self.traffic_spawn_timer = 0.0
+        # TODO: Fix BPM system spawning - for now always use normal spawning
+        # The BPM system is incomplete and preventing normal traffic from spawning
+        
+        # Update spawn timer (always spawn traffic regardless of BPM system)
+        self.traffic_spawn_timer += dt
+        
+        # Spawn new traffic cars (20% more traffic)
+        spawn_interval = 2.0  # Reduced interval for more traffic (was 2.5)
+        if (self.traffic_spawn_timer > spawn_interval and  
+            len(self.npc_cars) < self.max_traffic_cars):
+            # Increased spawn probability for 20% more traffic
+            if random.random() < 0.6:  # 60% chance every 2.0 seconds (was 50% every 2.5s)
+                self._spawn_npc_car()
+            self.traffic_spawn_timer = 0.0
             
         # Update existing traffic cars
         cars_to_remove = []
@@ -902,8 +905,8 @@ class DriveGame:
         # Player is in lanes 3-4, oncoming traffic in lanes 1-2
         player_lane = 3 if self.player_x < 0.5 else 4  # Left or right in player direction
         
-        # 70% chance for same direction (lanes 3-4), 30% for oncoming (lanes 1-2)
-        if random.random() < 0.7:
+        # 50% chance for same direction (lanes 3-4), 50% for oncoming (lanes 1-2)
+        if random.random() < 0.5:
             # Same direction traffic (lanes 3-4)
             direction = 1
             lane = random.choice([3, 4])
@@ -1014,6 +1017,16 @@ class DriveGame:
                 x_position = direction_start + lane_width * 0.5
             else:           # Right lane, player direction (lane == 4)
                 x_position = direction_start + lane_width * 1.5
+        
+        # Apply curve offset to spawn position to align with road curves
+        # Use the Y position where the car will spawn to get appropriate curve offset
+        spawn_screen_y = self.screen_height - 200 if y_position <= 0 else int(self.horizon_y + (self.screen_height - self.horizon_y - 100) * (1 - min(abs(y_position) / 600.0, 1.0)))
+        curve_offset_pixels = self._get_curve_offset_at_y(spawn_screen_y)
+        curve_offset_normalized = curve_offset_pixels / self.screen_width
+        x_position += curve_offset_normalized
+        
+        # Clamp to screen boundaries after curve adjustment
+        x_position = max(0.05, min(0.95, x_position))
             
         # Determine vehicle type (10% chance for trucks)
         is_truck = random.random() < 0.15  # 15% chance for semi trucks
@@ -1098,6 +1111,10 @@ class DriveGame:
             personality=personality,
             desired_speed=npc_speed
         )
+        
+        # Store original spawn position for curve alignment tracking
+        npc_car.original_lane_x = x_position
+        npc_car.original_lane = lane
         
         self.npc_cars.append(npc_car)
         
@@ -1245,7 +1262,8 @@ class DriveGame:
         surface_variation = int(self.surface_noise)
         current_road_width_pixels = self.road_width + base_width_variation + surface_variation
         
-        # Calculate actual road edges in pixels
+        # Note: This returns the BASE road boundaries without curve offset
+        # Curve offset should be applied separately when positioning objects
         road_left_pixels = road_center_pixels - current_road_width_pixels // 2
         road_right_pixels = road_center_pixels + current_road_width_pixels // 2
         
@@ -1257,29 +1275,39 @@ class DriveGame:
         return road_left_normalized, road_right_normalized, road_width_normalized
     
     def _get_curve_offset_at_y(self, y_position: float) -> int:
-        """Get the horizontal curve offset in pixels for a given Y position."""
+        """Get the horizontal curve offset in pixels for a given Y position.
+        
+        This function calculates the exact curve offset that matches the road rendering,
+        ensuring traffic and hazards align perfectly with the road curves.
+        """
         # Ensure Y is within screen bounds
         if y_position < self.horizon_y:
             return 0
             
-        # Calculate distance factor (0 at player, 1 at horizon)
+        # Calculate distance factor exactly matching road rendering
         screen_factor = (y_position - self.horizon_y) / (self.screen_height - self.horizon_y)
         screen_factor = max(0, min(1, screen_factor))
         distance_factor = 1.0 - screen_factor
         
-        # Apply curve intensity (stronger curves in distance)
+        # Match road rendering curve calculation exactly
+        # This must match the scanline rendering in _draw_road_background
         curve_intensity = distance_factor * distance_factor
+        
+        # Primary curve offset (matches road_curve * 300 * curve_intensity in road rendering)
         scanline_curve = int(self.road_curve * 300 * curve_intensity)
         
-        # S-curve calculation for smooth transitions
-        s_curve_factor = (distance_factor - 0.5) * 2.0
-        s_curve = s_curve_factor * s_curve_factor * s_curve_factor * 50
+        # S-curve oscillation (matches road rendering exactly)
+        road_phase = self.road_position * 0.01
+        s_curve = math.sin(road_phase + distance_factor * 3) * 50 * curve_intensity
         
         return scanline_curve + int(s_curve)
         
     def _enforce_traffic_boundaries(self, car: NPCCar):
-        """Ensure traffic cars stay within their directional lanes and road boundaries."""
-        # Get actual road boundaries
+        """Ensure traffic cars stay within their directional lanes and road boundaries.
+        
+        This function now accounts for road curves to keep cars properly aligned.
+        """
+        # Get actual road boundaries (base road without curve compensation)
         road_left_normalized, road_right_normalized, road_width_normalized = self._get_road_boundaries()
         
         # Split road into two directions
@@ -1287,7 +1315,7 @@ class DriveGame:
         lane_width = direction_width / 2  # 2 lanes per direction
         road_center_normalized = road_left_normalized + road_width_normalized / 2
         
-        # Define directional boundaries
+        # Define directional boundaries (without curve adjustment - keep cars in their lanes)
         car_width_normalized = 0.02  # Approximate car width in normalized coordinates
         
         if car.direction == 1:  # Same direction (right half)
@@ -1298,6 +1326,8 @@ class DriveGame:
             direction_right = road_center_normalized - car_width_normalized
         
         # Enforce directional boundaries - push cars back into their side
+        # Note: We don't apply curve offset here because cars should stay in lanes
+        # relative to each other, and curve offset is applied during rendering
         if car.x < direction_left:
             car.x = direction_left
             # If changing lanes, cancel the lane change
@@ -1576,16 +1606,17 @@ class DriveGame:
         
         # Spawn cones at start and end of blocked lanes
         for lane in lanes_to_block:
-            # Get lane position
-            lane_x = self._get_lane_x_position(lane)
-            
-            # Cones at intervals
+            # Cones at intervals - pass y position for curve-aware positioning
             for y in range(int(start_y), int(end_y), 40):
+                # Get lane position with curve compensation for this Y position
+                lane_x = self._get_lane_x_position(lane, y)
                 self._spawn_hazard("cone", lane_x, y, lane)
                 
             # Barriers for longer blockages
             if zone_length > 300:
                 barrier_y = start_y + zone_length // 2
+                # Get lane position with curve compensation for barrier position
+                lane_x = self._get_lane_x_position(lane, barrier_y)
                 self._spawn_hazard("barrier", lane_x, barrier_y, lane)
         
         # Update next construction zone position
@@ -1694,8 +1725,8 @@ class DriveGame:
         
         # Get BMP beat info for rhythmic hazard spawning
         beat_info = None
-        if self.bmp_system.is_enabled and hasattr(self.bmp_system.bmp_tracker, 'get_beat_info'):
-            beat_info = self.bmp_system.bmp_tracker.get_beat_info()
+        if self.bmp_system.is_enabled and hasattr(self.bmp_system.bpm_tracker, 'get_beat_info'):
+            beat_info = self.bmp_system.bpm_tracker.get_beat_info()
             
         # Oil slicks from trucks (BMP-enhanced spawn rate)
         for npc in self.npc_cars:
@@ -1803,22 +1834,42 @@ class DriveGame:
             if self.comic_text_fade_timer <= 0:
                 self.current_comic_text = None
     
-    def _get_lane_x_position(self, lane: int) -> float:
-        """Get the normalized X position for a given lane."""
+    def _get_lane_x_position(self, lane: int, y_position: float = None) -> float:
+        """Get the normalized X position for a given lane, optionally accounting for road curves.
+        
+        Args:
+            lane: Lane number (1-4)
+            y_position: Y position to calculate curve offset for (defaults to no curve compensation)
+        """
         # Get current road boundaries
         road_left, road_right, road_width = self._get_road_boundaries()
         
-        # Calculate lane positions
+        # Calculate base lane positions (no curve compensation)
         direction_width = road_width / 2
         lane_width = direction_width / 2
         road_center = road_left + road_width / 2
         
         if lane in [1, 2]:  # Oncoming lanes (left side)
             lane_offset = lane - 1  # Convert to 0, 1
-            return road_left + lane_width * (lane_offset + 0.5)
+            base_x = road_left + lane_width * (lane_offset + 0.5)
         else:  # Player direction lanes (right side)
             lane_offset = lane - 3  # Convert to 0, 1
-            return road_center + lane_width * (lane_offset + 0.5)
+            base_x = road_center + lane_width * (lane_offset + 0.5)
+        
+        # Apply curve offset if y_position provided (for hazard positioning)
+        if y_position is not None:
+            # Convert y_position to screen space if needed
+            if y_position > 0:  # Ahead of player
+                y_progress = min(y_position / 600.0, 1.0)
+                screen_y = int(self.horizon_y + (self.screen_height - self.horizon_y - 100) * (1 - y_progress))
+            else:  # Behind player
+                screen_y = self.screen_height - 100
+            
+            curve_offset_pixels = self._get_curve_offset_at_y(screen_y)
+            curve_offset_normalized = curve_offset_pixels / self.screen_width
+            return base_x + curve_offset_normalized
+        
+        return base_x
     
     def _check_hazard_collisions(self, dt: float):
         """Check for collisions between player and static hazards."""
@@ -2110,17 +2161,15 @@ class DriveGame:
             
             # Get the x position - either from lane or direct x coordinate
             if hazard.lane > 0:
-                # Lane-based hazard - get lane position
-                hazard_x = self._get_lane_x_position(hazard.lane)
+                # Lane-based hazard - get lane position with curve compensation
+                hazard_x = self._get_lane_x_position(hazard.lane, hazard.y)
+                # For lane-based hazards, curve offset is already included
+                hazard_screen_x = int(hazard_x * self.screen_width)
             else:
-                # Free-positioned hazard
+                # Free-positioned hazard - apply curve offset manually
                 hazard_x = hazard.x
-            
-            # Get curve offset for this Y position
-            curve_offset = self._get_curve_offset_at_y(hazard_screen_y)
-            
-            # Apply curve offset to hazard position
-            hazard_screen_x = int(hazard_x * self.screen_width) + curve_offset
+                curve_offset = self._get_curve_offset_at_y(hazard_screen_y)
+                hazard_screen_x = int(hazard_x * self.screen_width) + curve_offset
             
             # Only draw if visible on screen
             if -50 <= hazard_screen_y <= self.screen_height + 50:
@@ -2244,10 +2293,9 @@ class DriveGame:
                 # Cars behind player
                 car_screen_y = self.screen_height - 100 + int(abs(car.y) * 0.5)
             
-            # Get curve offset for this Y position
+            # Apply curve offset to maintain alignment with road curves
+            # All traffic cars need curve offset applied during rendering
             curve_offset = self._get_curve_offset_at_y(car_screen_y)
-            
-            # Apply curve offset to car position
             car_screen_x = int(car.x * self.screen_width) + curve_offset
             
             # Only draw if vehicle is visible on screen
@@ -2670,7 +2718,8 @@ class DriveGame:
             screen.blit(boundary_surface, boundary_rect)
             
         # Draw BMP rhythmic visual effects
-        self.bmp_system.draw_rhythm_effects(screen)
+        # TODO: Fix BMP drawing methods
+        # self.bmp_system.draw_rhythm_effects(screen)
         
         # Draw BMP overlay if enabled
         if self.bmp_overlay_visible:
@@ -2737,7 +2786,7 @@ class DriveGame:
         # Beat indicator (visual pulse)
         beat_progress = getattr(self.bmp_system.bmp_tracker, 'get_beat_progress', lambda: 0.0)()
         if hasattr(self.bmp_system.bmp_tracker, 'get_beat_info'):
-            beat_info = self.bmp_system.bmp_tracker.get_beat_info()
+            beat_info = self.bmp_system.bpm_tracker.get_beat_info()
             if beat_info.is_beat:
                 # Draw beat flash
                 pulse_radius = int(15 + 10 * beat_info.beat_strength)
@@ -2923,6 +2972,11 @@ class DriveGame:
         
     def on_enter(self, previous_scene, data):
         """Called when entering this scene."""
+        # CRITICAL FIX: Stop any existing music from previous scenes (like hub music)
+        # This prevents music bleed-through and crashes
+        pygame.mixer.music.stop()
+        self.scene_manager.sound_manager.stop_music(fade_ms=500)
+        
         # Load previously selected vehicle from save
         # Load previously selected vehicle from save
         # For now, we'll skip this since the save manager doesn't have vehicle support yet
