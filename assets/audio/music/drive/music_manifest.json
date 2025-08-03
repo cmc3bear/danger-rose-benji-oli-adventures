@@ -1,31 +1,33 @@
 {
-    "tracks": [
-        {
-            "id": "highway_dreams",
-            "display_name": "Highway Dreams",
-            "artist": "Danger Rose OST",
-            "description": "Smooth cruising vibes",
-            "filename": "highway_dreams.mp3",
-            "bpm": 120,
-            "mood": "chill"
-        },
-        {
-            "id": "turbo_rush",
-            "display_name": "Turbo Rush",
-            "artist": "Danger Rose OST",
-            "description": "High-energy racing",
-            "filename": "turbo_rush.mp3",
-            "bpm": 140,
-            "mood": "intense"
-        },
-        {
-            "id": "sunset_cruise",
-            "display_name": "Sunset Cruise",
-            "artist": "Danger Rose OST",
-            "description": "Golden hour driving",
-            "filename": "sunset_cruise.mp3",
-            "bpm": 110,
-            "mood": "relaxed"
-        }
-    ]
+  "scene": "drive",
+  "tracks": [
+    {
+      "name": "highway_dreams_main_theme",
+      "display_name": "Highway Dreams (Main Theme)",
+      "description": "Music for drive scene",
+      "filename": "highway_dreams_main_theme.mp3",
+      "bpm": 120,
+      "mood": "energetic",
+      "preview_start": 10.0
+    },
+    {
+      "name": "sunset_cruise",
+      "display_name": "Sunset Cruise",
+      "description": "Music for drive scene",
+      "filename": "sunset_cruise.mp3",
+      "bpm": 100,
+      "mood": "relaxed",
+      "preview_start": 10.0
+    },
+    {
+      "name": "turbo_rush",
+      "display_name": "Turbo Rush",
+      "description": "Music for drive scene",
+      "filename": "turbo_rush.mp3",
+      "bpm": 120,
+      "mood": "energetic",
+      "preview_start": 10.0
+    }
+  ],
+  "default_track": "highway_dreams_main_theme"
 }

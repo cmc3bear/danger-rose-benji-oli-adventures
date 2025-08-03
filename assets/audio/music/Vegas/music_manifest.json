@@ -1,0 +1,33 @@
+{
+  "scene": "vegas",
+  "tracks": [
+    {
+      "name": "battle_on_the_strip",
+      "display_name": "Battle on the Strip",
+      "description": "Music for vegas scene",
+      "filename": "battle_on_the_strip.mp3",
+      "bpm": 120,
+      "mood": "energetic",
+      "preview_start": 10.0
+    },
+    {
+      "name": "las_vegas_lights_up",
+      "display_name": "Las Vegas Lights Up",
+      "description": "Music for vegas scene",
+      "filename": "las_vegas_lights_up.mp3",
+      "bpm": 120,
+      "mood": "energetic",
+      "preview_start": 10.0
+    },
+    {
+      "name": "neon_fury",
+      "display_name": "Neon Fury",
+      "description": "Music for vegas scene",
+      "filename": "neon_fury.mp3",
+      "bpm": 120,
+      "mood": "energetic",
+      "preview_start": 10.0
+    }
+  ],
+  "default_track": "battle_on_the_strip"
+}

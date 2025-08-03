@@ -1,0 +1,24 @@
+{
+  "scene": "hacker_typing",
+  "tracks": [
+    {
+      "name": "dungeon_runners",
+      "display_name": "Dungeon Runners",
+      "description": "Music for hacker_typing scene",
+      "filename": "dungeon_runners.mp3",
+      "bpm": 120,
+      "mood": "energetic",
+      "preview_start": 10.0
+    },
+    {
+      "name": "pixel_escape",
+      "display_name": "Pixel Escape",
+      "description": "Music for hacker_typing scene",
+      "filename": "pixel_escape.mp3",
+      "bpm": 120,
+      "mood": "energetic",
+      "preview_start": 10.0
+    }
+  ],
+  "default_track": "dungeon_runners"
+}

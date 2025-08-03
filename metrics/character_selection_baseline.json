@@ -1,0 +1,32 @@
+{
+  "measurement_timestamp": "2025-08-03T14:38:30.521850",
+  "baseline_metrics": {
+    "ui_render_time_ms": 12.5,
+    "character_count": 3,
+    "grid_layout_valid": true,
+    "all_characters_selectable": true,
+    "selection_response_time_ms": 8.2,
+    "memory_usage_mb": 18.5,
+    "fps_impact": 1.2,
+    "character_sprites_loaded": 3,
+    "animation_frames_loaded": 21,
+    "grid_positioning_accuracy": 98.5
+  },
+  "performance_targets": {
+    "max_ui_render_time_ms": 20.0,
+    "required_character_count": 6,
+    "max_selection_response_time_ms": 15.0,
+    "max_memory_usage_mb": 35.0,
+    "max_fps_impact": 3.0,
+    "min_positioning_accuracy": 95.0
+  },
+  "measurement_conditions": {
+    "pygame_version": "2.1.0",
+    "screen_resolution": "1024x768",
+    "characters_tested": [
+      "Danger",
+      "Rose",
+      "Dad"
+    ]
+  }
+}

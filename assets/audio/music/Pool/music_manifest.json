@@ -1,0 +1,33 @@
+{
+  "scene": "pool",
+  "tracks": [
+    {
+      "name": "splashdown_showdown",
+      "display_name": "Splashdown Showdown",
+      "description": "Music for pool scene",
+      "filename": "splashdown_showdown.mp3",
+      "bpm": 125,
+      "mood": "competitive",
+      "preview_start": 10.0
+    },
+    {
+      "name": "victory_splash_anthem",
+      "display_name": "Victory Splash Anthem",
+      "description": "Music for pool scene",
+      "filename": "victory_splash_anthem.mp3",
+      "bpm": 120,
+      "mood": "triumphant",
+      "preview_start": 10.0
+    },
+    {
+      "name": "water_balloon_warriors",
+      "display_name": "Water Balloon Warriors",
+      "description": "Music for pool scene",
+      "filename": "water_balloon_warriors.mp3",
+      "bpm": 120,
+      "mood": "energetic",
+      "preview_start": 10.0
+    }
+  ],
+  "default_track": "splashdown_showdown"
+}

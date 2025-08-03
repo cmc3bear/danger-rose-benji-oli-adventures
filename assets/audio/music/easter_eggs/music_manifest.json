@@ -1,0 +1,33 @@
+{
+  "scene": "easter_eggs",
+  "tracks": [
+    {
+      "name": "banana_beat_drop_-easteregg",
+      "display_name": "Banana Beat Drop -easteregg",
+      "description": "Music for easter_eggs scene",
+      "filename": "banana_beat_drop_-easteregg.mp3",
+      "bpm": 120,
+      "mood": "energetic",
+      "preview_start": 10.0
+    },
+    {
+      "name": "banana_beat_frenzy",
+      "display_name": "Banana Beat Frenzy",
+      "description": "Music for easter_eggs scene",
+      "filename": "banana_beat_frenzy.mp3",
+      "bpm": 140,
+      "mood": "intense",
+      "preview_start": 10.0
+    },
+    {
+      "name": "midnight_compiler",
+      "display_name": "Midnight Compiler",
+      "description": "Music for easter_eggs scene",
+      "filename": "midnight_compiler.mp3",
+      "bpm": 120,
+      "mood": "energetic",
+      "preview_start": 10.0
+    }
+  ],
+  "default_track": "banana_beat_drop_-easteregg"
+}

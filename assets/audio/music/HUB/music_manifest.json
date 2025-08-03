@@ -1,0 +1,33 @@
+{
+  "scene": "hub",
+  "tracks": [
+    {
+      "name": "code_breaker",
+      "display_name": "Code Breaker",
+      "description": "Music for hub scene",
+      "filename": "code_breaker.mp3",
+      "bpm": 120,
+      "mood": "energetic",
+      "preview_start": 10.0
+    },
+    {
+      "name": "debug_mode",
+      "display_name": "Debug Mode",
+      "description": "Music for hub scene",
+      "filename": "debug_mode.mp3",
+      "bpm": 120,
+      "mood": "energetic",
+      "preview_start": 10.0
+    },
+    {
+      "name": "git_push_glory",
+      "display_name": "Git Push Glory",
+      "description": "Music for hub scene",
+      "filename": "git_push_glory.mp3",
+      "bpm": 120,
+      "mood": "energetic",
+      "preview_start": 10.0
+    }
+  ],
+  "default_track": "code_breaker"
+}

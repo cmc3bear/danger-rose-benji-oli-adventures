@@ -118,11 +118,25 @@ class RaceMusicManager:
         try:
             print(f"Attempting to play music from: {music_path}")
             
+            # CRITICAL FIX: Ensure any existing music is stopped first
+            # This prevents crashes from conflicting music streams
+            import pygame
+            pygame.mixer.music.stop()
+            
+            # Wait a short moment for the stop to take effect
+            import time
+            time.sleep(0.1)
+            
+            # Check if file exists before attempting to play
+            if not music_path.exists():
+                print(f"ERROR: Music file does not exist: {music_path}")
+                return
+            
             # Set initial volume
             self.current_volume = self.base_volume
             self.sound_manager.set_music_volume(self.current_volume)
             
-            # Start playing the music
+            # Start playing the music with enhanced error handling
             self.sound_manager.play_music(str(music_path), loops=-1, fade_ms=fade_in_ms)
             print(f"Music started: {self.current_track.display_name}")
             
@@ -132,7 +146,11 @@ class RaceMusicManager:
             print(f"Started race music: {self.current_track.display_name}")
             
         except Exception as e:
-            print(f"Error starting race music: {e}")
+            print(f"CRITICAL ERROR starting race music: {e}")
+            print(f"Music file path: {music_path}")
+            print(f"Track details: {self.current_track}")
+            # Don't crash the game - just continue without music
+            self.is_playing = False
             
     def stop_race_music(self, fade_out_ms: int = 1000):
         """

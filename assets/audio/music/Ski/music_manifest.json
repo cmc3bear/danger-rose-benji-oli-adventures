@@ -1,0 +1,33 @@
+{
+  "scene": "ski",
+  "tracks": [
+    {
+      "name": "frostbite_frenzy",
+      "display_name": "Frostbite Frenzy",
+      "description": "Music for ski scene",
+      "filename": "frostbite_frenzy.mp3",
+      "bpm": 140,
+      "mood": "intense",
+      "preview_start": 10.0
+    },
+    {
+      "name": "pixel_peaks_victory",
+      "display_name": "Pixel Peaks Victory",
+      "description": "Music for ski scene",
+      "filename": "pixel_peaks_victory.mp3",
+      "bpm": 120,
+      "mood": "triumphant",
+      "preview_start": 10.0
+    },
+    {
+      "name": "snow_rush_showdown",
+      "display_name": "Snow Rush Showdown",
+      "description": "Music for ski scene",
+      "filename": "snow_rush_showdown.mp3",
+      "bpm": 125,
+      "mood": "competitive",
+      "preview_start": 10.0
+    }
+  ],
+  "default_track": "frostbite_frenzy"
+}

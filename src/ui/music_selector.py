@@ -51,10 +51,10 @@ class MusicSelector:
         # Default tracks if manifest not found
         default_tracks = [
             MusicTrack(
-                name="highway_dreams",
-                display_name="Highway Dreams",
+                name="highway_dreams_main_theme",
+                display_name="Highway Dreams (Main Theme)",
                 description="The main theme - cruising down endless roads",
-                filename="highway_dreams.mp3",
+                filename="highway_dreams_main_theme.mp3",
                 bpm=125,
                 mood="energetic",
                 preview_start=15.0

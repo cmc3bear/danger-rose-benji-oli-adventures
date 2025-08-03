@@ -57,6 +57,12 @@ class NPCCar:
     desired_speed: float = 0.8  # Preferred cruising speed
     target_lane: int = None  # Target lane for lane changes
     lane_change_progress: float = 0.0  # Progress of current lane change (0-1)
+    # Crash behavior properties
+    is_crashing: bool = False  # Currently in a crash spin
+    crash_rotation: float = 0.0  # Current crash rotation progress
+    crash_target_rotation: float = 0.0  # Total rotation to complete
+    crash_initial_speed: float = 0.0  # Speed at time of crash
+    crash_target_x: float = 0.0  # Target X position (off road)
 
 
 @dataclass
@@ -846,14 +852,17 @@ class DriveGame:
                 oncoming_relative_speed = base_oncoming_speed + self.player_speed  # Combined approach speed
                 car.y -= oncoming_relative_speed * dt * 100  # Approach from ahead (toward player)
             
-            # Update AI behavior
-            self._update_npc_ai(car, dt)
+            # Update AI behavior or crash behavior
+            if car.is_crashing:
+                self._update_crash_behavior(car, dt)
+            else:
+                self._update_npc_ai(car, dt)
+                # Check for traffic-to-traffic collision avoidance
+                self._avoid_traffic_collisions(car, dt)
             
-            # Check for traffic-to-traffic collision avoidance
-            self._avoid_traffic_collisions(car, dt)
-            
-            # Enforce road boundaries for traffic cars
-            self._enforce_traffic_boundaries(car)
+            # Enforce road boundaries for traffic cars (unless crashing)
+            if not car.is_crashing:
+                self._enforce_traffic_boundaries(car)
             
             # Calculate rotation based on lateral movement and road curve
             if car.prev_x is not None:
@@ -895,8 +904,14 @@ class DriveGame:
             del self.npc_cars[i]
             
     def _spawn_npc_car(self):
-        """Spawn a new NPC car in proper 4-lane traffic."""
-        # 4-lane system (corrected): 
+        """Spawn a new NPC car in proper 4-lane traffic.
+        
+        Spawn Logic:
+        - Slower cars (< 100% player speed) spawn ahead - player catches up
+        - Faster cars (> 100% player speed) spawn behind - they catch up to player
+        - For oncoming traffic: faster cars spawn farther for more reaction time
+        """
+        # 4-lane system: 
         # Lane 1: Left lane, oncoming traffic (opposite direction)
         # Lane 2: Right lane, oncoming traffic (opposite direction)
         # Lane 3: Left lane, player direction (same as player)
@@ -914,74 +929,45 @@ class DriveGame:
             if random.random() < 0.6 and lane == player_lane:
                 lane = 7 - lane  # Switch to other lane (3↔4)
                 
-            # Spawn ahead or behind player
-            spawn_ahead = random.choice([True, False])
-            if spawn_ahead:
-                y_position = random.uniform(150, 400)  # Ahead of player
-                # Create more diverse traffic patterns
-                traffic_behavior = random.random()
-                if traffic_behavior < 0.15:  # 15% - Very slow drivers (elderly, cautious)
-                    npc_speed = random.uniform(0.3, 0.5)
-                elif traffic_behavior < 0.35:  # 20% - Slow/cautious drivers
-                    npc_speed = random.uniform(0.5, 0.7)
-                elif traffic_behavior < 0.70:  # 35% - Normal speed drivers
-                    npc_speed = random.uniform(0.7, 0.9)
-                elif traffic_behavior < 0.90:  # 20% - Fast drivers
-                    npc_speed = random.uniform(0.9, 1.1)
-                else:  # 10% - Speed demons/aggressive drivers
-                    npc_speed = random.uniform(1.1, 1.4)
-                    
-                # Assign personality based on speed
-                if npc_speed < 0.6:
-                    personality = DriverPersonality.CAUTIOUS
-                elif npc_speed > 1.0:
-                    personality = DriverPersonality.AGGRESSIVE
-                else:
-                    personality = DriverPersonality.NORMAL
+            # First determine speed, then spawn position based on speed
+            # All traffic speeds are 80-120% of player speed
+            npc_speed = random.uniform(0.8, 1.2)
+            
+            # Slower cars spawn ahead (top), faster cars spawn behind (bottom)
+            if npc_speed < 1.0:  # Slower than player
+                # Spawn ahead - player will catch up to them
+                y_position = random.uniform(150, 350)  # Ahead of player
+            else:  # Faster than player (>= 100%)
+                # Spawn behind - they will catch up to player
+                y_position = random.uniform(-250, -50)  # Behind player
+                
+            # Assign personality based on speed
+            if npc_speed < 0.9:
+                personality = DriverPersonality.CAUTIOUS
+            elif npc_speed > 1.1:
+                personality = DriverPersonality.AGGRESSIVE
             else:
-                y_position = random.uniform(-150, -50)  # Behind player
-                # Cars spawning behind are more likely to be faster (catching up)
-                traffic_behavior = random.random()
-                if traffic_behavior < 0.10:  # 10% - Slow drivers even from behind
-                    npc_speed = random.uniform(0.5, 0.7)
-                elif traffic_behavior < 0.30:  # 20% - Moderate speed
-                    npc_speed = random.uniform(0.8, 1.0)
-                elif traffic_behavior < 0.60:  # 30% - Matching player speed
-                    npc_speed = random.uniform(1.0, 1.2)
-                elif traffic_behavior < 0.85:  # 25% - Fast drivers
-                    npc_speed = random.uniform(1.2, 1.5)
-                else:  # 15% - Very fast/aggressive drivers
-                    npc_speed = random.uniform(1.5, 1.8)
-                    
-                # Assign personality based on speed
-                if npc_speed < 0.8:
-                    personality = DriverPersonality.CAUTIOUS
-                elif npc_speed > 1.3:
-                    personality = DriverPersonality.AGGRESSIVE
-                else:
-                    personality = DriverPersonality.NORMAL
+                personality = DriverPersonality.NORMAL
         else:
             # Oncoming traffic (lanes 1-2)
             direction = -1
             lane = random.choice([1, 2])
             
-            # Oncoming cars start far ahead and move toward player
-            y_position = random.uniform(300, 600)  # Start far ahead
-            # Oncoming traffic also has varied speeds
-            traffic_behavior = random.random()
-            if traffic_behavior < 0.20:  # 20% - Slow oncoming traffic
-                npc_speed = random.uniform(0.4, 0.6)
-            elif traffic_behavior < 0.60:  # 40% - Normal oncoming speed
-                npc_speed = random.uniform(0.6, 0.9)
-            elif traffic_behavior < 0.85:  # 25% - Fast oncoming traffic
-                npc_speed = random.uniform(0.9, 1.2)
-            else:  # 15% - Very fast oncoming (dangerous!)
-                npc_speed = random.uniform(1.2, 1.5)
+            # First determine speed for oncoming traffic
+            npc_speed = random.uniform(0.8, 1.2)
+            
+            # For oncoming traffic, faster cars need more distance
+            if npc_speed < 1.0:  # Slower oncoming traffic
+                # Less relative speed, can spawn closer
+                y_position = random.uniform(200, 350)  
+            else:  # Faster oncoming traffic (>= 100%)
+                # Higher relative speed, need more reaction time
+                y_position = random.uniform(350, 550)  # Spawn farther ahead
                 
             # Assign personality for oncoming traffic
-            if npc_speed < 0.6:
+            if npc_speed < 0.9:
                 personality = DriverPersonality.CAUTIOUS
-            elif npc_speed > 1.0:
+            elif npc_speed > 1.1:
                 personality = DriverPersonality.AGGRESSIVE
             else:
                 personality = DriverPersonality.NORMAL
@@ -1052,8 +1038,11 @@ class DriveGame:
                 (80, 40, 40),     # Dark red
             ]
             vehicle_color = random.choice(truck_colors)
-            # Trucks move slightly slower
-            npc_speed *= 0.85
+            # Trucks are 60-80% of player speed
+            npc_speed = random.uniform(0.6, 0.8)
+            # Since trucks are always slower, adjust spawn position if needed
+            if direction == 1 and y_position < 0:  # Same direction but spawned behind
+                y_position = random.uniform(200, 400)  # Move to ahead position
         else:
             vehicle_type = "car"
             vehicle_width = 32
@@ -1083,14 +1072,6 @@ class DriveGame:
                 ]
             vehicle_color = random.choice(car_colors)
         
-        # Adjust speed for trucks (typically slower, especially uphill)
-        if vehicle_type == "truck":
-            # Trucks are generally 20-40% slower than their initial speed
-            npc_speed *= random.uniform(0.6, 0.8)
-            # Very rarely you get a speeding truck driver
-            if random.random() < 0.05:  # 5% chance
-                npc_speed *= random.uniform(1.2, 1.4)  # Speed demon trucker!
-        
         # Assign personality for trucks
         if vehicle_type == "truck":
             personality = DriverPersonality.TRUCK
@@ -1118,6 +1099,31 @@ class DriveGame:
         
         self.npc_cars.append(npc_car)
         
+    def _update_crash_behavior(self, car: NPCCar, dt: float):
+        """Update car during crash - 720 degree spin and move toward grass."""
+        # Update rotation (720 degrees over ~2 seconds)
+        rotation_speed = 360.0  # degrees per second
+        car.crash_rotation += rotation_speed * dt
+        car.rotation += rotation_speed * dt
+        
+        # Move toward grass target
+        x_speed = 0.3  # Move to side at 30% speed
+        if car.crash_target_x < car.x:
+            car.x -= x_speed * dt
+        else:
+            car.x += x_speed * dt
+            
+        # Gradually slow down
+        deceleration = 0.5  # Decelerate at 50% per second
+        car.speed = max(0, car.speed - deceleration * dt)
+        
+        # Check if crash animation is complete
+        if car.crash_rotation >= car.crash_target_rotation and car.speed <= 0.1:
+            # Car has spun 720 degrees and nearly stopped
+            car.speed = 0
+            car.ai_state = "stopped"
+            # Keep car off road permanently
+    
     def _update_npc_ai(self, car: NPCCar, dt: float):
         """Update NPC car AI behavior with intelligent passing logic."""
         # Update lane change timer
@@ -1163,9 +1169,10 @@ class DriveGame:
             elif car.ai_state == "changing_lanes" or car.ai_state == "emergency_change":
                 # Calculate target x position for the target lane
                 if car.target_lane is not None:
-                    road_center_normalized = 0.5
-                    road_width_normalized = 0.6
-                    direction_width = road_width_normalized / 2
+                    # Use actual road boundaries instead of hardcoded values
+                    road_left, road_right, road_width = self._get_road_boundaries()
+                    road_center_normalized = road_left + road_width / 2
+                    direction_width = road_width / 2
                     lane_width = direction_width / 2
                     
                     # Calculate target position
@@ -1204,11 +1211,10 @@ class DriveGame:
             
     def _is_lane_change_safe(self, car: NPCCar, target_lane: int) -> bool:
         """Check if lane change is safe for NPC car within their directional lanes."""
-        # Calculate target position using proper directional positioning
-        road_center_normalized = 0.5
-        road_width_normalized = 0.6
-        left_road_edge = road_center_normalized - road_width_normalized / 2
-        direction_width = road_width_normalized / 2
+        # Calculate target position using actual road boundaries
+        road_left, road_right, road_width = self._get_road_boundaries()
+        road_center_normalized = road_left + road_width / 2
+        direction_width = road_width / 2
         lane_width = direction_width / 2
         
         if car.direction == 1:  # Same direction (right half)
@@ -1220,17 +1226,17 @@ class DriveGame:
             if target_lane not in [1, 2]:  # Only allow lanes 1,2 for oncoming
                 return False
             lane_offset = target_lane - 1  # Convert 1,2 to 0,1
-            target_x = left_road_edge + lane_width * (lane_offset + 0.5)
+            target_x = road_left + lane_width * (lane_offset + 0.5)
         
         # Ensure target position is within the correct directional boundaries
         if car.direction == 1:
-            # Same direction - must stay in left half
-            direction_left = left_road_edge + 0.02
-            direction_right = road_center_normalized - 0.02
-        else:
-            # Oncoming direction - must stay in right half
+            # Same direction - right half of road
             direction_left = road_center_normalized + 0.02
-            direction_right = left_road_edge + road_width_normalized - 0.02
+            direction_right = road_right - 0.02
+        else:
+            # Oncoming direction - left half of road
+            direction_left = road_left + 0.02
+            direction_right = road_center_normalized - 0.02
             
         if target_x < direction_left or target_x > direction_right:
             return False  # Target would be outside directional lanes
@@ -1315,15 +1321,17 @@ class DriveGame:
         lane_width = direction_width / 2  # 2 lanes per direction
         road_center_normalized = road_left_normalized + road_width_normalized / 2
         
-        # Define directional boundaries (without curve adjustment - keep cars in their lanes)
-        car_width_normalized = 0.02  # Approximate car width in normalized coordinates
+        # Define directional boundaries - STRICT enforcement to prevent touching grass
+        # Add margin to ensure cars never touch the green grass
+        road_margin = 0.05  # 5% margin from road edges
+        car_half_width = 0.02  # Half of car width in normalized coordinates
         
         if car.direction == 1:  # Same direction (right half)
-            direction_left = road_center_normalized + car_width_normalized
-            direction_right = road_right_normalized - car_width_normalized
+            direction_left = road_center_normalized + car_half_width
+            direction_right = road_right_normalized - road_margin - car_half_width
         else:  # Oncoming direction (left half)
-            direction_left = road_left_normalized + car_width_normalized
-            direction_right = road_center_normalized - car_width_normalized
+            direction_left = road_left_normalized + road_margin + car_half_width
+            direction_right = road_center_normalized - car_half_width
         
         # Enforce directional boundaries - push cars back into their side
         # Note: We don't apply curve offset here because cars should stay in lanes
@@ -1429,11 +1437,10 @@ class DriveGame:
                                 
                             if target_lane and self._is_lane_change_safe(car, target_lane):
                                 car.ai_state = "changing_lanes"
-                                # Store target for lane change
-                                road_center_normalized = 0.5
-                                road_width_normalized = 0.6
-                                left_road_edge = road_center_normalized - road_width_normalized / 2
-                                direction_width = road_width_normalized / 2
+                                # Store target for lane change using actual road boundaries
+                                road_left, road_right, road_width = self._get_road_boundaries()
+                                road_center_normalized = road_left + road_width / 2
+                                direction_width = road_width / 2
                                 lane_width = direction_width / 2
                                 
                                 if car.direction == 1:  # Same direction (right half)
@@ -1441,7 +1448,7 @@ class DriveGame:
                                     car.target_x = road_center_normalized + lane_width * (lane_offset + 0.5)
                                 else:  # Oncoming (left half)
                                     lane_offset = target_lane - 1
-                                    car.target_x = left_road_edge + lane_width * (lane_offset + 0.5)
+                                    car.target_x = road_left + lane_width * (lane_offset + 0.5)
                                 
                                 car.lane = target_lane
                                 car.lane_change_timer = 0.0
@@ -1530,11 +1537,23 @@ class DriveGame:
             except:
                 pass  # Sound files might not exist yet
                 
-        # Push car away slightly to prevent stuck collisions
-        if car.direction == 1:  # Same direction traffic
-            car.y += 50  # Push car ahead
-        else:  # Oncoming traffic
-            car.y -= 50  # Push car back
+        # Start collision behavior: 720 degree spin and attempt to go onto grass
+        car.is_crashing = True
+        car.crash_rotation = 0.0  # Start rotation counter
+        car.crash_target_rotation = 720.0  # 720 degrees total
+        car.crash_initial_speed = car.speed
+        car.ai_state = "crashing"
+        
+        # Set target to go off road (onto grass)
+        if random.random() < 0.5:
+            # Go left onto grass
+            car.crash_target_x = -0.2  # Well off the road
+        else:
+            # Go right onto grass  
+            car.crash_target_x = 1.2  # Well off the road
+            
+        # Slow car to a stop
+        car.speed = 0.0
     
     def _update_hazards(self, dt: float):
         """Update static hazard system with construction zones."""
