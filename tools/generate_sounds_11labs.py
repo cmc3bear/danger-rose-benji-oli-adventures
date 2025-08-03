@@ -79,7 +79,7 @@ class ElevenLabsSoundGenerator:
         print(f"* Created directory structure under {self.output_base}")
         
     def get_priority_sounds(self) -> Dict[str, List[Dict]]:
-        """Get priority sound definitions for Hub and Drive areas.
+        """Get priority sound definitions for all game areas.
         
         Returns:
             Dictionary of sound categories and their definitions
@@ -146,6 +146,32 @@ class ElevenLabsSoundGenerator:
                 {"name": "score_increment", "text": "[Retro score counting up sound]", "voice": "narrator"},
                 {"name": "achievement_unlock", "text": "[8-bit achievement jingle]", "voice": "narrator"},
                 {"name": "game_over", "text": "[Classic game over sound]", "voice": "narrator"},
+            ],
+            "pool_shots": [
+                {"name": "pool_shot", "text": "[8-bit shooting sound effect, like classic arcade target practice]", "voice": "narrator"},
+                {"name": "target_hit", "text": "[Retro target hit sound, satisfying ding like classic arcade games]", "voice": "narrator"},
+                {"name": "bullseye", "text": "[Triumphant 8-bit bullseye sound with rising pitch celebration]", "voice": "narrator"},
+                {"name": "target_miss", "text": "[Gentle whoosh sound for missed shot, not harsh or disappointing]", "voice": "narrator"},
+                {"name": "powerup_collect", "text": "[Classic arcade power-up collection sound, cheerful and rewarding]", "voice": "narrator"},
+                {"name": "perfect_round", "text": "[Victory fanfare for perfect round, 8-bit celebration jingle]", "voice": "narrator"},
+            ],
+            "ski_movement": [
+                {"name": "ski_swoosh", "text": "[Retro skiing swoosh sound, like classic winter sports games]", "voice": "narrator"},
+                {"name": "ski_turn", "text": "[Sharp 8-bit turn sound with snow spray effect]", "voice": "narrator"},
+                {"name": "snow_spray", "text": "[Light snow spraying sound effect, retro winter game style]", "voice": "narrator"},
+                {"name": "tree_hit", "text": "[Gentle bump sound for hitting tree, not scary - like cartoon bonk]", "voice": "narrator"},
+                {"name": "checkpoint", "text": "[Classic checkpoint passing chime, encouraging and positive]", "voice": "narrator"},
+                {"name": "speed_boost", "text": "[Exciting speed boost sound with rising pitch, arcade style]", "voice": "narrator"},
+                {"name": "finish_line", "text": "[Triumphant finish line crossing fanfare, 8-bit victory sound]", "voice": "narrator"},
+            ],
+            "vegas_casino": [
+                {"name": "coin_collect", "text": "[Classic coin collection sound, like Mario but with casino flair]", "voice": "narrator"},
+                {"name": "slot_machine", "text": "[Retro slot machine spinning sound, 8-bit mechanical whirring]", "voice": "narrator"},
+                {"name": "dice_roll", "text": "[Classic dice rolling sound effect, arcade game style]", "voice": "narrator"},
+                {"name": "card_flip", "text": "[Simple card flipping sound, light and crisp retro effect]", "voice": "narrator"},
+                {"name": "jackpot", "text": "[Big celebration jackpot sound, 8-bit fanfare with coins falling]", "voice": "narrator"},
+                {"name": "boss_appear", "text": "[Dramatic but kid-friendly boss appearance sound, exciting not scary]", "voice": "narrator"},
+                {"name": "special_attack", "text": "[Cool special ability sound with whoosh and sparkle effects]", "voice": "narrator"},
             ]
         }
         
@@ -242,7 +268,7 @@ class ElevenLabsSoundGenerator:
             return False
             
     def generate_priority_sounds(self, limit: Optional[int] = None):
-        """Generate all priority sounds for Hub and Drive areas.
+        """Generate all priority sounds for all game areas (Hub, Drive, Pool, Ski, Vegas).
         
         Args:
             limit: Optional limit on number of sounds to generate
@@ -250,7 +276,7 @@ class ElevenLabsSoundGenerator:
         sounds = self.get_priority_sounds()
         total_sounds = sum(len(category) for category in sounds.values())
         
-        print(f"\n>>> Generating {total_sounds} priority sounds for Hub and Drive areas...")
+        print(f"\n>>> Generating {total_sounds} sounds for all game areas...")
         
         generated = 0
         failed = 0
@@ -269,6 +295,12 @@ class ElevenLabsSoundGenerator:
                 subdir = self.output_base / "drive" / "collision"
             elif category.startswith("drive_"):
                 subdir = self.output_base / "drive" / "traffic"
+            elif category.startswith("pool_"):
+                subdir = self.output_base / "pool" / "impact"
+            elif category.startswith("ski_"):
+                subdir = self.output_base / "ski" / "movement"
+            elif category.startswith("vegas_"):
+                subdir = self.output_base / "vegas" / "casino"
             else:
                 subdir = self.output_base / "ui" / "feedback"
                 
@@ -394,13 +426,13 @@ def main():
     # Setup directories
     generator.setup_directories()
     
-    # Generate priority sounds (Hub and Drive)
-    print("\n>>> Focusing on priority areas: Hub World and Drive Game")
+    # Generate sounds for all game areas
+    print("\n>>> Generating sounds for all game areas: Hub, Drive, Pool, Ski, Vegas")
     
     # Optional: Set a limit for testing
     # generator.generate_priority_sounds(limit=5)
     
-    # Generate all priority sounds
+    # Generate all game sounds
     generator.generate_priority_sounds()
     
     # Validate generated sounds
@@ -417,9 +449,9 @@ def main():
         
     print("\n=== Next steps ===")
     print("1. Test sounds in the game")
-    print("2. Adjust generation parameters if needed")
-    print("3. Generate remaining game sounds")
-    print("4. Integrate with enhanced sound manager")
+    print("2. Apply retro processing for 8-bit aesthetic")
+    print("3. Integrate with enhanced sound manager")
+    print("4. Adjust generation parameters if needed")
     
     return 0
 

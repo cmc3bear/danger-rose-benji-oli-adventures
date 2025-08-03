@@ -222,6 +222,17 @@ class SkiGame:
         # Sound manager from scene manager
         self.sound_manager = scene_manager.sound_manager
 
+        # Scene-specific sounds
+        self.ski_sounds = {
+            'swoosh': get_sfx_path("ski/movement/ski_swoosh.mp3"),
+            'turn': get_sfx_path("ski/movement/ski_turn.mp3"),
+            'snow_spray': get_sfx_path("ski/movement/snow_spray.mp3"),
+            'tree_hit': get_sfx_path("ski/movement/tree_hit.mp3"),
+            'checkpoint': get_sfx_path("ski/movement/checkpoint.mp3"),
+            'speed_boost': get_sfx_path("ski/movement/speed_boost.mp3"),
+            'finish_line': get_sfx_path("ski/movement/finish_line.mp3")
+        }
+
         # Create simple snow texture for background
         self.create_snow_texture()
 
@@ -346,7 +357,7 @@ class SkiGame:
 
                     # Play crash sound (if available)
                     try:
-                        self.sound_manager.play_sfx(get_sfx_path("collision.ogg"))
+                        self.sound_manager.play_sfx(self.ski_sounds['tree_hit'])
                     except Exception:
                         pass  # Sound file not available yet
 
@@ -377,7 +388,7 @@ class SkiGame:
             # Play collection sound
             try:
                 self.sound_manager.play_sfx(
-                    get_sfx_path("collect_item.ogg"), volume=0.5
+                    self.ski_sounds['speed_boost'], volume=0.5
                 )
             except Exception:
                 pass  # Sound file not available yet

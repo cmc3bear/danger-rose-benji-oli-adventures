@@ -63,12 +63,14 @@ class HubWorld:
             pygame.Rect(SCREEN_WIDTH - 50, 0, 50, SCREEN_HEIGHT),  # Right wall
         ]
 
-        # Create door objects
+        # Create door objects with proper spacing to prevent overlap
+        # Each door is 100px wide with 20px interaction padding = 140px total
+        # Space them 180px apart to prevent interaction zone overlap
         self.doors = [
-            Door(150, 100, 100, 150, "ski", "Ski Game", (100, 150, 255)),
+            Door(120, 100, 100, 150, "ski", "Ski Game", (100, 150, 255)),
             Door(300, 100, 100, 150, "pool", "Pool Game", (50, 200, 100)),
-            Door(450, 100, 100, 150, "vegas", "Vegas Game", (200, 50, 200)),
-            Door(600, 100, 100, 150, "drive", "Highway Drive", (128, 0, 128)),  # Purple door
+            Door(480, 100, 100, 150, "vegas", "Vegas Game", (200, 50, 200)),
+            Door(660, 100, 100, 150, "drive", "Highway Drive", (128, 0, 128)),  # Purple door
         ]
 
         # Track which door is highlighted

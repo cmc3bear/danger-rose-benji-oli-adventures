@@ -350,6 +350,16 @@ class PoolGame:
         # Pool visual elements
         self.create_pool_visual()
 
+        # Scene-specific sounds
+        self.pool_sounds = {
+            'shot': get_sfx_path("pool/impact/pool_shot.mp3"),
+            'hit': get_sfx_path("pool/impact/target_hit.mp3"),
+            'bullseye': get_sfx_path("pool/impact/bullseye.mp3"),
+            'miss': get_sfx_path("pool/impact/target_miss.mp3"),
+            'powerup': get_sfx_path("pool/impact/powerup_collect.mp3"),
+            'perfect': get_sfx_path("pool/impact/perfect_round.mp3")
+        }
+
     def create_pool_visual(self):
         """Create visual elements for the pool scene."""
         # Pool area dimensions
@@ -517,6 +527,9 @@ class PoolGame:
             )
             self.projectiles.append(balloon)
 
+        # Play shot sound
+        self.scene_manager.sound_manager.play_sfx(self.pool_sounds['shot'])
+
         # Update ammo and cooldown
         self.current_ammo -= 1
         self.can_shoot = False
@@ -560,7 +573,7 @@ class PoolGame:
 
         # Play collection sound (if sound manager available)
         if hasattr(self.scene_manager, "sound_manager"):
-            self.scene_manager.sound_manager.play_sfx(get_sfx_path("collect_item.ogg"))
+            self.scene_manager.sound_manager.play_sfx(self.pool_sounds['powerup'])
 
     def update(self, dt: float):
         if self.state == self.STATE_PLAYING:
@@ -633,9 +646,14 @@ class PoolGame:
 
                             # Play hit sound
                             if hasattr(self.scene_manager, "sound_manager"):
-                                self.scene_manager.sound_manager.play_sfx(
-                                    get_sfx_path("splash.wav")
-                                )
+                                # Check if it's a bullseye (center hit)
+                                hit_distance = math.sqrt((balloon.x - target.x)**2 + (balloon.y - target.y)**2)
+                                is_bullseye = hit_distance < 20  # Within 20 pixels of center
+                                
+                                if is_bullseye:
+                                    self.scene_manager.sound_manager.play_sfx(self.pool_sounds['bullseye'])
+                                else:
+                                    self.scene_manager.sound_manager.play_sfx(self.pool_sounds['hit'])
                             break
 
             # Update targets

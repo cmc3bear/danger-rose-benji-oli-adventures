@@ -252,6 +252,17 @@ class VegasGame:
         # Sound manager
         self.sound_manager = SoundManager()
 
+        # Scene-specific sounds
+        self.vegas_sounds = {
+            'coin': "assets/audio/sfx/vegas/casino/coin_collect.mp3",
+            'slot': "assets/audio/sfx/vegas/casino/slot_machine.mp3",
+            'dice': "assets/audio/sfx/vegas/casino/dice_roll.mp3",
+            'card': "assets/audio/sfx/vegas/casino/card_flip.mp3",
+            'jackpot': "assets/audio/sfx/vegas/casino/jackpot.mp3",
+            'boss_appear': "assets/audio/sfx/vegas/casino/boss_appear.mp3",
+            'special': "assets/audio/sfx/vegas/casino/special_attack.mp3"
+        }
+
         # Start Vegas theme music
         vegas_music = "assets/audio/music/vegas_theme.ogg"
         self.sound_manager.play_music(vegas_music, fade_ms=1000)
@@ -375,7 +386,7 @@ class VegasGame:
                 self.boss.take_damage(VEGAS_BOSS_DAMAGE)  # Small damage per hit
                 self.player.attack_cooldown = PLAYER_ATTACK_COOLDOWN
                 # Play attack sound
-                self.sound_manager.play_sfx("assets/audio/sfx/attack.ogg")
+                self.sound_manager.play_sfx(self.vegas_sounds['special'])
 
     def start_boss_fight(self):
         """Initialize the boss fight."""
@@ -383,6 +394,9 @@ class VegasGame:
 
         # Create boss
         self.boss = VegasBoss(self.boss_arena_x, VEGAS_BOSS_START_Y)
+        
+        # Play boss appear sound
+        self.sound_manager.play_sfx(self.vegas_sounds['boss_appear'])
 
         # Lock camera on boss arena
         self.camera.x = self.boss_arena_x - self.screen_width // 2
