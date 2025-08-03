@@ -1,5 +1,6 @@
 import logging
 import sys
+from pathlib import Path
 
 import pygame
 
@@ -13,6 +14,7 @@ from src.config.constants import (
 from src.config.env_config import is_debug
 from src.config.game_config import get_config
 from src.scene_manager import SceneManager
+from src.systems.game_state_logger import initialize_global_logger, shutdown_global_logger
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,6 +27,11 @@ def game():
 
     # Get configuration
     config = get_config()
+    
+    # Initialize game state logger
+    project_root = str(Path(__file__).parent.parent)
+    game_logger = initialize_global_logger(project_root, enable_live_overlay=True)
+    logger.info("Game state logging system initialized")
 
     # Game screen setup
     if config.fullscreen:
@@ -37,6 +44,14 @@ def game():
 
     # Initialize scene manager
     scene_manager = SceneManager(SCREEN_WIDTH, SCREEN_HEIGHT)
+    
+    # Load test procedures for Issue #34 if in debug mode
+    if is_debug():
+        try:
+            procedures = scene_manager.load_test_procedures_for_issue(34)
+            logger.info(f"Loaded {len(procedures)} test procedures for Issue #34")
+        except Exception as e:
+            logger.warning(f"Could not load test procedures: {e}")
 
     # Main game loop
     while True:
@@ -45,6 +60,9 @@ def game():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                # Shutdown logging system gracefully
+                shutdown_global_logger()
+                logger.info("Game state logging system shutdown")
                 pygame.quit()
                 sys.exit()
 

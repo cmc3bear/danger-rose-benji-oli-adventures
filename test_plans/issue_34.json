@@ -1,0 +1,345 @@
+{
+  "test_plan_metadata": {
+    "issue_number": 34,
+    "feature_name": "Game State Logging and Live Testing System",
+    "description": "Comprehensive logging system with OQE compliance and live testing overlay",
+    "created_date": "2025-08-03",
+    "oqe_compliant": true
+  },
+  "issue_details": {
+    "issue_number": 34,
+    "feature_name": "Game State Logging and Live Testing System",
+    "description": "Implement comprehensive logging with minimal performance impact and live testing overlay",
+    "acceptance_criteria": [
+      "Game events are logged with structured JSON format",
+      "Performance impact is less than 2% FPS reduction",
+      "Live testing overlay displays test procedures",
+      "Auto-detection works for common test scenarios",
+      "OQE evidence is collected for all tests"
+    ]
+  },
+  "oqe_requirements": {
+    "evidence_standards": {
+      "preconditions": {
+        "required": true,
+        "description": "Document system state before logging activation"
+      },
+      "measurements": {
+        "required": true,
+        "mandatory_metrics": [
+          "fps_before_logging",
+          "fps_with_logging", 
+          "memory_usage_before_mb",
+          "memory_usage_after_mb",
+          "log_file_size_kb",
+          "events_logged_count"
+        ]
+      },
+      "postconditions": {
+        "required": true,
+        "description": "Verify logging functionality and performance impact"
+      }
+    },
+    "quality_thresholds": {
+      "max_fps_impact_percent": 2.0,
+      "max_memory_increase_mb": 50,
+      "min_log_completeness_percent": 95,
+      "max_overlay_render_time_ms": 5.0
+    }
+  },
+  "procedures": [
+    {
+      "id": "logging_system_initialization",
+      "title": "Game State Logger Initialization",
+      "description": "Verify the game state logger initializes correctly and begins logging",
+      "category": "integration",
+      "priority": "high",
+      "auto_detect": true,
+      "steps": [
+        {
+          "step": 1,
+          "action": "Start game with logging enabled",
+          "expected_result": "Logger instance created successfully",
+          "auto_detect_pattern": "session_start",
+          "measurements": ["memory_before_mb", "initialization_time_ms"]
+        },
+        {
+          "step": 2,
+          "action": "Navigate through title screen",
+          "expected_result": "Scene transition events logged",
+          "auto_detect_pattern": "scene_transition",
+          "measurements": ["events_logged", "log_file_created"]
+        },
+        {
+          "step": 3,
+          "action": "Perform basic player actions",
+          "expected_result": "Player action events logged with timestamps",
+          "auto_detect_pattern": "player_action",
+          "measurements": ["response_time_ms", "event_completeness"]
+        }
+      ],
+      "oqe_requirements": {
+        "required_measurements": {
+          "initialization_time_ms": {"max": 100, "unit": "milliseconds"},
+          "memory_increase_mb": {"max": 10, "unit": "megabytes"},
+          "events_per_second": {"min": 1, "unit": "count"}
+        }
+      }
+    },
+    {
+      "id": "performance_impact_validation",
+      "title": "Performance Impact Validation",
+      "description": "Verify logging system has less than 2% FPS impact",
+      "category": "performance",
+      "priority": "high", 
+      "auto_detect": true,
+      "steps": [
+        {
+          "step": 1,
+          "action": "Measure baseline FPS without logging for 30 seconds",
+          "expected_result": "FPS measurements collected",
+          "measurements": ["baseline_fps", "fps_stability", "frame_drops"]
+        },
+        {
+          "step": 2,
+          "action": "Enable logging and measure FPS for 30 seconds",
+          "expected_result": "FPS measurements with logging collected",
+          "auto_detect_pattern": "fps_measurement",
+          "measurements": ["logging_fps", "fps_stability", "frame_drops"]
+        },
+        {
+          "step": 3,
+          "action": "Calculate FPS impact percentage",
+          "expected_result": "FPS impact is less than 2%",
+          "measurements": ["fps_impact_percent", "meets_requirement"]
+        }
+      ],
+      "oqe_requirements": {
+        "required_measurements": {
+          "fps_impact_percent": {"max": 2.0, "unit": "percent"},
+          "baseline_fps": {"min": 30, "unit": "frames_per_second"},
+          "sample_count": {"min": 100, "unit": "count"}
+        }
+      }
+    },
+    {
+      "id": "live_testing_overlay_functionality",
+      "title": "Live Testing Overlay Display",
+      "description": "Verify live testing overlay displays and functions correctly",
+      "category": "ui",
+      "priority": "high",
+      "auto_detect": false,
+      "steps": [
+        {
+          "step": 1,
+          "action": "Load test procedures for Issue #34",
+          "expected_result": "Test procedures appear in overlay",
+          "measurements": ["procedures_loaded", "overlay_visible"]
+        },
+        {
+          "step": 2,
+          "action": "Press F12 to toggle overlay visibility",
+          "expected_result": "Overlay toggles on/off",
+          "measurements": ["toggle_response_time_ms", "ui_responsive"]
+        },
+        {
+          "step": 3,
+          "action": "Press F9 to advance test step",
+          "expected_result": "Current test step advances",
+          "measurements": ["step_advancement", "status_updated"]
+        },
+        {
+          "step": 4,
+          "action": "Complete all test steps",
+          "expected_result": "Test marked as passed",
+          "measurements": ["test_completion_time", "final_status"]
+        }
+      ],
+      "oqe_requirements": {
+        "required_measurements": {
+          "overlay_render_time_ms": {"max": 5.0, "unit": "milliseconds"},
+          "toggle_response_time_ms": {"max": 50, "unit": "milliseconds"},
+          "procedures_displayed": {"min": 1, "unit": "count"}
+        }
+      }
+    },
+    {
+      "id": "comprehensive_event_logging",
+      "title": "Comprehensive Event Logging",
+      "description": "Verify all game events are logged with proper structure",
+      "category": "functional",
+      "priority": "high",
+      "auto_detect": true,
+      "steps": [
+        {
+          "step": 1,
+          "action": "Perform scene transitions (Title -> Hub -> Drive)",
+          "expected_result": "Scene transition events logged",
+          "auto_detect_pattern": "scene_transition",
+          "measurements": ["scene_events_logged", "transition_time_ms"]
+        },
+        {
+          "step": 2,
+          "action": "Trigger audio events (music start/stop)",
+          "expected_result": "Audio events logged with track info",
+          "auto_detect_pattern": "audio_event",
+          "measurements": ["audio_events_logged", "track_metadata"]
+        },
+        {
+          "step": 3,
+          "action": "Generate player input events",
+          "expected_result": "Input events logged with response times",
+          "auto_detect_pattern": "player_action",
+          "measurements": ["input_events_logged", "response_times_ms"]
+        },
+        {
+          "step": 4,
+          "action": "Trigger system events and errors",
+          "expected_result": "System events logged with context",
+          "measurements": ["system_events_logged", "error_handling"]
+        }
+      ],
+      "oqe_requirements": {
+        "required_measurements": {
+          "log_completeness_percent": {"min": 95, "unit": "percent"},
+          "event_types_covered": {"min": 4, "unit": "count"},
+          "json_format_valid": {"equals": true, "unit": "boolean"}
+        }
+      }
+    },
+    {
+      "id": "auto_detection_system",
+      "title": "Auto-Detection System Validation",
+      "description": "Verify auto-detection patterns work for test completion",
+      "category": "automation",
+      "priority": "medium",
+      "auto_detect": true,
+      "steps": [
+        {
+          "step": 1,
+          "action": "Register auto-detection patterns",
+          "expected_result": "Detection patterns registered successfully",
+          "measurements": ["patterns_registered", "registration_success"]
+        },
+        {
+          "step": 2,
+          "action": "Trigger events matching detection patterns",
+          "expected_result": "Auto-detection triggers test completion",
+          "auto_detect_pattern": "pattern_match",
+          "measurements": ["detection_accuracy", "false_positives"]
+        },
+        {
+          "step": 3,
+          "action": "Verify test completion correlation",
+          "expected_result": "Tests marked complete when patterns match",
+          "measurements": ["completion_correlation", "timing_accuracy"]
+        }
+      ],
+      "oqe_requirements": {
+        "required_measurements": {
+          "detection_accuracy_percent": {"min": 90, "unit": "percent"},
+          "false_positive_rate": {"max": 5, "unit": "percent"},
+          "pattern_response_time_ms": {"max": 100, "unit": "milliseconds"}
+        }
+      }
+    },
+    {
+      "id": "oqe_evidence_collection",
+      "title": "OQE Evidence Collection",
+      "description": "Verify OQE evidence is collected and formatted correctly",
+      "category": "compliance",
+      "priority": "high",
+      "auto_detect": true,
+      "steps": [
+        {
+          "step": 1,
+          "action": "Execute test with OQE evidence collection",
+          "expected_result": "Preconditions, measurements, and postconditions captured",
+          "auto_detect_pattern": "evidence_collection",
+          "measurements": ["evidence_completeness", "data_quality"]
+        },
+        {
+          "step": 2,
+          "action": "Generate OQE compliance report",
+          "expected_result": "Report generated with compliance score",
+          "auto_detect_pattern": "compliance_report",
+          "measurements": ["compliance_score", "report_quality"]
+        },
+        {
+          "step": 3,
+          "action": "Validate statistical analysis",
+          "expected_result": "Statistical metrics calculated correctly",
+          "measurements": ["statistical_validity", "confidence_level"]
+        }
+      ],
+      "oqe_requirements": {
+        "required_measurements": {
+          "compliance_score": {"min": 90, "unit": "points"},
+          "evidence_completeness": {"min": 100, "unit": "percent"},
+          "statistical_confidence": {"min": 95, "unit": "percent"}
+        }
+      }
+    },
+    {
+      "id": "memory_and_file_management",
+      "title": "Memory and File Management",
+      "description": "Verify proper memory usage and log file management",
+      "category": "resource_management",
+      "priority": "medium",
+      "auto_detect": true,
+      "steps": [
+        {
+          "step": 1,
+          "action": "Run logging for extended period (5 minutes)",
+          "expected_result": "Memory usage remains stable",
+          "auto_detect_pattern": "memory_measurement",
+          "measurements": ["memory_stability", "memory_leaks"]
+        },
+        {
+          "step": 2,
+          "action": "Generate large number of log events",
+          "expected_result": "Log rotation occurs at 10MB limit",
+          "measurements": ["log_rotation", "file_management"]
+        },
+        {
+          "step": 3,
+          "action": "Verify log cleanup of old files",
+          "expected_result": "Only last 5 log files retained",
+          "measurements": ["cleanup_efficiency", "disk_usage"]
+        }
+      ],
+      "oqe_requirements": {
+        "required_measurements": {
+          "memory_leak_mb": {"max": 5, "unit": "megabytes"},
+          "log_file_count": {"max": 5, "unit": "count"},
+          "cleanup_success": {"equals": true, "unit": "boolean"}
+        }
+      }
+    }
+  ],
+  "execution_plan": {
+    "test_order": ["logging_system_initialization", "performance_impact_validation", "comprehensive_event_logging", "live_testing_overlay_functionality", "auto_detection_system", "oqe_evidence_collection", "memory_and_file_management"],
+    "parallel_execution": false,
+    "stop_on_failure": true,
+    "retry_failed_tests": {
+      "enabled": true,
+      "max_retries": 2,
+      "retry_delay_ms": 1000
+    }
+  },
+  "reporting_requirements": {
+    "report_format": "markdown",
+    "include_evidence": true,
+    "evidence_detail_level": "comprehensive",
+    "failure_analysis": {
+      "required": true,
+      "include_stack_traces": true,
+      "include_system_state": true
+    },
+    "success_criteria": {
+      "all_tests_pass": true,
+      "oqe_compliance": 90,
+      "performance_thresholds_met": true
+    }
+  }
+}

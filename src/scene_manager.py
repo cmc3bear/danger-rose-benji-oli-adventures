@@ -1,4 +1,7 @@
 import logging
+import time
+from pathlib import Path
+from typing import Dict, Any
 
 import pygame
 
@@ -15,6 +18,10 @@ from src.config.constants import (
     SCENE_DRIVE_GAME,
     SCENE_HACKER_TYPING,
 )
+from src.systems.game_state_logger import get_global_logger
+from src.systems.oqe_metric_collector import OQEMetricCollector
+from src.ui.live_testing_overlay import LiveTestingOverlay
+from src.testing.test_plan_loader import TestPlanLoader
 from src.managers.sound_manager import SoundManager
 from src.scenes.hub import HubWorld
 from src.scenes.leaderboard import LeaderboardScene
@@ -56,6 +63,16 @@ class SceneManager:
         # Initialize save manager and load save data
         self.save_manager = SaveManager()
         self._load_game_data()
+        
+        # Initialize logging and testing systems
+        self.game_logger = get_global_logger()
+        self.oqe_collector = OQEMetricCollector()
+        self.testing_overlay = LiveTestingOverlay(screen_width, screen_height)
+        self.test_plan_loader = TestPlanLoader(str(Path(__file__).parent.parent))
+        
+        # Performance tracking
+        self.last_fps_measurement = time.time()
+        self.fps_measurement_interval = 1.0  # Measure FPS every second
 
         # Initialize scenes
         self.scenes[SCENE_TITLE] = TitleScreen(
@@ -81,6 +98,22 @@ class SceneManager:
         self.sound_manager.play_music(get_music_path("title_theme.ogg"), fade_ms=1000)
 
     def handle_event(self, event):
+        # Let testing overlay handle events first
+        if self.testing_overlay.handle_event(event):
+            return
+        
+        # Log input events
+        if self.game_logger:
+            self.game_logger.log_player_action(
+                action=f"input_{event.type}",
+                details={
+                    "event_type": event.type,
+                    "key": getattr(event, 'key', None),
+                    "button": getattr(event, 'button', None),
+                    "pos": getattr(event, 'pos', None)
+                }
+            )
+
         # Handle ESC key for pause (only in allowed scenes)
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             current_scene_name = self._get_current_scene_name()
@@ -89,7 +122,16 @@ class SceneManager:
                 return
 
         if self.current_scene:
+            action_start_time = time.perf_counter()
             result = self.current_scene.handle_event(event)
+            
+            # Log response time for UI interactions
+            if result and self.game_logger:
+                response_time = self.oqe_collector.measure_response_time("scene_action", action_start_time)
+                self.game_logger.log_performance_metric("response_time", response_time, {
+                    "action": result,
+                    "scene": self._get_current_scene_name()
+                })
 
             # Get previous scene name for checking
             previous_scene_name = self._get_current_scene_name()
@@ -138,6 +180,15 @@ class SceneManager:
                 self.switch_scene(result)
 
     def update(self, dt: float):
+        # Update testing overlay
+        self.testing_overlay.update(dt)
+        
+        # Periodic performance measurements
+        current_time = time.time()
+        if current_time - self.last_fps_measurement >= self.fps_measurement_interval:
+            self._measure_performance()
+            self.last_fps_measurement = current_time
+        
         if self.current_scene:
             # Only update pause menu when paused, not the underlying scene
             if self.paused:
@@ -148,9 +199,13 @@ class SceneManager:
     def draw(self, screen):
         if self.current_scene:
             self.current_scene.draw(screen)
+            
+        # Draw testing overlay last (on top)
+        self.testing_overlay.draw(screen)
 
     def switch_scene(self, scene_name: str):
         if scene_name in self.scenes:
+            transition_start = time.time()
             previous_scene_name = None
             data = {}
 
@@ -162,6 +217,19 @@ class SceneManager:
                         break
                 if hasattr(self.current_scene, "on_exit"):
                     data = self.current_scene.on_exit()
+            
+            # Log scene transition
+            if self.game_logger and previous_scene_name:
+                memory_data = self.oqe_collector.measure_memory(scene_name)
+                self.game_logger.log_scene_transition(
+                    from_scene=previous_scene_name,
+                    to_scene=scene_name,
+                    data={
+                        "transition_data": data,
+                        "memory_before_mb": memory_data["current_memory_mb"],
+                        "memory_delta_mb": memory_data["memory_delta_mb"]
+                    }
+                )
 
             # Special handling for settings from pause menu
             if scene_name == SCENE_SETTINGS and self.paused:
@@ -194,6 +262,19 @@ class SceneManager:
 
         if scene_name in music_map:
             music_file = get_music_path(music_map[scene_name])
+            
+            # Log audio transition
+            if self.game_logger:
+                self.game_logger.log_audio_event(
+                    audio_action="music_crossfade",
+                    track=music_map[scene_name],
+                    details={
+                        "scene": scene_name,
+                        "crossfade_duration_ms": 1000,
+                        "file_path": str(music_file)
+                    }
+                )
+            
             self.sound_manager.crossfade_music(music_file, duration_ms=1000)
 
     def _load_game_data(self):
@@ -273,3 +354,54 @@ class SceneManager:
 
         logger.info(f"Game resumed to scene: {self.paused_scene_name}")
         self.paused_scene_name = None
+    
+    def _measure_performance(self):
+        """Measure current performance metrics."""
+        if not self.game_logger:
+            return
+        
+        current_scene_name = self._get_current_scene_name()
+        
+        # Measure FPS
+        fps_data = self.oqe_collector.measure_fps(current_scene_name)
+        self.game_logger.log_performance_metric("fps", fps_data["current_fps"], fps_data)
+        
+        # Measure memory usage
+        memory_data = self.oqe_collector.measure_memory(current_scene_name)
+        self.game_logger.log_performance_metric("memory", memory_data["current_memory_mb"], memory_data)
+    
+    def load_test_procedures_for_issue(self, issue_number: int):
+        """Load and activate test procedures for a specific issue."""
+        try:
+            procedures = self.test_plan_loader.load_issue_test_plan(issue_number)
+            for procedure in procedures:
+                self.testing_overlay.add_test_procedure(procedure)
+            
+            if self.game_logger:
+                self.game_logger.log_system_event("testing", "procedures_loaded", {
+                    "issue_number": issue_number,
+                    "procedure_count": len(procedures)
+                })
+            
+            logger.info(f"Loaded {len(procedures)} test procedures for issue #{issue_number}")
+            return procedures
+        except Exception as e:
+            logger.error(f"Failed to load test procedures for issue #{issue_number}: {e}")
+            return []
+    
+    def get_testing_overlay(self) -> LiveTestingOverlay:
+        """Get the live testing overlay instance."""
+        return self.testing_overlay
+    
+    def get_performance_impact_report(self) -> Dict[str, Any]:
+        """Get performance impact report for the logging system."""
+        report = {
+            "logging_system": self.game_logger.get_performance_impact() if self.game_logger else {},
+            "overlay_rendering": self.testing_overlay.get_performance_stats(),
+            "oqe_collector": {
+                "sample_count": len(self.oqe_collector.samples),
+                "memory_overhead_mb": len(self.oqe_collector.samples) * 0.001  # Rough estimate
+            }
+        }
+        
+        return report
