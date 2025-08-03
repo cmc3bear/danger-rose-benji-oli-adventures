@@ -1,0 +1,138 @@
+{
+  "issue": 32,
+  "feature": "Road-Locked Traffic and Hazard Tracking",
+  "test_categories": [
+    "unit_tests",
+    "integration_tests", 
+    "performance_tests",
+    "visual_regression_tests"
+  ],
+  "oqe_requirements": {
+    "preconditions": "Document initial road and object positions",
+    "measurements": "Position accuracy, performance impact, visual alignment",
+    "postconditions": "Verify objects properly track road geometry",
+    "evidence_format": "JSON with coordinates, timing, and alignment metrics"
+  },
+  "test_cases": [
+    {
+      "id": "TC001",
+      "name": "Road geometry calculation accuracy",
+      "type": "unit",
+      "description": "Verify road position calculations are mathematically correct",
+      "oqe_metrics": {
+        "position_accuracy_pixels": 2.0,
+        "calculation_time_ms": 1.0,
+        "curve_tracking_error": 5.0
+      },
+      "preconditions": {
+        "road_curve": "Standard S-curve test pattern",
+        "test_points": 50
+      }
+    },
+    {
+      "id": "TC002", 
+      "name": "Traffic road-locking during curves",
+      "type": "integration",
+      "description": "Ensure traffic cars stay properly aligned to road during turns",
+      "oqe_metrics": {
+        "max_road_deviation_pixels": 10.0,
+        "alignment_accuracy_percent": 95.0,
+        "curve_tracking_smoothness": 0.9
+      },
+      "test_scenarios": [
+        "left_turn_15_degrees",
+        "right_turn_30_degrees", 
+        "s_curve_sequence"
+      ]
+    },
+    {
+      "id": "TC003",
+      "name": "Hazard positioning accuracy",
+      "type": "integration", 
+      "description": "Verify hazards remain in correct lanes during road curves",
+      "oqe_metrics": {
+        "lane_deviation_pixels": 5.0,
+        "hazard_count_accuracy": 100.0,
+        "visual_alignment_score": 0.95
+      },
+      "hazard_types": ["cone", "barrier", "debris"]
+    },
+    {
+      "id": "TC004",
+      "name": "Performance impact assessment",
+      "type": "performance",
+      "description": "Measure computational cost of road-locked positioning",
+      "oqe_metrics": {
+        "fps_impact_max": 2.0,
+        "memory_increase_mb": 5.0,
+        "calculation_overhead_percent": 10.0
+      },
+      "test_duration_seconds": 120,
+      "concurrent_objects": 20
+    },
+    {
+      "id": "TC005",
+      "name": "Lane change tracking",
+      "type": "integration",
+      "description": "Ensure smooth lane changes while following road geometry",
+      "oqe_metrics": {
+        "lane_change_smoothness": 0.9,
+        "position_interpolation_accuracy": 98.0,
+        "curve_adaptation_time_ms": 200
+      }
+    },
+    {
+      "id": "TC006",
+      "name": "Visual regression comparison",
+      "type": "visual",
+      "description": "Compare before/after visual alignment",
+      "oqe_metrics": {
+        "alignment_improvement_percent": 80.0,
+        "floating_objects_eliminated": 100.0,
+        "visual_consistency_score": 0.95
+      },
+      "measurement_method": "pixel_comparison_analysis"
+    },
+    {
+      "id": "TC007",
+      "name": "Road geometry edge cases",
+      "type": "unit",
+      "description": "Test extreme road configurations",
+      "oqe_metrics": {
+        "max_curve_angle_degrees": 45.0,
+        "calculation_stability": 99.0,
+        "edge_case_handling": 100.0
+      },
+      "edge_cases": [
+        "sharp_turns",
+        "road_width_changes",
+        "extreme_distances"
+      ]
+    },
+    {
+      "id": "TC008",
+      "name": "Multi-object road tracking",
+      "type": "integration",
+      "description": "Verify system performance with many road-locked objects",
+      "oqe_metrics": {
+        "max_concurrent_objects": 30,
+        "tracking_accuracy_degradation": 5.0,
+        "system_stability_time_minutes": 10
+      }
+    }
+  ],
+  "acceptance_criteria": {
+    "all_tests_pass": true,
+    "performance_maintained": "fps_impact < 2",
+    "visual_improvement": "alignment_improvement > 80%",
+    "no_floating_objects": true,
+    "calculation_accuracy": "position_error < 10 pixels"
+  },
+  "measurement_infrastructure_required": {
+    "RoadGeometryProfiler": "Track calculation performance",
+    "PositionAccuracyMeter": "Measure alignment precision", 
+    "VisualRegressionTester": "Compare before/after screenshots",
+    "PerformanceMonitor": "FPS and memory tracking",
+    "CurveTrackingAnalyzer": "Road-following accuracy"
+  }
+}

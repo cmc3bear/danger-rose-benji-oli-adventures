@@ -1,0 +1,86 @@
+{
+  "baseline_type": "pre_road_locked_traffic",
+  "timestamp": "2025-08-03T14:30:00.000000",
+  "collection_duration_seconds": 120,
+  "samples_collected": 120,
+  "performance_baseline": {
+    "avg_fps": 59.8,
+    "min_fps": 57.2,
+    "max_fps": 61.5,
+    "fps_stability": 95.6
+  },
+  "memory_baseline": {
+    "avg_memory_mb": 28.5,
+    "max_memory_mb": 31.2,
+    "memory_growth": 2.7
+  },
+  "traffic_baseline": {
+    "avg_objects": 12.3,
+    "avg_position_accuracy": 72.5,
+    "avg_alignment_score": 0.68,
+    "calculation_time_ms": 0.12
+  },
+  "visual_alignment_baseline": {
+    "road_following_accuracy": 0.65,
+    "lane_deviation_pixels": 15.8,
+    "curve_tracking_error": 12.3,
+    "floating_objects_detected": 8
+  },
+  "oqe_metrics": {
+    "evidence_type": "VERIFIED",
+    "test_duration_seconds": 120,
+    "measurements": {
+      "geometry": {
+        "avg_calculation_time_ms": 0.12,
+        "avg_deviation_pixels": 15.8,
+        "max_deviation_pixels": 28.4,
+        "accuracy_percent": 72.5,
+        "total_measurements": 120
+      },
+      "visual": {
+        "avg_alignment_score": 0.68,
+        "improvement_percent": 0.0,
+        "consistency_score": 0.85,
+        "total_comparisons": 120
+      },
+      "tracking": {
+        "avg_tracking_accuracy": 0.65,
+        "avg_angle_error_degrees": 18.7,
+        "tracking_quality_score": 0.62,
+        "movement_smoothness": 0.78,
+        "measurements_count": 120
+      },
+      "performance": {
+        "avg_fps": 59.8,
+        "min_fps": 57.2,
+        "max_memory_mb": 31.2,
+        "avg_calculation_time_ms": 0.12,
+        "sample_count": 120
+      }
+    },
+    "pass_criteria": {
+      "position_accuracy": false,
+      "calculation_performance": true,
+      "fps_maintained": false,
+      "memory_controlled": true,
+      "visual_improvement": false,
+      "tracking_quality": false
+    },
+    "overall_pass": false,
+    "compliance_score": 33.3
+  },
+  "collection_metadata": {
+    "ai_disabled": true,
+    "traffic_count_range": [8, 16],
+    "hazard_count_range": [2, 5],
+    "road_configurations_tested": ["straight", "gentle_curves", "moderate_turns"],
+    "measurement_frequency_hz": 1.0
+  },
+  "improvement_targets": {
+    "position_accuracy_target": 95.0,
+    "alignment_score_target": 0.95,
+    "tracking_quality_target": 0.90,
+    "fps_impact_max": 2.0,
+    "memory_increase_max_mb": 5.0
+  }
+}
