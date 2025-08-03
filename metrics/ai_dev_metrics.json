@@ -1,0 +1,50 @@
+{
+  "features": [],
+  "tests": [
+    {
+      "test_name": "test_all_six_characters_selectable",
+      "test_type": "integration",
+      "status": "PASS",
+      "evidence": {
+        "Create_Danger_Button_execution_time": {
+          "value": 15.12455940246582,
+          "unit": "ms",
+          "timestamp": 1754248161.793857
+        },
+        "Create_Rose_Button_execution_time": {
+          "value": 8.333206176757812,
+          "unit": "ms",
+          "timestamp": 1754248161.8022084
+        },
+        "Create_Dad_Button_execution_time": {
+          "value": 6.697416305541992,
+          "unit": "ms",
+          "timestamp": 1754248161.808997
+        },
+        "Create_Benji_Button_execution_time": {
+          "value": 69.9009895324707,
+          "unit": "ms",
+          "timestamp": 1754248161.8789556
+        },
+        "Create_Olive_Button_execution_time": {
+          "value": 77.29744911193848,
+          "unit": "ms",
+          "timestamp": 1754248161.9563153
+        },
+        "Create_Uncle Bear_Button_execution_time": {
+          "value": 8.743762969970703,
+          "unit": "ms",
+          "timestamp": 1754248161.9651191
+        }
+      },
+      "assertions_count": 19,
+      "coverage_percentage": 85.0,
+      "execution_time_ms": 356.34803771972656,
+      "error_message": null,
+      "timestamp": "2025-08-03T12:09:21.965229"
+    }
+  ],
+  "code_quality": [],
+  "sessions": [],
+  "issues": []
+}
