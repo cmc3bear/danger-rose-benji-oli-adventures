@@ -1,0 +1,150 @@
+{
+  "test_plan_metadata": {
+    "template_version": "1.0",
+    "oqe_compliant": true,
+    "created_date": "2025-08-03",
+    "description": "Template for creating test plans with Objective Qualified Evidence requirements"
+  },
+  "issue_details": {
+    "issue_number": null,
+    "feature_name": "",
+    "description": "",
+    "acceptance_criteria": []
+  },
+  "oqe_requirements": {
+    "evidence_standards": {
+      "preconditions": {
+        "required": true,
+        "description": "Document all initial conditions before test execution",
+        "examples": ["System state", "Configuration values", "Input parameters"]
+      },
+      "measurements": {
+        "required": true,
+        "description": "Quantifiable metrics that must be captured",
+        "mandatory_metrics": [
+          "execution_time_ms",
+          "memory_usage_before_mb",
+          "memory_usage_after_mb",
+          "assertions_count"
+        ]
+      },
+      "postconditions": {
+        "required": true,
+        "description": "Document final state after test execution",
+        "examples": ["Output values", "State changes", "Side effects"]
+      },
+      "evidence_format": {
+        "required": true,
+        "format": "JSON",
+        "must_include": ["timestamps", "actual_vs_expected", "measurement_units"]
+      }
+    },
+    "quality_thresholds": {
+      "min_assertion_count": 3,
+      "max_execution_time_ms": 1000,
+      "evidence_completeness": 100,
+      "measurement_accuracy": "±5%"
+    }
+  },
+  "test_categories": [
+    {
+      "category": "unit_tests",
+      "description": "Isolated component testing",
+      "oqe_focus": "Component behavior verification",
+      "min_coverage": 85
+    },
+    {
+      "category": "integration_tests",
+      "description": "Component interaction testing",
+      "oqe_focus": "Interface contracts and data flow",
+      "min_coverage": 80
+    },
+    {
+      "category": "performance_tests",
+      "description": "Performance and resource usage testing",
+      "oqe_focus": "Quantifiable performance metrics",
+      "min_coverage": 100
+    },
+    {
+      "category": "regression_tests",
+      "description": "Ensure existing functionality remains intact",
+      "oqe_focus": "Before/after comparisons",
+      "min_coverage": 90
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "TC_TEMPLATE_001",
+      "name": "Example test case with OQE",
+      "category": "unit_tests",
+      "priority": "high",
+      "preconditions": {
+        "system_state": "",
+        "input_data": {},
+        "configuration": {}
+      },
+      "test_steps": [
+        {
+          "step": 1,
+          "action": "Setup test environment",
+          "expected_result": "Environment ready",
+          "measurements": ["setup_time_ms"]
+        },
+        {
+          "step": 2,
+          "action": "Execute test action",
+          "expected_result": "Action completes successfully",
+          "measurements": ["execution_time_ms", "resource_usage"]
+        },
+        {
+          "step": 3,
+          "action": "Verify results",
+          "expected_result": "Results match expectations",
+          "measurements": ["accuracy_percentage"]
+        }
+      ],
+      "postconditions": {
+        "system_state": "",
+        "output_data": {},
+        "side_effects": []
+      },
+      "oqe_metrics": {
+        "required_measurements": {
+          "execution_time_ms": {"max": 100, "unit": "milliseconds"},
+          "memory_delta_mb": {"max": 10, "unit": "megabytes"},
+          "cpu_usage_percent": {"max": 50, "unit": "percent"}
+        },
+        "required_assertions": {
+          "functional_correctness": true,
+          "performance_within_limits": true,
+          "no_memory_leaks": true
+        }
+      }
+    }
+  ],
+  "execution_plan": {
+    "test_order": ["unit_tests", "integration_tests", "performance_tests", "regression_tests"],
+    "parallel_execution": false,
+    "stop_on_failure": true,
+    "retry_failed_tests": {
+      "enabled": true,
+      "max_retries": 2,
+      "retry_delay_ms": 1000
+    }
+  },
+  "reporting_requirements": {
+    "report_format": "markdown",
+    "include_evidence": true,
+    "evidence_detail_level": "comprehensive",
+    "failure_analysis": {
+      "required": true,
+      "include_stack_traces": true,
+      "include_system_state": true
+    },
+    "success_criteria": {
+      "all_tests_pass": true,
+      "oqe_compliance": 100,
+      "performance_thresholds_met": true
+    }
+  }
+}
