@@ -28,6 +28,7 @@ from src.config.constants import (
 from src.ui.music_selector import MusicSelector, MusicTrack
 from src.ui.vehicle_selector import VehicleSelector
 from src.managers.race_music_manager import RaceMusicManager, RaceState
+from src.systems.traffic_awareness import TrafficAwareness, DriverPersonality
 from src.utils.asset_paths import get_sfx_path
 from src.utils.sprite_loader import load_image, load_vehicle_sprite
 from src.ui.drawing_helpers import draw_text_with_background, draw_instructions
@@ -52,6 +53,10 @@ class NPCCar:
     sprite_name: str = None  # Name of sprite to use for rendering
     prev_x: float = None   # Previous x position for trajectory calculation
     rotation: float = 0.0  # Current rotation angle in degrees
+    personality: DriverPersonality = None  # Driver behavior type
+    desired_speed: float = 0.8  # Preferred cruising speed
+    target_lane: int = None  # Target lane for lane changes
+    lane_change_progress: float = 0.0  # Progress of current lane change (0-1)
 
 
 @dataclass
@@ -249,6 +254,9 @@ class DriveGame:
             self.screen_width,
             self.screen_height
         )
+        
+        # Traffic awareness system
+        self.traffic_awareness = TrafficAwareness()
         self.bmp_overlay_visible = False  # Toggle with B key
         
         # Register BMP callbacks
@@ -919,6 +927,14 @@ class DriveGame:
                     npc_speed = random.uniform(0.9, 1.1)
                 else:  # 10% - Speed demons/aggressive drivers
                     npc_speed = random.uniform(1.1, 1.4)
+                    
+                # Assign personality based on speed
+                if npc_speed < 0.6:
+                    personality = DriverPersonality.CAUTIOUS
+                elif npc_speed > 1.0:
+                    personality = DriverPersonality.AGGRESSIVE
+                else:
+                    personality = DriverPersonality.NORMAL
             else:
                 y_position = random.uniform(-150, -50)  # Behind player
                 # Cars spawning behind are more likely to be faster (catching up)
@@ -933,6 +949,14 @@ class DriveGame:
                     npc_speed = random.uniform(1.2, 1.5)
                 else:  # 15% - Very fast/aggressive drivers
                     npc_speed = random.uniform(1.5, 1.8)
+                    
+                # Assign personality based on speed
+                if npc_speed < 0.8:
+                    personality = DriverPersonality.CAUTIOUS
+                elif npc_speed > 1.3:
+                    personality = DriverPersonality.AGGRESSIVE
+                else:
+                    personality = DriverPersonality.NORMAL
         else:
             # Oncoming traffic (lanes 1-2)
             direction = -1
@@ -950,6 +974,14 @@ class DriveGame:
                 npc_speed = random.uniform(0.9, 1.2)
             else:  # 15% - Very fast oncoming (dangerous!)
                 npc_speed = random.uniform(1.2, 1.5)
+                
+            # Assign personality for oncoming traffic
+            if npc_speed < 0.6:
+                personality = DriverPersonality.CAUTIOUS
+            elif npc_speed > 1.0:
+                personality = DriverPersonality.AGGRESSIVE
+            else:
+                personality = DriverPersonality.NORMAL
             
         # Convert lane to screen position using ACTUAL road boundaries
         # Use the same road calculation as the drawing code
@@ -1046,6 +1078,10 @@ class DriveGame:
             if random.random() < 0.05:  # 5% chance
                 npc_speed *= random.uniform(1.2, 1.4)  # Speed demon trucker!
         
+        # Assign personality for trucks
+        if vehicle_type == "truck":
+            personality = DriverPersonality.TRUCK
+            
         npc_car = NPCCar(
             x=x_position,
             y=y_position,
@@ -1058,81 +1094,96 @@ class DriveGame:
             height=vehicle_height,
             collision_zone=collision_zone,
             ai_state="cruising",
-            sprite_name=sprite_name
+            sprite_name=sprite_name,
+            personality=personality,
+            desired_speed=npc_speed
         )
         
         self.npc_cars.append(npc_car)
         
     def _update_npc_ai(self, car: NPCCar, dt: float):
-        """Update NPC car AI behavior for 4-lane traffic."""
+        """Update NPC car AI behavior with intelligent passing logic."""
         # Update lane change timer
         car.lane_change_timer += dt
         
-        # Different AI behavior for same-direction vs oncoming traffic
+        # Only same-direction traffic can change lanes intelligently
         if car.direction == 1:
-            # Same direction traffic can change lanes
+            # Same direction traffic uses intelligent passing logic
             if car.ai_state == "cruising":
-                # Lane change frequency depends on vehicle type
-                lane_change_chance = 0.01 * dt if car.vehicle_type == "truck" else 0.03 * dt  # Trucks change lanes less
-                lane_change_cooldown = 8.0 if car.vehicle_type == "truck" else 4.0  # Trucks wait longer
+                # Scan surrounding traffic
+                scan = self.traffic_awareness.scan_surrounding_traffic(car, self.npc_cars)
                 
-                if random.random() < lane_change_chance and car.lane_change_timer > lane_change_cooldown:
-                    # Only change within same direction lanes
-                    target_lane = None
-                    
-                    if car.direction == 1:  # Same direction as player - can change between lanes 3 and 4
-                        if car.lane == 3:
-                            target_lane = 4
-                        elif car.lane == 4:
-                            target_lane = 3
-                    else:  # Oncoming direction - can change between lanes 1 and 2
-                        if car.lane == 1:
-                            target_lane = 2
-                        elif car.lane == 2:
-                            target_lane = 1
-                        
-                    if target_lane is not None and self._is_lane_change_safe(car, target_lane):
-                        car.ai_state = "changing_lanes"
-                        # Calculate target position using proper directional positioning
-                        road_center_normalized = 0.5
-                        road_width_normalized = 0.6
-                        left_road_edge = road_center_normalized - road_width_normalized / 2
-                        direction_width = road_width_normalized / 2
-                        lane_width = direction_width / 2
-                        
-                        if car.direction == 1:  # Same direction (right half)
-                            lane_offset = target_lane - 3  # Convert 3,4 to 0,1
-                            car.target_x = road_center_normalized + lane_width * (lane_offset + 0.5)
-                        else:  # Oncoming direction (left half)
-                            lane_offset = target_lane - 1  # Convert 1,2 to 0,1
-                            car.target_x = left_road_edge + lane_width * (lane_offset + 0.5)
-                            
-                        car.lane = target_lane
-                        car.lane_change_timer = 0.0
-                        
-            elif car.ai_state == "changing_lanes":
-                # Smoothly move to target lane
-                if hasattr(car, 'target_x'):
-                    lane_change_speed = 0.8 * dt  # Reduced lane change speed
-                    if abs(car.x - car.target_x) < 0.05:
-                        car.x = car.target_x
-                        car.ai_state = "cruising"
-                        delattr(car, 'target_x')
+                # Check for emergency evasion first
+                evasion_dir = self.traffic_awareness.get_emergency_evasion(car, scan)
+                if evasion_dir:
+                    car.ai_state = "emergency_change"
+                    car.target_lane = 4 if evasion_dir == 'right' and car.lane == 3 else 3
+                    car.lane_change_timer = 0.0
+                    car.lane_change_progress = 0.0
+                    return
+                
+                # Check if we should attempt to pass
+                should_pass, pass_direction = self.traffic_awareness.should_attempt_pass(car, scan)
+                
+                # Get cooldown based on personality
+                cooldown = 8.0 if car.personality == DriverPersonality.TRUCK else \
+                          6.0 if car.personality == DriverPersonality.CAUTIOUS else \
+                          3.0 if car.personality == DriverPersonality.NORMAL else 2.0
+                
+                if should_pass and car.lane_change_timer > cooldown:
+                    # Determine target lane based on passing direction
+                    if pass_direction == 'right' and car.lane == 3:
+                        car.target_lane = 4
+                    elif pass_direction == 'left' and car.lane == 4:
+                        car.target_lane = 3
                     else:
-                        direction = 1 if car.target_x > car.x else -1
-                        car.x += direction * lane_change_speed
+                        return  # Can't change in requested direction
+                        
+                    car.ai_state = "changing_lanes"
+                    car.lane_change_timer = 0.0
+                    car.lane_change_progress = 0.0
+                        
+            elif car.ai_state == "changing_lanes" or car.ai_state == "emergency_change":
+                # Calculate target x position for the target lane
+                if car.target_lane is not None:
+                    road_center_normalized = 0.5
+                    road_width_normalized = 0.6
+                    direction_width = road_width_normalized / 2
+                    lane_width = direction_width / 2
+                    
+                    # Calculate target position
+                    lane_offset = car.target_lane - 3  # Convert 3,4 to 0,1
+                    target_x = road_center_normalized + lane_width * (lane_offset + 0.5)
+                    
+                    # Smoothly move to target position
+                    lane_change_speed = 1.2 if car.ai_state == "emergency_change" else 0.8
+                    car.lane_change_progress += lane_change_speed * dt
+                    
+                    if car.lane_change_progress >= 1.0:
+                        # Complete the lane change
+                        car.x = target_x
+                        car.lane = car.target_lane
+                        car.target_lane = None
+                        car.ai_state = "cruising"
+                        car.lane_change_progress = 0.0
+                    else:
+                        # Interpolate position
+                        start_x = car.x if car.lane_change_progress == 0 else car.x
+                        car.x = start_x + (target_x - start_x) * car.lane_change_progress
         else:
             # Oncoming traffic stays in their lanes (no lane changes)
             car.ai_state = "cruising"
                     
-        # Speed variation for realism (less variation for oncoming traffic)
-        variation_chance = 0.05 * dt if car.direction == -1 else 0.1 * dt
-        if random.random() < variation_chance:
-            speed_change = random.uniform(-0.05, 0.05)
-            if car.direction == 1:
-                car.speed = max(0.2, min(1.2, car.speed + speed_change))
+        # Adjust speed based on traffic ahead and personality
+        if car.direction == 1 and car.ai_state == "cruising":
+            scan = self.traffic_awareness.scan_surrounding_traffic(car, self.npc_cars)
+            if scan.ahead_same_lane and scan.distance_to_ahead < 100:
+                # Slow down to match car ahead
+                car.speed = max(0.2, scan.ahead_same_lane.speed - 0.1)
             else:
-                car.speed = max(0.4, min(1.0, car.speed + speed_change))
+                # Return to desired speed
+                speed_diff = car.desired_speed - car.speed
+                car.speed += speed_diff * dt * 0.5  # Gradual acceleration
             
     def _is_lane_change_safe(self, car: NPCCar, target_lane: int) -> bool:
         """Check if lane change is safe for NPC car within their directional lanes."""

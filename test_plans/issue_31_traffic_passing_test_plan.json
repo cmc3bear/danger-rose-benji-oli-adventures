@@ -1,0 +1,140 @@
+{
+  "issue": 31,
+  "feature": "Intelligent Traffic Passing Logic",
+  "test_categories": [
+    "unit_tests",
+    "integration_tests",
+    "performance_tests",
+    "behavior_tests"
+  ],
+  "oqe_requirements": {
+    "preconditions": "Document initial traffic state and positions",
+    "measurements": "Timing, distances, passing frequencies, safety margins",
+    "postconditions": "Verify safe completion of passing maneuvers",
+    "evidence_format": "JSON with timestamps and measurements"
+  },
+  "test_cases": [
+    {
+      "id": "TC001",
+      "name": "Traffic awareness scanning accuracy",
+      "type": "unit",
+      "description": "Verify traffic scanning detects all nearby vehicles correctly",
+      "oqe_metrics": {
+        "scan_accuracy": 100.0,
+        "scan_time_ms": 5,
+        "detection_range": 300
+      },
+      "preconditions": {
+        "traffic_layout": "5 cars in various positions",
+        "test_car_position": "lane 3, speed 0.8"
+      },
+      "expected_results": {
+        "vehicles_detected": 5,
+        "safe_lanes_identified": "correct"
+      }
+    },
+    {
+      "id": "TC002",
+      "name": "Personality-based passing behavior",
+      "type": "behavior",
+      "description": "Verify different personalities exhibit appropriate passing frequencies",
+      "oqe_metrics": {
+        "cautious_pass_rate": 0.1,
+        "normal_pass_rate": 0.3,
+        "aggressive_pass_rate": 0.5,
+        "truck_pass_rate": 0.05
+      },
+      "test_duration_seconds": 60,
+      "measurement_method": "Count passes per minute by personality type"
+    },
+    {
+      "id": "TC003",
+      "name": "Safe passing distance verification",
+      "type": "integration",
+      "description": "Ensure cars maintain safe distances during lane changes",
+      "oqe_metrics": {
+        "min_front_gap_cautious": 150,
+        "min_front_gap_normal": 100,
+        "min_front_gap_aggressive": 60,
+        "min_rear_gap_all": 40
+      },
+      "failure_conditions": {
+        "collision": "immediate fail",
+        "gap_violation": "warning"
+      }
+    },
+    {
+      "id": "TC004",
+      "name": "Emergency evasion response time",
+      "type": "performance",
+      "description": "Measure response time for emergency collision avoidance",
+      "oqe_metrics": {
+        "detection_time_ms": 16,
+        "evasion_start_ms": 50,
+        "evasion_complete_ms": 500,
+        "success_rate": 95.0
+      },
+      "test_scenarios": [
+        "sudden_stop_ahead",
+        "lane_blocked",
+        "multi_car_pileup"
+      ]
+    },
+    {
+      "id": "TC005",
+      "name": "Traffic flow optimization",
+      "type": "integration",
+      "description": "Verify passing logic improves overall traffic flow",
+      "oqe_metrics": {
+        "avg_speed_improvement": 15.0,
+        "congestion_reduction": 25.0,
+        "lane_utilization_balance": 0.8
+      },
+      "measurement_period": 120
+    },
+    {
+      "id": "TC006",
+      "name": "Speed matching behavior",
+      "type": "behavior",
+      "description": "Verify cars adjust speed when following slower traffic",
+      "oqe_metrics": {
+        "speed_match_time_ms": 1000,
+        "following_distance": 80,
+        "speed_differential_max": 0.1
+      }
+    },
+    {
+      "id": "TC007",
+      "name": "Lane change smoothness",
+      "type": "performance",
+      "description": "Ensure lane changes are visually smooth",
+      "oqe_metrics": {
+        "lane_change_duration_ms": 1250,
+        "position_update_rate_hz": 60,
+        "max_lateral_velocity": 0.8
+      }
+    },
+    {
+      "id": "TC008",
+      "name": "Return to desired speed",
+      "type": "behavior",
+      "description": "Verify cars return to preferred speed after passing",
+      "oqe_metrics": {
+        "speed_recovery_time_s": 3.0,
+        "speed_overshoot_max": 0.05,
+        "desired_speed_tolerance": 0.02
+      }
+    }
+  ],
+  "acceptance_criteria": {
+    "all_tests_pass": true,
+    "no_collisions": true,
+    "performance_targets_met": true,
+    "player_experience": "Natural traffic behavior observed"
+  },
+  "test_tools": {
+    "traffic_visualizer": "Enable debug overlay to see AI decisions",
+    "metrics_logger": "Log all passing events with timestamps",
+    "replay_system": "Record and replay traffic scenarios"
+  }
+}
