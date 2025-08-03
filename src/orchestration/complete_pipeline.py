@@ -18,6 +18,9 @@ from .specialized_agents import (
     TestExecutor, ImplementationValidator, DocumentationAgent,
     GitHubSynchronizer, ExecutiveReporter
 )
+from .oqe_enforcement_agents import (
+    OQEInfrastructureAgent, BaselineComparisonAgent, OQEValidationAgent
+)
 
 
 class CompleteOrchestrationController(OrchestrationController):

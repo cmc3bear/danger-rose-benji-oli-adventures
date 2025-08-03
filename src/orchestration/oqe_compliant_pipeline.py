@@ -1,0 +1,244 @@
+"""
+OQE-Compliant Orchestration Pipeline
+
+This enhanced pipeline enforces measurement-first development and ensures
+all claims are backed by objective qualified evidence.
+"""
+
+from typing import Dict, Any
+from datetime import datetime
+
+from .complete_pipeline import CompleteOrchestrationController
+from .agent_pipeline import AgentType
+from .oqe_enforcement_agents import (
+    OQEInfrastructureAgent, BaselineComparisonAgent, OQEValidationAgent
+)
+
+
+class OQECompliantPipeline(CompleteOrchestrationController):
+    """Pipeline that enforces OQE compliance at every step"""
+    
+    def __init__(self, project_root: str):
+        super().__init__(project_root)
+        self.oqe_enforced = True
+        
+    def _initialize_agents(self) -> Dict[AgentType, Any]:
+        """Initialize all agents including OQE enforcement"""
+        agents = super()._initialize_agents()
+        
+        # Add OQE enforcement agents
+        # Note: In a real implementation, we'd add new AgentType enum values
+        # For now, we'll use the execution order to insert them
+        self.oqe_infrastructure = OQEInfrastructureAgent(self.project_root)
+        self.baseline_comparison = BaselineComparisonAgent(self.project_root)
+        self.oqe_validation = OQEValidationAgent(self.project_root)
+        
+        return agents
+        
+    def execute_pipeline(self, initial_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute pipeline with OQE enforcement"""
+        self.start_time = datetime.now()
+        context = initial_context.copy()
+        
+        # Add OQE enforcement flag
+        context["oqe_enforced"] = True
+        
+        # Phase 1: Master Plan Audit (unchanged)
+        master_plan_report = self.agents[AgentType.MASTER_PLAN_AUDITOR].execute(context)
+        self.execution_log.append(master_plan_report)
+        context["master_plan_report"] = master_plan_report
+        
+        if master_plan_report.status == "blocked":
+            return self._generate_executive_summary()
+            
+        # Phase 2: Test Plan Development (unchanged)
+        test_plan_report = self.agents[AgentType.TEST_PLAN_DEVELOPER].execute(context)
+        self.execution_log.append(test_plan_report)
+        context["test_plan_developer_report"] = test_plan_report
+        
+        # NEW Phase 2.5: OQE Infrastructure Check
+        print("\n[OQE] Checking measurement infrastructure...")
+        infra_report = self.oqe_infrastructure.execute(context)
+        self.execution_log.append(infra_report)
+        
+        if infra_report.status == "blocked":
+            print("[OQE] BLOCKED: Measurement infrastructure must be built first!")
+            return self._generate_executive_summary()
+            
+        # NEW Phase 2.6: Baseline Comparison Check
+        print("[OQE] Checking baseline measurements...")
+        baseline_report = self.baseline_comparison.execute(context)
+        self.execution_log.append(baseline_report)
+        
+        if "No baseline" in str(baseline_report.warnings):
+            print("[OQE] WARNING: No baseline found. Improvement claims will be unverifiable.")
+            
+        # NEW Phase 2.7: Validate Measurability
+        print("[OQE] Validating all metrics are measurable...")
+        validation_report = self.oqe_validation.execute(context)
+        self.execution_log.append(validation_report)
+        
+        if validation_report.status == "blocked":
+            print("[OQE] BLOCKED: Some metrics cannot be measured. Revise test plan.")
+            return self._generate_executive_summary()
+            
+        # Phase 3: Solution Research (unchanged)
+        solution_report = self.agents[AgentType.SOLUTION_RESEARCHER].execute(context)
+        self.execution_log.append(solution_report)
+        context["solution_report"] = solution_report
+        
+        # Phase 4: Impact Analysis (unchanged)
+        impact_report = self.agents[AgentType.IMPACT_ANALYZER].execute(context)
+        self.execution_log.append(impact_report)
+        context["impact_report"] = impact_report
+        
+        # Phase 5: Implementation Validation
+        impl_report = self.agents[AgentType.IMPLEMENTATION_AGENT].execute(context)
+        self.execution_log.append(impl_report)
+        
+        # NEW: Enhanced OQE check for implementation
+        if impl_report.status == "success":
+            oqe_score = impl_report.get_oqe_score()
+            if oqe_score < 90:  # Raised threshold for OQE compliance
+                impl_report.status = "blocked"
+                impl_report.warnings.append(
+                    f"OQE ENFORCEMENT: Score of {oqe_score:.1f}% is below 90% threshold. "
+                    "All evidence must be VERIFIED or MEASURED."
+                )
+                
+        context["implementation_report"] = impl_report
+        
+        # Continue with test execution only if implementation passes OQE
+        if impl_report.status == "success":
+            # Phase 6: Test Execution
+            test_report = self.agents[AgentType.TEST_EXECUTOR].execute(context)
+            self.execution_log.append(test_report)
+            
+            # NEW: Verify actual measurements were collected
+            if not self._verify_measurements_collected(test_report):
+                test_report.status = "blocked"
+                test_report.warnings.append(
+                    "OQE ENFORCEMENT: Tests passed but no measurements collected. "
+                    "Tests must produce objective evidence."
+                )
+                
+            context["test_report"] = test_report
+            
+            # Phase 7: Documentation (with OQE compliance noted)
+            doc_report = self.agents[AgentType.DOCUMENTATION_AGENT].execute(context)
+            self.execution_log.append(doc_report)
+            context["documentation_report"] = doc_report
+            
+            # Phase 8: GitHub Sync
+            github_report = self.agents[AgentType.GITHUB_SYNCHRONIZER].execute(context)
+            self.execution_log.append(github_report)
+            context["github_report"] = github_report
+            
+        # Phase 9: Executive Report
+        exec_report = self.agents[AgentType.EXECUTIVE_REPORTER].execute(context)
+        self.execution_log.append(exec_report)
+        
+        return self._generate_executive_summary()
+        
+    def _verify_measurements_collected(self, test_report: Any) -> bool:
+        """Verify that tests actually collected measurements"""
+        # Check if test report contains actual measurements
+        if not test_report.evidence:
+            return False
+            
+        # At least 80% of evidence must be VERIFIED or MEASURED
+        qualified_evidence = sum(
+            1 for e in test_report.evidence 
+            if e.evidence_type.value in ["verified", "measured"]
+        )
+        
+        return (qualified_evidence / len(test_report.evidence)) >= 0.8
+        
+    def _display_executive_summary(self, report: Dict[str, Any]):
+        """Display executive summary with OQE compliance highlighted"""
+        super()._display_executive_summary(report)
+        
+        # Add OQE-specific summary
+        print(f"\n[SHIELD] OQE COMPLIANCE SUMMARY:")
+        
+        oqe_compliance = report["oqe_analysis"]
+        if oqe_compliance["oqe_compliance_rate"] >= 90:
+            print(f"  [OK] OQE Compliance: {oqe_compliance['oqe_compliance_rate']:.1f}% - EXCELLENT")
+        elif oqe_compliance["oqe_compliance_rate"] >= 80:
+            print(f"  [!] OQE Compliance: {oqe_compliance['oqe_compliance_rate']:.1f}% - ACCEPTABLE")
+        else:
+            print(f"  [X] OQE Compliance: {oqe_compliance['oqe_compliance_rate']:.1f}% - UNACCEPTABLE")
+            
+        # Check for measurement infrastructure
+        infra_found = any(
+            "infrastructure" in log.task.lower() 
+            for log in self.execution_log
+        )
+        
+        if infra_found:
+            infra_status = next(
+                log for log in self.execution_log 
+                if "infrastructure" in log.task.lower()
+            )
+            if infra_status.status == "success":
+                print("  [OK] Measurement Infrastructure: VERIFIED")
+            else:
+                print("  [X] Measurement Infrastructure: MISSING")
+                
+        # Check for baseline
+        baseline_found = any(
+            "baseline" in log.task.lower() 
+            for log in self.execution_log
+        )
+        
+        if baseline_found:
+            baseline_status = next(
+                log for log in self.execution_log 
+                if "baseline" in log.task.lower()
+            )
+            if "No baseline" not in str(baseline_status.warnings):
+                print("  [OK] Baseline Comparison: AVAILABLE")
+            else:
+                print("  [!] Baseline Comparison: MISSING")
+                
+        print("\n[BOOKS] OQE ENFORCEMENT RULES:")
+        print("  1. Measurement infrastructure MUST exist before implementation")
+        print("  2. Baseline measurements SHOULD exist for comparison")  
+        print("  3. All metrics MUST be measurable")
+        print("  4. Evidence MUST be VERIFIED (>90% threshold)")
+        print("  5. Tests MUST produce objective measurements")
+
+
+def demonstrate_oqe_pipeline():
+    """Demonstrate the OQE-compliant pipeline"""
+    
+    # Initialize OQE-compliant controller
+    controller = OQECompliantPipeline(".")
+    
+    # Execute for character abilities system (Issue #29)
+    print("\n" + "="*80)
+    print("OQE-COMPLIANT PIPELINE DEMONSTRATION")
+    print("="*80)
+    print("\nThis pipeline enforces measurement-first development.")
+    print("Features cannot proceed without measurement capability.\n")
+    
+    report = controller.execute_full_development_cycle(issue_number=29)
+    
+    # The pipeline will now:
+    # 1. Check master plan ✓
+    # 2. Develop test plan ✓
+    # 3. CHECK MEASUREMENT INFRASTRUCTURE (NEW)
+    # 4. CHECK BASELINE EXISTS (NEW)
+    # 5. VALIDATE METRICS ARE MEASURABLE (NEW)
+    # 6. Research solutions ✓
+    # 7. Analyze impact ✓
+    # 8. Validate implementation WITH STRICT OQE ✓
+    # 9. Execute tests WITH MEASUREMENT VERIFICATION ✓
+    # 10. Document and sync ✓
+    
+    return report
+
+
+if __name__ == "__main__":
+    # Run demonstration
+    demonstrate_oqe_pipeline()
