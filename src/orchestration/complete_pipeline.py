@@ -170,64 +170,64 @@ class CompleteOrchestrationController(OrchestrationController):
         
         # Overall status
         metrics = report["development_metrics"]
-        status_emoji = "✅" if metrics["success_rate"] == 100 else "⚠️" if metrics["success_rate"] >= 80 else "❌"
-        print(f"\nOVERALL STATUS: {status_emoji} {metrics['success_rate']:.1f}% Success Rate")
+        status_text = "[SUCCESS]" if metrics["success_rate"] == 100 else "[WARNING]" if metrics["success_rate"] >= 80 else "[FAILURE]"
+        print(f"\nOVERALL STATUS: {status_text} {metrics['success_rate']:.1f}% Success Rate")
         
         # OQE Compliance
         oqe = report["oqe_analysis"]
-        oqe_emoji = "✅" if oqe["oqe_compliance_rate"] >= 90 else "⚠️" if oqe["oqe_compliance_rate"] >= 80 else "❌"
-        print(f"OQE COMPLIANCE: {oqe_emoji} {oqe['oqe_compliance_rate']:.1f}%")
+        oqe_text = "[PASS]" if oqe["oqe_compliance_rate"] >= 90 else "[WARN]" if oqe["oqe_compliance_rate"] >= 80 else "[FAIL]"
+        print(f"OQE COMPLIANCE: {oqe_text} {oqe['oqe_compliance_rate']:.1f}%")
         
         # Agent execution checklist
-        print("\n📋 AGENT EXECUTION CHECKLIST:")
+        print("\n[LIST] AGENT EXECUTION CHECKLIST:")
         for agent_name, details in report["detailed_agent_reports"].items():
-            status_icon = "✅" if details["status"] == "success" else "❌"
-            oqe_icon = "✅" if details["oqe_score"] >= 80 else "⚠️"
+            status_icon = "[OK]" if details["status"] == "success" else "[X]"
+            oqe_icon = "[OK]" if details["oqe_score"] >= 80 else "[!]"
             print(f"  {status_icon} {agent_name}: {details['task']}")
-            print(f"     └─ OQE Score: {oqe_icon} {details['oqe_score']:.1f}%")
+            print(f"     -- OQE Score: {oqe_icon} {details['oqe_score']:.1f}%")
         
         # Critical findings
         if report["critical_findings"]:
-            print(f"\n🚨 CRITICAL FINDINGS ({len(report['critical_findings'])}):")
+            print(f"\n[ALERT] CRITICAL FINDINGS ({len(report['critical_findings'])}):")
             for finding in report["critical_findings"][:5]:  # Top 5
-                print(f"  • [{finding['agent']}] {finding['finding']}")
+                print(f"  - [{finding['agent']}] {finding['finding']}")
         
         # Evidence summary
-        print(f"\n📊 EVIDENCE SUMMARY:")
-        print(f"  • Total Evidence Items: {oqe['total_evidence_items']}")
-        print(f"  • Verified Evidence: {oqe['evidence_distribution']['verified']}")
-        print(f"  • Measured Evidence: {oqe['evidence_distribution']['measured']}")
-        print(f"  • Documented Only: {oqe['evidence_distribution']['documented']}")
-        print(f"  • Assumed (No Evidence): {oqe['evidence_distribution']['assumed']}")
+        print(f"\n[DATA] EVIDENCE SUMMARY:")
+        print(f"  - Total Evidence Items: {oqe['total_evidence_items']}")
+        print(f"  - Verified Evidence: {oqe['evidence_distribution']['verified']}")
+        print(f"  - Measured Evidence: {oqe['evidence_distribution']['measured']}")
+        print(f"  - Documented Only: {oqe['evidence_distribution']['documented']}")
+        print(f"  - Assumed (No Evidence): {oqe['evidence_distribution']['assumed']}")
         
         # Development velocity
-        print(f"\n⚡ DEVELOPMENT METRICS:")
-        print(f"  • Agents Executed: {metrics['agents_executed']}")
-        print(f"  • Successful: {metrics['successful_agents']}")
-        print(f"  • Blocked: {metrics['blocked_agents']}")
-        print(f"  • Failed: {metrics['failed_agents']}")
+        print(f"\n[SPEED] DEVELOPMENT METRICS:")
+        print(f"  - Agents Executed: {metrics['agents_executed']}")
+        print(f"  - Successful: {metrics['successful_agents']}")
+        print(f"  - Blocked: {metrics['blocked_agents']}")
+        print(f"  - Failed: {metrics['failed_agents']}")
         
         # Next actions
-        print(f"\n📌 TOP ACTION ITEMS:")
+        print(f"\n[PIN] TOP ACTION ITEMS:")
         for i, action in enumerate(report["action_items"][:5], 1):
             print(f"  {i}. [{action['agent']}] {action['action']}")
         
         # Brutal honesty verdict
-        print(f"\n🔍 BRUTAL HONESTY VERDICT:")
+        print(f"\n[EXAMINE] BRUTAL HONESTY VERDICT:")
         if metrics["success_rate"] == 100 and oqe["oqe_compliance_rate"] >= 90:
-            print("  ✅ EXCELLENT: Pipeline executed flawlessly with high-quality evidence")
+            print("  [OK] EXCELLENT: Pipeline executed flawlessly with high-quality evidence")
         elif metrics["success_rate"] >= 80 and oqe["oqe_compliance_rate"] >= 80:
-            print("  ⚠️ ACCEPTABLE: Pipeline succeeded but evidence quality needs improvement")
+            print("  [!] ACCEPTABLE: Pipeline succeeded but evidence quality needs improvement")
         else:
-            print("  ❌ UNACCEPTABLE: Pipeline has failures and/or poor evidence quality")
+            print("  [X] UNACCEPTABLE: Pipeline has failures and/or poor evidence quality")
             print("     This is not ready for production and requires immediate attention")
         
         # Master plan adherence
-        print(f"\n📐 MASTER PLAN ADHERENCE:")
+        print(f"\n[RULER] MASTER PLAN ADHERENCE:")
         if self._check_master_plan_adherence(report):
-            print("  ✅ Development aligns with master plan objectives")
+            print("  [OK] Development aligns with master plan objectives")
         else:
-            print("  ❌ WARNING: Development may be deviating from master plan")
+            print("  [X] WARNING: Development may be deviating from master plan")
             print("     Review scope and ensure no 'pie in the sky' features")
     
     def _check_master_plan_adherence(self, report: Dict[str, Any]) -> bool:

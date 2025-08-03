@@ -164,11 +164,19 @@ class MasterPlanAuditor(BaseAgent):
         pending_issues = len(re.findall(r'📋 Ready for Development', master_plan))
         
         # Add evidence
+        # Parse version number safely
+        version_num = 0.0
+        try:
+            version_parts = current_version.split('v')[1].split('-')[0].split('.')
+            version_num = float(f"{version_parts[0]}.{version_parts[1]}")
+        except:
+            version_num = 0.0
+            
         report.add_evidence(
             claim="Master plan version identified",
             evidence_type=EvidenceLevel.VERIFIED,
             data={"version": current_version},
-            measurements={"version_number": float(current_version.split('v')[1].split('-')[0])},
+            measurements={"version_number": version_num},
             source="DEVELOPMENT_MASTER_PLAN.md"
         )
         
@@ -516,9 +524,9 @@ class OrchestrationController:
         
         # Build checklist
         for report in self.execution_log:
-            status_icon = "✅" if report.status == "success" else "❌"
+            status_icon = "[OK]" if report.status == "success" else "[X]"
             oqe_score = report.get_oqe_score()
-            oqe_icon = "✅" if oqe_score >= 80 else "⚠️"
+            oqe_icon = "[OK]" if oqe_score >= 80 else "[!]"
             
             summary["checklist"].append({
                 "agent": report.agent_type.value,
@@ -580,8 +588,8 @@ if __name__ == "__main__":
     if summary["warnings"]:
         print(f"\nWarnings ({len(summary['warnings'])}):")
         for warning in summary["warnings"]:
-            print(f"  ⚠️ {warning}")
+            print(f"  [!] {warning}")
     
     print("\nNext Steps:")
     for step in summary["next_steps"][:5]:  # Top 5
-        print(f"  • {step}")
+        print(f"  - {step}")

@@ -49,7 +49,7 @@ def main():
         
         # Set dry run mode if requested
         if args.dry_run:
-            print("⚠️  DRY RUN MODE - No changes will be made\n")
+            print("[WARNING] DRY RUN MODE - No changes will be made\n")
             # In a real implementation, would pass this to agents
         
         # Execute pipeline
@@ -65,17 +65,17 @@ def main():
         )
         
         if success:
-            print("\n✅ PIPELINE COMPLETED SUCCESSFULLY")
+            print("\n[SUCCESS] PIPELINE COMPLETED SUCCESSFULLY")
             sys.exit(0)
         else:
-            print("\n❌ PIPELINE COMPLETED WITH ISSUES")
+            print("\n[FAILURE] PIPELINE COMPLETED WITH ISSUES")
             sys.exit(1)
             
     except KeyboardInterrupt:
-        print("\n\n⚠️  Pipeline interrupted by user")
+        print("\n\n[WARNING] Pipeline interrupted by user")
         sys.exit(130)
     except Exception as e:
-        print(f"\n\n❌ PIPELINE FAILED: {str(e)}")
+        print(f"\n\n[ERROR] PIPELINE FAILED: {str(e)}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

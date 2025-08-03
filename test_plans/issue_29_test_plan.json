@@ -1,0 +1,36 @@
+{
+  "issue": 29,
+  "test_categories": [
+    "unit_tests",
+    "integration_tests",
+    "performance_tests",
+    "regression_tests"
+  ],
+  "oqe_requirements": {
+    "preconditions": "Must document initial state",
+    "measurements": "Must include timing, memory, accuracy metrics",
+    "postconditions": "Must verify final state",
+    "evidence_format": "JSON with timestamps"
+  },
+  "test_cases": [
+    {
+      "id": "TC001",
+      "name": "Character ability activation performance",
+      "type": "performance",
+      "oqe_metrics": {
+        "max_activation_time_ms": 50,
+        "memory_increase_mb": 10,
+        "fps_impact": 5
+      }
+    },
+    {
+      "id": "TC002",
+      "name": "Ability cooldown accuracy",
+      "type": "unit",
+      "oqe_metrics": {
+        "cooldown_accuracy_ms": 10,
+        "state_transitions": 3
+      }
+    }
+  ]
+}
