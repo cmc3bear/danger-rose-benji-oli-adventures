@@ -46,8 +46,11 @@
 </div>
 
 ### 🎯 Key Features
-- **Choose Your Hero**: Play as Danger, Rose, or unlock their snowboarding Dad
-- **4 Epic Minigames**: Drive through highway traffic, ski down treacherous mountains, splash targets at the pool, and survive Vegas!
+- **Choose Your Hero**: Play as 5 unique characters (Danger, Rose, Dad, Benji, Olive) with Uncle Bear coming soon!
+- **5 Epic Minigames**: Drive with BPM-synchronized traffic, ski down mountains, splash at the pool, survive Vegas, and hack the matrix!
+- **BPM Traffic System**: Highway traffic that moves to the beat of your music (NEW!)
+- **Hacker Typing Challenge**: Matrix-themed typing minigame with progressive difficulty (NEW!)
+- **Rich Audio Experience**: 49+ high-quality sound effects and character voices (NEW!)
 - **Local Co-op**: Up to 3 players on one screen
 - **Retro Pixel Art**: Classic arcade style with modern gameplay
 - **Boss Battles**: Face off against the notorious Vegas Sphere
@@ -201,10 +204,11 @@ poetry run python src/main.py
 
 ### Hub World
 The apartment is your home base! Walk around and interact with:
-- **🚗 Purple Door**: Enter the Drive minigame - Race through highway traffic!
+- **🚗 Purple Door**: Enter the Drive minigame - Race through BPM-synchronized highway traffic!
 - **🎿 Blue Door**: Enter the Ski minigame
 - **🏊 Green Door**: Enter the Pool minigame
 - **🎰 Red Door**: Enter the Vegas minigame
+- **💻 Laptop**: Enter the Hacker Typing minigame - Matrix-themed typing challenge! (NEW!)
 - **🏆 Trophy Shelf**: View your high scores
 - **💾 Save Point**: Auto-saves your progress
 
@@ -220,9 +224,15 @@ The apartment is your home base! Walk around and interact with:
 
 ## 🎯 Game Modes
 
-### 🚗 Highway Drive (Enhanced in v0.1.3!)
-OutRun-inspired racing with authentic Pole Position style curves!
-- **The Challenge**: Race for 2 minutes through dynamic highway traffic
+### 🚗 Highway Drive (MAJOR UPDATE in v0.1.4!)
+OutRun-inspired racing with BPM-synchronized traffic system!
+- **The Challenge**: Race for 2 minutes through dynamic highway traffic that moves to your music's beat
+- **NEW: BPM Traffic System** 🎵:
+  - Traffic patterns synchronized to music beats
+  - Beat-synchronized hazard spawning (oil slicks, debris)
+  - Visual BPM overlay (toggle with B key)
+  - Speed modulation based on rhythm intensity
+  - Graceful fallback when disabled
 - **Visual Features** ✨:
   - Authentic Pole Position style pseudo-3D road curves
   - AI-generated traffic sprites (11 unique vehicles)
@@ -242,10 +252,7 @@ OutRun-inspired racing with authentic Pole Position style curves!
   - 3 EV vehicles with different handling characteristics
   - Forgiving collision detection for casual play
   - Speed-sensitive physics and momentum
-- **Upcoming Features**:
-  - BPM-synchronized traffic patterns
-  - Dynamic day/night sky cycle
-  - Scenic parallax backgrounds
+  - Complete sound system with vehicle, collision, and traffic audio
 - **High Score Target**: 15,000+ points
 
 ### 🎿 Ski Downhill
@@ -271,6 +278,25 @@ Side-scrolling beat 'em up through neon-lit Vegas!
 - **Boss Battle**: The Vegas Sphere with 3 increasingly chaotic phases
 - **Weapons**: Sword for close combat, rainbow beam for range
 - **High Score Target**: 10,000+ points
+
+### 💻 Hacker Typing Challenge (NEW in v0.1.4!)
+Matrix-themed typing minigame with progressive difficulty!
+- **The Challenge**: Type your way through increasingly complex hacking scenarios
+- **Progressive Levels**:
+  - Level 1: Password cracking with simple words and numbers
+  - Level 2: Command execution with terminal commands
+  - Level 3: Script injection with complex programming syntax
+- **Matrix Aesthetics**: 
+  - Retro CRT terminal interface with green text
+  - Scrolling matrix-style background effects
+  - Terminal prompts and system responses
+- **Features**:
+  - Real-time typing accuracy tracking
+  - Speed (WPM) measurement and improvement
+  - Interactive tutorial system
+  - Complete scene integration with hub world
+- **Access**: Use the laptop in the hub world apartment
+- **High Score Target**: Based on typing speed and accuracy
 
 ## 🔧 Technical Details
 
@@ -308,6 +334,21 @@ poetry run pytest --cov=src --cov-report=html
 # Run specific test category
 poetry run pytest tests/unit -v
 poetry run pytest tests/visual -v
+```
+
+#### Asset Management Tools
+```bash
+# Audit all asset references and find missing files
+python tools/audit_assets.py
+
+# Create placeholder music files to prevent crashes
+python tools/create_placeholder_music.py
+
+# Generate placeholder audio files
+python tools/generate_placeholder_audio.py
+
+# Check asset integrity
+python tools/check_assets.py
 ```
 
 #### Building & Debugging
@@ -368,6 +409,59 @@ Want to help make Danger Rose even better? Check out [CONTRIBUTING.md](CONTRIBUT
 
 ## 🚀 Version History
 
+### v0.1.4-beta (August 3, 2025) - Major Features & System Integration Update
+**🎮 Major New Features:**
+- 🎵 **BPM Traffic System**: Complete implementation of beat-synchronized traffic spawning and hazards in Drive minigame
+- 💻 **Hacker Typing Minigame**: Matrix-themed typing challenge with progressive difficulty and terminal aesthetics
+- 🔊 **Comprehensive Sound System**: 49+ high-quality sound effects generated via 11labs API
+- 👥 **Character Expansion**: Added Benji and Olive as fully playable characters with complete sprite sets
+
+**🎵 BPM Traffic System Features:**
+- Rhythmic traffic controller with music synchronization
+- Beat-synchronized hazard spawning (oil slicks, debris)
+- Visual BPM overlay (toggle with B key)
+- Speed modulation based on rhythm intensity
+- Graceful fallback when disabled
+
+**💻 Hacker Typing Features:**
+- Interactive laptop entity in hub world
+- Progressive difficulty system (passwords → commands → scripts)
+- Terminal interface with retro CRT aesthetics
+- Full scene lifecycle with proper navigation
+- Challenge content management system
+
+**🔊 Sound System Features:**
+- Hub character voices (Danger, Rose, Dad)
+- Complete Drive scene audio (vehicle, collision, traffic)
+- UI feedback sounds for enhanced interaction
+- 11labs API integration for professional quality
+- Retro sound processing pipeline
+
+**👥 Character System:**
+- Benji: Complete sprite sets for all 5 scenes (hub, pool, ski, vegas, drive)
+- Olive: Complete sprite sets for all 5 scenes (hub, pool, ski, vegas, drive)
+- Enhanced Dad, Danger, Rose sprite coverage
+- Animation metadata system implementation
+
+**Bug Fixes:**
+- 🔧 Fixed hub world door overlap issues preventing proper interaction
+- 🎵 Resolved Drive scene crash when music files are missing
+- 🔊 Fixed music bleed-through between scenes
+- 🎮 Improved character animation system stability
+- 🔧 Fixed BPMTrafficIntegration constructor parameter mismatch
+
+**Development Tools:**
+- 📋 Added asset audit tool (`tools/audit_assets.py`) for tracking missing assets
+- 🎵 Added placeholder music creator (`tools/create_placeholder_music.py`) to prevent crashes
+- 📖 Created comprehensive Character Animation Guide
+- 🔧 Enhanced development workflow with new automation tools
+- 🎵 Sound generation tools with 11labs integration
+- 🖼️ Character sprite generation system
+
+**Known Issues:**
+- Uncle Bear character sprites not yet created (metadata only)
+- Character selection UI still shows 3 characters instead of 6
+
 ### v0.1.3-alpha (August 2, 2025) - Highway Drive Enhancement Update
 **New Features:**
 - 🛣️ Authentic Pole Position style road curves with scanline rendering
@@ -382,10 +476,6 @@ Want to help make Danger Rose even better? Check out [CONTRIBUTING.md](CONTRIBUT
 - Fixed traffic positioning on road
 - Enhanced road curve visibility
 - Optimized rendering performance
-
-**Known Issues:**
-- Some sound effects missing (will be added in next update)
-- Scenery backgrounds not yet implemented
 
 ### v0.1.2 - Initial Release
 - Core game modes implemented

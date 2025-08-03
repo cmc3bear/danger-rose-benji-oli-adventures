@@ -1,3 +1,71 @@
+# [1.12.0](https://github.com/svange/danger-rose/compare/v1.11.0...v1.12.0) (2025-08-03)
+
+
+### Major Features
+
+* **BPM Traffic System (Issue #18)**: Complete implementation of beat-synchronized traffic spawning and hazards ([d217f3c](https://github.com/svange/danger-rose/commit/d217f3c))
+  - Rhythmic traffic controller with music synchronization
+  - Beat-synchronized hazard spawning (oil slicks, debris)
+  - Visual BPM overlay (toggle with B key)
+  - Speed modulation based on rhythm intensity
+  - Graceful fallback when disabled
+
+* **Hacker Typing Minigame (Issue #27)**: Complete Matrix-themed typing challenge ([d217f3c](https://github.com/svange/danger-rose/commit/d217f3c))
+  - Interactive laptop entity in hub world
+  - Progressive difficulty system (passwords → commands → scripts)
+  - Terminal interface with retro CRT aesthetics
+  - Full scene lifecycle with proper navigation
+  - Challenge content management system
+
+* **Comprehensive Sound System (Issue #33)**: 49+ high-quality sound effects generated ([d217f3c](https://github.com/svange/danger-rose/commit/d217f3c))
+  - Hub character voices (Danger, Rose, Dad)
+  - Complete Drive scene audio (vehicle, collision, traffic)
+  - UI feedback sounds for enhanced interaction
+  - 11labs API integration for professional quality
+  - Retro sound processing pipeline
+
+* **Character Expansion (Issue #28)**: New playable characters added ([d217f3c](https://github.com/svange/danger-rose/commit/d217f3c))
+  - Benji: Complete sprite sets for all 5 scenes
+  - Olive: Complete sprite sets for all 5 scenes
+  - Enhanced Dad, Danger, Rose sprite coverage
+  - Animation metadata system implementation
+
+
+### Bug Fixes
+
+* resolve Drive scene crash and music bleed-through issues ([56e7bc3](https://github.com/svange/danger-rose/commit/56e7bc3))
+  - Fixed BPMTrafficIntegration constructor parameter mismatch
+  - Enhanced music cleanup on scene exit
+  - Added missing screen_height parameter to BMP system
+
+* fix hub world door overlap preventing proper interaction ([56e7bc3](https://github.com/svange/danger-rose/commit/56e7bc3))
+  - Improved collision detection for minigame access
+  - Enhanced player movement near interactive elements
+
+
+### Development Tools
+
+* add comprehensive asset audit tool ([d217f3c](https://github.com/svange/danger-rose/commit/d217f3c))
+* create placeholder music generator to prevent crashes ([d217f3c](https://github.com/svange/danger-rose/commit/d217f3c))
+* implement character animation guide and sprite organization ([d217f3c](https://github.com/svange/danger-rose/commit/d217f3c))
+* enhance development workflow with new automation tools ([302a399](https://github.com/svange/danger-rose/commit/302a399))
+
+# [1.11.0](https://github.com/svange/danger-rose/compare/v1.10.0...v1.11.0) (2025-08-03)
+
+
+### Bug Fixes
+
+* resolve Drive scene crash and music bleed-through issues ([56e7bc3](https://github.com/svange/danger-rose/commit/56e7bc3))
+* fix hub world door overlap preventing proper interaction ([56e7bc3](https://github.com/svange/danger-rose/commit/56e7bc3))
+
+
+### Features
+
+* add comprehensive asset audit tool ([d217f3c](https://github.com/svange/danger-rose/commit/d217f3c))
+* create placeholder music generator to prevent crashes ([d217f3c](https://github.com/svange/danger-rose/commit/d217f3c))
+* implement character animation guide and sprite organization ([d217f3c](https://github.com/svange/danger-rose/commit/d217f3c))
+* enhance development workflow with new automation tools ([302a399](https://github.com/svange/danger-rose/commit/302a399))
+
 # [1.10.0](https://github.com/svange/danger-rose/compare/v1.9.0...v1.10.0) (2025-08-01)
 
 

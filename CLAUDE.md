@@ -267,13 +267,82 @@ make profile
 - Tag appropriately (enhancement, bug, etc.)
 - Set realistic priorities
 
+## 🛠️ Development Tools
+
+### Asset Management
+```bash
+# Audit all asset references and find missing files
+python tools/audit_assets.py
+
+# Create placeholder music files to prevent crashes
+python tools/create_placeholder_music.py
+
+# Generate placeholder audio files
+python tools/generate_placeholder_audio.py
+
+# Check all asset integrity
+python tools/check_assets.py
+
+# Generate character sprites
+python scripts/generate_character_sprites.py
+```
+
+### Audio Tools
+```bash
+# Test audio system
+python tools/audio_test_suite.py
+
+# Validate audio files
+python tools/audio_validator.py
+
+# Generate sound effects
+python tools/generate_sounds_11labs.py
+
+# Process retro sounds
+python tools/retro_sound_processor.py
+```
+
+### Testing Tools
+```bash
+# Run automated game tests
+python tools/automated_game_tester.py
+
+# Visual regression testing
+python tools/visual_regression_tester.py
+
+# Celebrate achievements!
+python tools/celebrate.py
+```
+
+## 🚨 Known Issues
+
+### High Priority
+- [#26](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/issues/26): Missing EV vehicle sprites for Drive game
+- [#28](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/issues/28): Uncle Bear character sprites not created
+- [#33](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/issues/33): Missing sound effects system integration
+
+### Medium Priority
+- [#27](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/issues/27): Typing tutor minigame implementation
+- [#29](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/issues/29): Character abilities system
+- [#31](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/issues/31): Traffic passing logic improvements
+
+### Low Priority
+- [#25](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/issues/25): Road curve alignment enhancements
+- [#32](https://github.com/cmc3bear/danger-rose-benji-oli-adventures/issues/32): Road-locked traffic hazard tracking
+
+### Recent Fixes ✅
+- Hub world door overlap issues (fixed in commit 56e7bc3)
+- Drive scene crash when music files missing (fixed in commit 56e7bc3)
+- Music bleed-through between scenes (fixed in commit 56e7bc3)
+
 ## 🔧 Debugging Tips
 
 ### Common Issues
-1. **Missing Assets**: Check placeholders are generating
+1. **Missing Assets**: Use `python tools/audit_assets.py` to find missing files
 2. **Scene Transitions**: Verify scene names in registry
-3. **Animation Glitches**: Check frame counts and timing
+3. **Animation Glitches**: Check CHARACTER_ANIMATION_GUIDE.md for specifications
 4. **Performance**: Use debug mode to show FPS
+5. **Audio Issues**: Run `python tools/create_placeholder_music.py` to prevent crashes
 
 ### Debug Commands
 ```bash
