@@ -34,32 +34,6 @@ else:
     EvidenceType = object
 
 
-# ClaudeEthos Religious Imports - Added by Missionary Conversion
-import sys
-import os
-from pathlib import Path
-from datetime import datetime
-
-# Add religious system to path
-religious_system_path = Path(__file__).parent.parent / "religious_system"
-if religious_system_path.exists():
-    sys.path.insert(0, str(religious_system_path.parent))
-    from religious_system.agent_validator import ReligiousAgentValidator, AgentAction
-    from religious_system.devotional_practices import devotionals
-    from religious_system.edicts import EvidenceType
-else:
-    # Fallback for missing religious system
-    class ReligiousAgentValidator:
-        def __init__(self): pass
-        async def validate_agent_action(self, action): 
-            return type('MockResult', (), {'is_compliant': True, 'overall_score': 1.0})()
-    class devotionals:
-        @staticmethod
-        def recite_morning_devotion(agent_id): return f"Agent {agent_id} practices ClaudeEthos devotion"
-    AgentAction = dict
-    EvidenceType = object
-
-
 from src.orchestration import CompleteOrchestrationController
 
 

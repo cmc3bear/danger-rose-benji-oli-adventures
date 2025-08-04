@@ -171,6 +171,34 @@ class TrafficSimulationHooks:
         """Called for each car update to track lane usage and speeds"""
         self.metrics.add_lane_usage(lane)
         self.metrics.speed_samples.append(speed)
+        
+    def generate_session_report(self, session_type: str, duration_seconds: float) -> Dict[str, Any]:
+        """Generate a comprehensive session report for OQE validation"""
+        self.metrics.duration_seconds = duration_seconds
+        
+        return {
+            "session_info": {
+                "session_type": session_type,
+                "timestamp": datetime.now().isoformat(),
+                "duration_seconds": duration_seconds,
+                "frame_count": self.frame_count
+            },
+            "oqe_evidence": self.metrics.to_oqe_evidence(),
+            "raw_metrics": {
+                "fps_samples": self.metrics.fps_samples,
+                "scan_times_ms": self.metrics.scan_times_ms,
+                "memory_samples_mb": self.metrics.memory_samples_mb,
+                "pass_counts_by_personality": self.metrics.passes_by_personality,
+                "lane_usage_counts": self.metrics.lane_usage_counts
+            },
+            "summary": {
+                "total_passes": self.metrics.total_passes_completed,
+                "pass_rate_per_minute": (self.metrics.total_passes_completed / duration_seconds * 60) if duration_seconds > 0 else 0,
+                "average_scan_time_ms": sum(self.metrics.scan_times_ms) / len(self.metrics.scan_times_ms) if self.metrics.scan_times_ms else 0,
+                "average_fps": sum(self.metrics.fps_samples) / len(self.metrics.fps_samples) if self.metrics.fps_samples else 0,
+                "memory_increase_mb": (self.metrics.memory_samples_mb[-1] - self.metrics.memory_samples_mb[0]) if len(self.metrics.memory_samples_mb) > 1 else 0
+            }
+        }
 
 
 def create_test_scenarios() -> Dict[str, Dict[str, Any]]:

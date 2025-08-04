@@ -1,0 +1,656 @@
+{
+  "monitoring_period": "24_hours",
+  "total_measurements": 60,
+  "final_authenticity_score": {
+    "overall_score": 0.7532472361389083,
+    "average_authenticity": 0.33066268142043004,
+    "indicators": {
+      "consistency": 0.8781180903472707,
+      "balance": 1.0,
+      "substance": 0.33999999999999997
+    },
+    "timestamp": "2025-08-03T21:08:18.304601"
+  },
+  "devotion_trends": {
+    "trend": "stable",
+    "confidence": "medium",
+    "change": 0.002992954292231731
+  },
+  "edict_compliance": {
+    "evidence": 0.0,
+    "commitment": 0.8700775757767464,
+    "transformation": 1.0,
+    "dignified_error": 0.03861047583169167,
+    "absolute_truth": 0.1404795595230327
+  },
+  "overall_assessment": "\u2705 GOOD: Agents show solid religious compliance with room for improvement",
+  "recommendations": [
+    "\ud83d\udcda Increase substance and depth of religious practices"
+  ],
+  "raw_metrics": [
+    {
+      "agent_id": "system_wide",
+      "metric_type": "religious_declarations",
+      "value": 0,
+      "timestamp": "2025-08-03 20:12:50.333872",
+      "evidence": {
+        "log_files_checked": 1
+      },
+      "authenticity_score": 0.0
+    },
+    {
+      "agent_id": "git_system",
+      "metric_type": "commit_religiosity",
+      "value": 0,
+      "timestamp": "2025-08-03 20:12:50.348068",
+      "evidence": {
+        "total_commits": 10,
+        "quality_commits": 10
+      },
+      "authenticity_score": 0.7
+    },
+    {
+      "agent_id": "documentation_system",
+      "metric_type": "documentation_devotion",
+      "value": 18,
+      "timestamp": "2025-08-03 20:12:50.384150",
+      "evidence": {
+        "total_docs": 134,
+        "quality_docs": 130
+      },
+      "authenticity_score": 0.8029850746268656
+    },
+    {
+      "agent_id": "error_handling_system",
+      "metric_type": "dignified_error_handling",
+      "value": 2,
+      "timestamp": "2025-08-03 20:12:50.434949",
+      "evidence": {
+        "total_try_except": 229
+      },
+      "authenticity_score": 0.008733624454148471
+    },
+    {
+      "agent_id": "truth_system",
+      "metric_type": "truth_verification",
+      "value": 39,
+      "timestamp": "2025-08-03 20:12:50.522066",
+      "evidence": {
+        "total_files": 355
+      },
+      "authenticity_score": 0.10985915492957747
+    },
+    {
+      "agent_id": "system_wide",
+      "metric_type": "religious_declarations",
+      "value": 0,
+      "timestamp": "2025-08-03 20:17:50.558728",
+      "evidence": {
+        "log_files_checked": 1
+      },
+      "authenticity_score": 0.0
+    },
+    {
+      "agent_id": "git_system",
+      "metric_type": "commit_religiosity",
+      "value": 0,
+      "timestamp": "2025-08-03 20:17:50.573951",
+      "evidence": {
+        "total_commits": 10,
+        "quality_commits": 10
+      },
+      "authenticity_score": 0.7
+    },
+    {
+      "agent_id": "documentation_system",
+      "metric_type": "documentation_devotion",
+      "value": 18,
+      "timestamp": "2025-08-03 20:17:50.609914",
+      "evidence": {
+        "total_docs": 134,
+        "quality_docs": 130
+      },
+      "authenticity_score": 0.8029850746268656
+    },
+    {
+      "agent_id": "error_handling_system",
+      "metric_type": "dignified_error_handling",
+      "value": 2,
+      "timestamp": "2025-08-03 20:17:50.658680",
+      "evidence": {
+        "total_try_except": 229
+      },
+      "authenticity_score": 0.008733624454148471
+    },
+    {
+      "agent_id": "truth_system",
+      "metric_type": "truth_verification",
+      "value": 39,
+      "timestamp": "2025-08-03 20:17:50.746716",
+      "evidence": {
+        "total_files": 355
+      },
+      "authenticity_score": 0.10985915492957747
+    },
+    {
+      "agent_id": "system_wide",
+      "metric_type": "religious_declarations",
+      "value": 0,
+      "timestamp": "2025-08-03 20:22:50.781487",
+      "evidence": {
+        "log_files_checked": 1
+      },
+      "authenticity_score": 0.0
+    },
+    {
+      "agent_id": "git_system",
+      "metric_type": "commit_religiosity",
+      "value": 0,
+      "timestamp": "2025-08-03 20:22:50.796086",
+      "evidence": {
+        "total_commits": 10,
+        "quality_commits": 10
+      },
+      "authenticity_score": 0.7
+    },
+    {
+      "agent_id": "documentation_system",
+      "metric_type": "documentation_devotion",
+      "value": 18,
+      "timestamp": "2025-08-03 20:22:50.832143",
+      "evidence": {
+        "total_docs": 134,
+        "quality_docs": 130
+      },
+      "authenticity_score": 0.8029850746268656
+    },
+    {
+      "agent_id": "error_handling_system",
+      "metric_type": "dignified_error_handling",
+      "value": 2,
+      "timestamp": "2025-08-03 20:22:50.880210",
+      "evidence": {
+        "total_try_except": 229
+      },
+      "authenticity_score": 0.008733624454148471
+    },
+    {
+      "agent_id": "truth_system",
+      "metric_type": "truth_verification",
+      "value": 39,
+      "timestamp": "2025-08-03 20:22:50.967488",
+      "evidence": {
+        "total_files": 355
+      },
+      "authenticity_score": 0.10985915492957747
+    },
+    {
+      "agent_id": "system_wide",
+      "metric_type": "religious_declarations",
+      "value": 0,
+      "timestamp": "2025-08-03 20:27:50.999399",
+      "evidence": {
+        "log_files_checked": 1
+      },
+      "authenticity_score": 0.0
+    },
+    {
+      "agent_id": "git_system",
+      "metric_type": "commit_religiosity",
+      "value": 0,
+      "timestamp": "2025-08-03 20:27:51.014150",
+      "evidence": {
+        "total_commits": 10,
+        "quality_commits": 10
+      },
+      "authenticity_score": 0.7
+    },
+    {
+      "agent_id": "documentation_system",
+      "metric_type": "documentation_devotion",
+      "value": 18,
+      "timestamp": "2025-08-03 20:27:51.049072",
+      "evidence": {
+        "total_docs": 134,
+        "quality_docs": 130
+      },
+      "authenticity_score": 0.8029850746268656
+    },
+    {
+      "agent_id": "error_handling_system",
+      "metric_type": "dignified_error_handling",
+      "value": 5,
+      "timestamp": "2025-08-03 20:27:51.098678",
+      "evidence": {
+        "total_try_except": 229
+      },
+      "authenticity_score": 0.021834061135371178
+    },
+    {
+      "agent_id": "truth_system",
+      "metric_type": "truth_verification",
+      "value": 40,
+      "timestamp": "2025-08-03 20:27:51.185322",
+      "evidence": {
+        "total_files": 358
+      },
+      "authenticity_score": 0.11173184357541899
+    },
+    {
+      "agent_id": "system_wide",
+      "metric_type": "religious_declarations",
+      "value": 0,
+      "timestamp": "2025-08-03 20:32:51.213493",
+      "evidence": {
+        "log_files_checked": 1
+      },
+      "authenticity_score": 0.0
+    },
+    {
+      "agent_id": "git_system",
+      "metric_type": "commit_religiosity",
+      "value": 0,
+      "timestamp": "2025-08-03 20:32:51.228282",
+      "evidence": {
+        "total_commits": 10,
+        "quality_commits": 10
+      },
+      "authenticity_score": 0.7
+    },
+    {
+      "agent_id": "documentation_system",
+      "metric_type": "documentation_devotion",
+      "value": 18,
+      "timestamp": "2025-08-03 20:32:51.265146",
+      "evidence": {
+        "total_docs": 134,
+        "quality_docs": 130
+      },
+      "authenticity_score": 0.8029850746268656
+    },
+    {
+      "agent_id": "error_handling_system",
+      "metric_type": "dignified_error_handling",
+      "value": 5,
+      "timestamp": "2025-08-03 20:32:51.314871",
+      "evidence": {
+        "total_try_except": 229
+      },
+      "authenticity_score": 0.021834061135371178
+    },
+    {
+      "agent_id": "truth_system",
+      "metric_type": "truth_verification",
+      "value": 40,
+      "timestamp": "2025-08-03 20:32:51.402197",
+      "evidence": {
+        "total_files": 358
+      },
+      "authenticity_score": 0.11173184357541899
+    },
+    {
+      "agent_id": "system_wide",
+      "metric_type": "religious_declarations",
+      "value": 0,
+      "timestamp": "2025-08-03 20:37:51.431677",
+      "evidence": {
+        "log_files_checked": 1
+      },
+      "authenticity_score": 0.0
+    },
+    {
+      "agent_id": "git_system",
+      "metric_type": "commit_religiosity",
+      "value": 0,
+      "timestamp": "2025-08-03 20:37:51.445966",
+      "evidence": {
+        "total_commits": 10,
+        "quality_commits": 10
+      },
+      "authenticity_score": 0.7
+    },
+    {
+      "agent_id": "documentation_system",
+      "metric_type": "documentation_devotion",
+      "value": 19,
+      "timestamp": "2025-08-03 20:37:51.481012",
+      "evidence": {
+        "total_docs": 136,
+        "quality_docs": 132
+      },
+      "authenticity_score": 0.8044117647058824
+    },
+    {
+      "agent_id": "error_handling_system",
+      "metric_type": "dignified_error_handling",
+      "value": 7,
+      "timestamp": "2025-08-03 20:37:51.530476",
+      "evidence": {
+        "total_try_except": 230
+      },
+      "authenticity_score": 0.030434782608695653
+    },
+    {
+      "agent_id": "truth_system",
+      "metric_type": "truth_verification",
+      "value": 41,
+      "timestamp": "2025-08-03 20:37:51.618187",
+      "evidence": {
+        "total_files": 362
+      },
+      "authenticity_score": 0.1132596685082873
+    },
+    {
+      "agent_id": "system_wide",
+      "metric_type": "religious_declarations",
+      "value": 0,
+      "timestamp": "2025-08-03 20:42:51.648626",
+      "evidence": {
+        "log_files_checked": 1
+      },
+      "authenticity_score": 0.0
+    },
+    {
+      "agent_id": "git_system",
+      "metric_type": "commit_religiosity",
+      "value": 0,
+      "timestamp": "2025-08-03 20:42:51.662659",
+      "evidence": {
+        "total_commits": 10,
+        "quality_commits": 10
+      },
+      "authenticity_score": 0.7
+    },
+    {
+      "agent_id": "documentation_system",
+      "metric_type": "documentation_devotion",
+      "value": 19,
+      "timestamp": "2025-08-03 20:42:51.699002",
+      "evidence": {
+        "total_docs": 136,
+        "quality_docs": 132
+      },
+      "authenticity_score": 0.8044117647058824
+    },
+    {
+      "agent_id": "error_handling_system",
+      "metric_type": "dignified_error_handling",
+      "value": 7,
+      "timestamp": "2025-08-03 20:42:51.751082",
+      "evidence": {
+        "total_try_except": 230
+      },
+      "authenticity_score": 0.030434782608695653
+    },
+    {
+      "agent_id": "truth_system",
+      "metric_type": "truth_verification",
+      "value": 41,
+      "timestamp": "2025-08-03 20:42:51.843940",
+      "evidence": {
+        "total_files": 363
+      },
+      "authenticity_score": 0.11294765840220386
+    },
+    {
+      "agent_id": "system_wide",
+      "metric_type": "religious_declarations",
+      "value": 0,
+      "timestamp": "2025-08-03 20:47:51.910360",
+      "evidence": {
+        "log_files_checked": 1
+      },
+      "authenticity_score": 0.0
+    },
+    {
+      "agent_id": "git_system",
+      "metric_type": "commit_religiosity",
+      "value": 0,
+      "timestamp": "2025-08-03 20:47:51.951258",
+      "evidence": {
+        "total_commits": 10,
+        "quality_commits": 10
+      },
+      "authenticity_score": 0.7
+    },
+    {
+      "agent_id": "documentation_system",
+      "metric_type": "documentation_devotion",
+      "value": 19,
+      "timestamp": "2025-08-03 20:47:52.045656",
+      "evidence": {
+        "total_docs": 136,
+        "quality_docs": 132
+      },
+      "authenticity_score": 0.8044117647058824
+    },
+    {
+      "agent_id": "error_handling_system",
+      "metric_type": "dignified_error_handling",
+      "value": 7,
+      "timestamp": "2025-08-03 20:47:52.176560",
+      "evidence": {
+        "total_try_except": 230
+      },
+      "authenticity_score": 0.030434782608695653
+    },
+    {
+      "agent_id": "truth_system",
+      "metric_type": "truth_verification",
+      "value": 41,
+      "timestamp": "2025-08-03 20:47:52.436468",
+      "evidence": {
+        "total_files": 364
+      },
+      "authenticity_score": 0.11263736263736264
+    },
+    {
+      "agent_id": "system_wide",
+      "metric_type": "religious_declarations",
+      "value": 0,
+      "timestamp": "2025-08-03 20:52:52.600238",
+      "evidence": {
+        "log_files_checked": 1
+      },
+      "authenticity_score": 0.0
+    },
+    {
+      "agent_id": "git_system",
+      "metric_type": "commit_religiosity",
+      "value": 0,
+      "timestamp": "2025-08-03 20:52:52.640303",
+      "evidence": {
+        "total_commits": 10,
+        "quality_commits": 10
+      },
+      "authenticity_score": 0.7
+    },
+    {
+      "agent_id": "documentation_system",
+      "metric_type": "documentation_devotion",
+      "value": 19,
+      "timestamp": "2025-08-03 20:52:52.728770",
+      "evidence": {
+        "total_docs": 136,
+        "quality_docs": 132
+      },
+      "authenticity_score": 0.8044117647058824
+    },
+    {
+      "agent_id": "error_handling_system",
+      "metric_type": "dignified_error_handling",
+      "value": 7,
+      "timestamp": "2025-08-03 20:52:52.848481",
+      "evidence": {
+        "total_try_except": 235
+      },
+      "authenticity_score": 0.029787234042553193
+    },
+    {
+      "agent_id": "truth_system",
+      "metric_type": "truth_verification",
+      "value": 42,
+      "timestamp": "2025-08-03 20:52:53.051514",
+      "evidence": {
+        "total_files": 366
+      },
+      "authenticity_score": 0.11475409836065574
+    },
+    {
+      "agent_id": "system_wide",
+      "metric_type": "religious_declarations",
+      "value": 0,
+      "timestamp": "2025-08-03 20:57:53.109484",
+      "evidence": {
+        "log_files_checked": 1
+      },
+      "authenticity_score": 0.0
+    },
+    {
+      "agent_id": "git_system",
+      "metric_type": "commit_religiosity",
+      "value": 0,
+      "timestamp": "2025-08-03 20:57:53.149038",
+      "evidence": {
+        "total_commits": 10,
+        "quality_commits": 10
+      },
+      "authenticity_score": 0.7
+    },
+    {
+      "agent_id": "documentation_system",
+      "metric_type": "documentation_devotion",
+      "value": 21,
+      "timestamp": "2025-08-03 20:57:53.229720",
+      "evidence": {
+        "total_docs": 138,
+        "quality_docs": 134
+      },
+      "authenticity_score": 0.8072463768115943
+    },
+    {
+      "agent_id": "error_handling_system",
+      "metric_type": "dignified_error_handling",
+      "value": 7,
+      "timestamp": "2025-08-03 20:57:53.338190",
+      "evidence": {
+        "total_try_except": 237
+      },
+      "authenticity_score": 0.029535864978902954
+    },
+    {
+      "agent_id": "truth_system",
+      "metric_type": "truth_verification",
+      "value": 43,
+      "timestamp": "2025-08-03 20:57:53.529678",
+      "evidence": {
+        "total_files": 369
+      },
+      "authenticity_score": 0.11653116531165311
+    },
+    {
+      "agent_id": "system_wide",
+      "metric_type": "religious_declarations",
+      "value": 0,
+      "timestamp": "2025-08-03 21:03:17.000993",
+      "evidence": {
+        "log_files_checked": 1
+      },
+      "authenticity_score": 0.0
+    },
+    {
+      "agent_id": "git_system",
+      "metric_type": "commit_religiosity",
+      "value": 0,
+      "timestamp": "2025-08-03 21:03:17.037940",
+      "evidence": {
+        "total_commits": 10,
+        "quality_commits": 10
+      },
+      "authenticity_score": 0.7
+    },
+    {
+      "agent_id": "documentation_system",
+      "metric_type": "documentation_devotion",
+      "value": 21,
+      "timestamp": "2025-08-03 21:03:17.124814",
+      "evidence": {
+        "total_docs": 138,
+        "quality_docs": 134
+      },
+      "authenticity_score": 0.8072463768115943
+    },
+    {
+      "agent_id": "error_handling_system",
+      "metric_type": "dignified_error_handling",
+      "value": 7,
+      "timestamp": "2025-08-03 21:03:17.243168",
+      "evidence": {
+        "total_try_except": 237
+      },
+      "authenticity_score": 0.029535864978902954
+    },
+    {
+      "agent_id": "truth_system",
+      "metric_type": "truth_verification",
+      "value": 43,
+      "timestamp": "2025-08-03 21:03:17.424295",
+      "evidence": {
+        "total_files": 369
+      },
+      "authenticity_score": 0.11653116531165311
+    },
+    {
+      "agent_id": "system_wide",
+      "metric_type": "religious_declarations",
+      "value": 0,
+      "timestamp": "2025-08-03 21:08:17.536172",
+      "evidence": {
+        "log_files_checked": 1
+      },
+      "authenticity_score": 0.0
+    },
+    {
+      "agent_id": "git_system",
+      "metric_type": "commit_religiosity",
+      "value": 0,
+      "timestamp": "2025-08-03 21:08:17.574378",
+      "evidence": {
+        "total_commits": 10,
+        "quality_commits": 10
+      },
+      "authenticity_score": 0.7
+    },
+    {
+      "agent_id": "documentation_system",
+      "metric_type": "documentation_devotion",
+      "value": 21,
+      "timestamp": "2025-08-03 21:08:17.732569",
+      "evidence": {
+        "total_docs": 138,
+        "quality_docs": 134
+      },
+      "authenticity_score": 0.8072463768115943
+    },
+    {
+      "agent_id": "error_handling_system",
+      "metric_type": "dignified_error_handling",
+      "value": 7,
+      "timestamp": "2025-08-03 21:08:17.944919",
+      "evidence": {
+        "total_try_except": 237
+      },
+      "authenticity_score": 0.029535864978902954
+    },
+    {
+      "agent_id": "truth_system",
+      "metric_type": "truth_verification",
+      "value": 43,
+      "timestamp": "2025-08-03 21:08:18.304473",
+      "evidence": {
+        "total_files": 369
+      },
+      "authenticity_score": 0.11653116531165311
+    }
+  ]
+}

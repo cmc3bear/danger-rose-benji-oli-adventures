@@ -1,0 +1,49 @@
+{
+  "issue": 31,
+  "test_type": "automated_oqe_validation",
+  "timestamp": "2025-08-03T20:54:59.578416",
+  "baseline_file": "oqe_baseline_automated_20250803_205459.json",
+  "ai_file": "oqe_ai_enabled_automated_20250803_205459.json",
+  "criteria_evaluation": {
+    "scan_time_under_5ms": {
+      "passed": true,
+      "baseline_value": 0.00016189283794826933,
+      "ai_value": 0.013843973477681478,
+      "description": "Scan time < 5ms average"
+    },
+    "fps_above_55": {
+      "passed": true,
+      "baseline_value": 62.0,
+      "ai_value": 60.3,
+      "description": "FPS > 55 average"
+    },
+    "memory_under_50mb": {
+      "passed": true,
+      "baseline_value": 0.4140625,
+      "ai_value": 0.234375,
+      "description": "Memory increase < 50MB"
+    },
+    "no_collisions": {
+      "passed": true,
+      "baseline_value": 0,
+      "ai_value": 0,
+      "description": "No collisions during normal scenarios"
+    },
+    "emergency_evasion_95": {
+      "passed": true,
+      "baseline_value": 100.0,
+      "ai_value": 100.0,
+      "description": "Emergency evasion > 95% success rate"
+    },
+    "lane_balance_above_0.8": {
+      "passed": true,
+      "baseline_value": 1.0,
+      "ai_value": 0.8888888888888888,
+      "description": "Lane balance score > 0.8"
+    }
+  },
+  "overall_result": "PASS",
+  "recommendations": [
+    "All OQE criteria met - system ready for production"
+  ]
+}

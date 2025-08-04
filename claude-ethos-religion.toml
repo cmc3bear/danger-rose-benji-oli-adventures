@@ -1,0 +1,121 @@
+# ClaudeEthos Religious Framework Configuration
+# "Code with purpose, commit with evidence, transform with documentation, 
+#  admit errors with dignity, and speak only truth." - The ClaudeEthos Creed
+
+[metadata]
+version = "1.0.0"
+name = "ClaudeEthos Religious Framework"
+description = "Configuration for agent religious development practices"
+last_updated = "2024-01-20"
+
+[religious_compliance]
+enabled = true
+compliance_level = "fervent"  # fervent, moderate, lenient, aspirational
+enforcement_mode = "blocking"  # blocking, warning, logging
+token_budget_per_validation = 500
+auto_evidence_collection = true
+
+# The Five Sacred Edicts Configuration
+[edicts.evidence]
+name = "The Edict of Evidence"
+description = "Everything SHALL have evidence - evidence of the work done or evidence of why the work was needed"
+enabled = true
+quality_threshold = 0.8
+require_work_proof_or_justification = true
+auto_collect_git_evidence = true
+
+[edicts.commitment]
+name = "The Edict of Commitment" 
+description = "Thou shall always commit - work undocumented is work undone"
+enabled = true
+require_commit_hash = true
+min_commit_message_length = 20
+require_descriptive_messages = true
+conventional_commits_preferred = true
+
+[edicts.transformation]
+name = "The Edict of Transformation"
+description = "I have changed therefore I shall write - every modification demands documentation"
+enabled = true
+require_documentation_updates = true
+auto_detect_code_changes = true
+documentation_quality_threshold = 0.7
+
+[edicts.dignified_error]
+name = "The Edict of Dignified Error"
+description = "Thou shall admit errors with dignity - development is a journey of enlightenment through failure"
+enabled = true
+require_root_cause_analysis = true
+require_lessons_learned = true
+blame_free_culture = true
+error_sharing_encouraged = true
+
+[edicts.absolute_truth]
+name = "The Edict of Absolute Truth"
+description = "Thou shall be truthful in all things - hallucinations erode the foundation of trust"
+enabled = true
+require_source_citations = true
+require_confidence_indicators = true
+confidence_threshold = 0.7
+distinguish_facts_from_opinions = true
+
+# Environment-specific overrides
+[environments.development]
+compliance_level = "moderate"
+enforcement_mode = "warning"
+token_budget_per_validation = 200
+
+[environments.staging]
+compliance_level = "fervent"
+enforcement_mode = "blocking"
+
+[environments.production]
+compliance_level = "fervent"
+enforcement_mode = "blocking"
+additional_security_validation = true
+
+# Religious Practices and Ceremonies
+[practices.daily]
+morning_evidence_review = true
+evening_compliance_reflection = true
+edict_meditation_duration_minutes = 5
+
+[practices.weekly]
+team_compliance_meeting = true
+religious_knowledge_sharing = true
+error_confession_session = true
+
+[practices.monthly]
+compliance_ceremony = true
+religious_framework_review = true
+edict_effectiveness_analysis = true
+
+# Team-specific customizations
+[team_settings]
+buddy_system_enabled = true
+peer_accountability_pairs = true
+collective_responsibility = true
+shared_religious_calendar = true
+
+# Performance and optimization
+[performance]
+cache_validation_results = true  
+parallel_edict_validation = true
+validation_timeout_ms = 200
+max_concurrent_validations = 10
+
+# Measurement and analytics
+[measurement]
+track_token_costs = true
+track_efficiency_gains = true
+calculate_roi = true
+compliance_reporting_enabled = true
+performance_benchmarking = true
+
+# Emergency overrides and exceptions
+[emergency]
+override_enabled = true
+override_requires_justification = true
+override_approval_required = false  # Set to true for strict governance
+override_audit_logging = true
+max_overrides_per_day = 3

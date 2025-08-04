@@ -22,6 +22,7 @@ from src.systems.game_state_logger import get_global_logger
 from src.systems.oqe_metric_collector import OQEMetricCollector
 from src.ui.live_testing_overlay import LiveTestingOverlay
 from src.testing.test_plan_loader import TestPlanLoader
+from src.ui.universal_music_selector import UniversalMusicSelector
 from src.managers.sound_manager import SoundManager
 from src.scenes.hub import HubWorld
 from src.scenes.leaderboard import LeaderboardScene
@@ -70,6 +71,22 @@ class SceneManager:
         self.testing_overlay = LiveTestingOverlay(screen_width, screen_height)
         self.test_plan_loader = TestPlanLoader(str(Path(__file__).parent.parent))
         
+        # Music selection system
+        self.music_selector = None
+        self.pending_scene = None
+        self.in_music_selection = False
+        self.scene_music_preferences = {}  # Store selected music per scene
+        
+        # Scenes that should have music selection
+        self.music_enabled_scenes = [
+            SCENE_HUB_WORLD,
+            SCENE_POOL_GAME,
+            SCENE_SKI_GAME,
+            SCENE_VEGAS_GAME,
+            SCENE_DRIVE_GAME,
+            SCENE_HACKER_TYPING
+        ]
+        
         # Auto-load test procedures for Issue #34 (logging system) by default
         self.load_test_procedures_for_issue(34)
         
@@ -103,6 +120,21 @@ class SceneManager:
     def handle_event(self, event):
         # Let testing overlay handle events first
         if self.testing_overlay.handle_event(event):
+            return
+        
+        # Handle music selection if active
+        if self.in_music_selection and self.music_selector:
+            result = self.music_selector.handle_event(event)
+            if result == "track_selected":
+                # Music selected, proceed to scene
+                selected_track = self.music_selector.get_selected_track()
+                self._complete_scene_transition(self.pending_scene, selected_track)
+                return
+            elif result == "skip_music":
+                # Skip music selection, proceed to scene
+                self._complete_scene_transition(self.pending_scene, None)
+                return
+            # If no result, continue with music selection
             return
         
         # Log input events
@@ -186,6 +218,11 @@ class SceneManager:
         # Update testing overlay
         self.testing_overlay.update(dt)
         
+        # Update music selector if active
+        if self.in_music_selection and self.music_selector:
+            self.music_selector.update(dt)
+            return
+        
         # Periodic performance measurements
         current_time = time.time()
         if current_time - self.last_fps_measurement >= self.fps_measurement_interval:
@@ -200,13 +237,75 @@ class SceneManager:
                 self.current_scene.update(dt)
 
     def draw(self, screen):
-        if self.current_scene:
+        # Draw music selector if active
+        if self.in_music_selection and self.music_selector:
+            self.music_selector.draw(screen)
+        elif self.current_scene:
             self.current_scene.draw(screen)
             
         # Draw testing overlay last (on top)
         self.testing_overlay.draw(screen)
 
     def switch_scene(self, scene_name: str):
+        if scene_name in self.scenes:
+            # Check if this scene should have music selection
+            if scene_name in self.music_enabled_scenes:
+                self._start_music_selection(scene_name)
+                return
+            
+            # Proceed with immediate scene transition
+            self._perform_scene_transition(scene_name)
+    
+    def _start_music_selection(self, scene_name: str):
+        """Start music selection for a scene."""
+        self.pending_scene = scene_name
+        self.in_music_selection = True
+        
+        # Map scene names to music folder names
+        music_scene_map = {
+            SCENE_HUB_WORLD: "hub",
+            SCENE_POOL_GAME: "pool", 
+            SCENE_SKI_GAME: "ski",
+            SCENE_VEGAS_GAME: "vegas",
+            SCENE_DRIVE_GAME: "drive",
+            SCENE_HACKER_TYPING: "hacker_typing"
+        }
+        
+        music_scene_name = music_scene_map.get(scene_name, scene_name.lower())
+        self.music_selector = UniversalMusicSelector(
+            self.screen_width,
+            self.screen_height, 
+            self.sound_manager,
+            music_scene_name
+        )
+        
+        if self.game_logger:
+            self.game_logger.log_audio_event(
+                audio_action="music_selection_started",
+                track="none",
+                details={
+                    "target_scene": scene_name,
+                    "music_scene": music_scene_name
+                }
+            )
+    
+    def _complete_scene_transition(self, scene_name: str, selected_track):
+        """Complete scene transition after music selection."""
+        self.in_music_selection = False
+        if self.music_selector:
+            self.music_selector.cleanup()
+            self.music_selector = None
+        self.pending_scene = None
+        
+        # Store selected music for the scene
+        if selected_track:
+            self._set_scene_music(scene_name, selected_track)
+        
+        # Perform the actual scene transition
+        self._perform_scene_transition(scene_name)
+    
+    def _perform_scene_transition(self, scene_name: str):
+        """Perform the actual scene transition."""
         if scene_name in self.scenes:
             transition_start = time.time()
             previous_scene_name = None
@@ -252,29 +351,74 @@ class SceneManager:
 
             # Handle music transitions
             self._handle_music_transition(scene_name)
+    
+    def _set_scene_music(self, scene_name: str, track):
+        """Store selected music track for a scene."""
+        self.scene_music_preferences[scene_name] = track
+        
+        if self.game_logger:
+            self.game_logger.log_audio_event(
+                audio_action="scene_music_preference_stored",
+                track=track.filename if track else "none",
+                details={
+                    "scene": scene_name,
+                    "track_name": track.name if track else "none",
+                    "mood": track.mood if track else "none"
+                }
+            )
+    
+    def _get_scene_music(self, scene_name: str):
+        """Get stored music track for a scene."""
+        return self.scene_music_preferences.get(scene_name)
 
     def _handle_music_transition(self, scene_name: str):
         """Handle music transitions between scenes."""
-        music_map = {
-            SCENE_TITLE: "title_theme.ogg",
-            SCENE_HUB_WORLD: "hub_theme.ogg",
-            SCENE_SKI_GAME: "ski_theme.ogg",
-            SCENE_VEGAS_GAME: "vegas_theme.ogg",
-            SCENE_POOL_GAME: "pool_theme.ogg",
-        }
-
-        if scene_name in music_map:
-            music_file = get_music_path(music_map[scene_name])
+        # Check if user selected a specific track for this scene
+        selected_track = self._get_scene_music(scene_name)
+        
+        music_file = None
+        track_name = "none"
+        
+        if selected_track:
+            # Use user-selected track
+            scene_folder_map = {
+                SCENE_HUB_WORLD: "hub",
+                SCENE_POOL_GAME: "pool",
+                SCENE_SKI_GAME: "ski", 
+                SCENE_VEGAS_GAME: "vegas",
+                SCENE_DRIVE_GAME: "drive",
+                SCENE_HACKER_TYPING: "hacker_typing"
+            }
             
+            folder = scene_folder_map.get(scene_name)
+            if folder:
+                music_file = get_music_path(f"{folder}/{selected_track.filename}")
+                track_name = selected_track.filename
+        else:
+            # Fall back to default music
+            default_music_map = {
+                SCENE_TITLE: "title_theme.ogg",
+                SCENE_HUB_WORLD: "hub_theme.ogg",
+                SCENE_SKI_GAME: "ski_theme.ogg",
+                SCENE_VEGAS_GAME: "vegas_theme.ogg",
+                SCENE_POOL_GAME: "pool_theme.ogg",
+            }
+            
+            if scene_name in default_music_map:
+                music_file = get_music_path(default_music_map[scene_name])
+                track_name = default_music_map[scene_name]
+
+        if music_file:
             # Log audio transition
             if self.game_logger:
                 self.game_logger.log_audio_event(
                     audio_action="music_crossfade",
-                    track=music_map[scene_name],
+                    track=track_name,
                     details={
                         "scene": scene_name,
                         "crossfade_duration_ms": 1000,
-                        "file_path": str(music_file)
+                        "file_path": str(music_file),
+                        "user_selected": selected_track is not None
                     }
                 )
             

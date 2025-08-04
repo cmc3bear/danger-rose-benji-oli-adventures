@@ -4,6 +4,8 @@ import random
 import time
 import math
 import os
+import json
+from datetime import datetime
 from typing import Optional, List, Dict
 from dataclasses import dataclass
 
@@ -33,20 +35,30 @@ from src.utils.asset_paths import get_sfx_path
 from src.utils.sprite_loader import load_image, load_vehicle_sprite
 from src.ui.drawing_helpers import draw_text_with_background, draw_instructions
 from src.systems.bmp_traffic_integration import BPMTrafficIntegration
+from src.systems.road_geometry import RoadGeometry, RoadPosition
+from src.testing.traffic_simulation_framework import TrafficSimulationHooks, SimulationMetrics
 
 
 @dataclass
 class NPCCar:
     """Represents an NPC vehicle in traffic (cars and trucks)."""
-    x: float               # Horizontal position (0.0-1.0)
-    y: float               # Vertical position (distance ahead/behind player)
-    lane: int              # Lane number (0-3: 0,1=player direction, 2,3=oncoming)
-    speed: float           # Relative speed compared to player
-    color: tuple           # RGB color for the vehicle
+    # Road-relative position (NEW - Issue #32)
+    road_pos: RoadPosition = None  # Position relative to road geometry
+    
+    # Legacy screen positions (maintained for compatibility)
+    x: float = 0.0         # Horizontal position (0.0-1.0) - calculated from road_pos
+    y: float = 0.0         # Vertical position (distance ahead/behind player)
+    
+    # Vehicle properties
+    lane: int = 3          # Lane number (1-4: 1,2=oncoming, 3,4=same direction)
+    speed: float = 0.8     # Independent speed (not relative to player anymore)
+    color: tuple = (255, 255, 255)  # RGB color for the vehicle
     vehicle_type: str = "car"       # "car" or "truck"
     direction: int = 1     # 1 = same direction as player, -1 = oncoming
     width: int = 32        # Vehicle width in pixels
     height: int = 48       # Vehicle height in pixels
+    
+    # AI and behavior
     lane_change_timer: float = 0.0  # Timer for lane changes
     ai_state: str = "cruising"      # AI behavior state
     collision_zone: tuple = (32, 48)  # Collision detection size (width, height)
@@ -57,21 +69,39 @@ class NPCCar:
     desired_speed: float = 0.8  # Preferred cruising speed
     target_lane: int = None  # Target lane for lane changes
     lane_change_progress: float = 0.0  # Progress of current lane change (0-1)
+    
     # Crash behavior properties
     is_crashing: bool = False  # Currently in a crash spin
     crash_rotation: float = 0.0  # Current crash rotation progress
     crash_target_rotation: float = 0.0  # Total rotation to complete
     crash_initial_speed: float = 0.0  # Speed at time of crash
     crash_target_x: float = 0.0  # Target X position (off road)
+    
+    def update_screen_position(self, road_geometry: RoadGeometry, road_curve: float = 0.0,
+                             width_variation: float = 0.0, surface_noise: float = 0.0):
+        """Update screen position from road position."""
+        if self.road_pos:
+            screen_x, screen_y = road_geometry.road_to_screen(
+                self.road_pos.distance, self.road_pos.lane, self.road_pos.lane_offset,
+                road_curve, width_variation, surface_noise
+            )
+            self.x = screen_x / road_geometry.screen_width  # Convert back to normalized
+            self.y = screen_y
 
 
 @dataclass
 class Hazard:
     """Represents a hazard on the road (static or dynamic)."""
-    x: float               # Horizontal position (0.0-1.0)
-    y: float               # Vertical position (distance ahead/behind player)
-    lane: int              # Lane number where hazard is placed
-    hazard_type: str       # "cone", "barrier", "warning_sign", "oil_slick", "debris", "water_puddle"
+    # Road-relative position (NEW - Issue #32)
+    road_pos: RoadPosition = None  # Position relative to road geometry
+    
+    # Legacy screen positions (maintained for compatibility)
+    x: float = 0.0         # Horizontal position (0.0-1.0) - calculated from road_pos
+    y: float = 0.0         # Vertical position (distance ahead/behind player)
+    
+    # Hazard properties
+    lane: int = 3          # Lane number where hazard is placed
+    hazard_type: str = "cone"  # "cone", "barrier", "warning_sign", "oil_slick", "debris", "water_puddle"
     width: int = 16        # Hazard width in pixels
     height: int = 24       # Hazard height in pixels
     collision_zone: tuple = (16, 24)  # Collision detection size
@@ -83,6 +113,17 @@ class Hazard:
     effect_duration: float = 0.0  # How long the effect lasts
     effect_strength: float = 1.0  # Multiplier for effect intensity
     spawn_source: str = None      # What caused this hazard (e.g., "truck" for oil)
+    
+    def update_screen_position(self, road_geometry: RoadGeometry, road_curve: float = 0.0,
+                             width_variation: float = 0.0, surface_noise: float = 0.0):
+        """Update screen position from road position."""
+        if self.road_pos:
+            screen_x, screen_y = road_geometry.road_to_screen(
+                self.road_pos.distance, self.road_pos.lane, self.road_pos.lane_offset,
+                road_curve, width_variation, surface_noise
+            )
+            self.x = screen_x / road_geometry.screen_width  # Convert back to normalized
+            self.y = screen_y
 
 
 class DriveGame:
@@ -265,6 +306,20 @@ class DriveGame:
         self.traffic_awareness = TrafficAwareness()
         self.bmp_overlay_visible = False  # Toggle with B key
         
+        # OQE Traffic Metrics System (Issue #31 validation)
+        self.oqe_metrics = SimulationMetrics()
+        self.traffic_hooks = TrafficSimulationHooks(self.oqe_metrics)
+        self.oqe_baseline_mode = False  # Toggle for baseline vs AI-enabled testing
+        self.oqe_session_start_time = None
+        self.oqe_fps_clock = pygame.time.Clock()  # For FPS tracking
+        self.oqe_last_frame_time = time.time()
+        
+        # Road geometry system (Issue #32)
+        self.road_geometry = RoadGeometry(self.screen_width, self.screen_height)
+        
+        # OQE event counter for performance sampling
+        self.oqe_frame_count = 0
+        
         # Register BMP callbacks
         self._setup_bmp_callbacks()
         
@@ -388,6 +443,64 @@ class DriveGame:
                     # Toggle BMP overlay
                     self.bmp_overlay_visible = not self.bmp_overlay_visible
                     print(f"BMP overlay {'enabled' if self.bmp_overlay_visible else 'disabled'}")
+                elif event.key == pygame.K_F11:
+                    # Toggle OQE baseline mode (AI disabled for testing)
+                    self.oqe_baseline_mode = not self.oqe_baseline_mode
+                    mode_name = "BASELINE (AI disabled)" if self.oqe_baseline_mode else "NORMAL (AI enabled)"
+                    print(f"OQE Testing Mode: {mode_name}")
+                    # Log mode change to game logger
+                    self._log_oqe_event("mode_change", {
+                        "new_mode": "baseline" if self.oqe_baseline_mode else "ai_enabled",
+                        "timestamp": time.time()
+                    })
+                elif event.key == pygame.K_F10:
+                    # Start new OQE session
+                    if hasattr(self, 'traffic_hooks'):
+                        self.oqe_session_start_time = time.time()
+                        self.oqe_metrics = SimulationMetrics()  # Reset metrics
+                        self.traffic_hooks.metrics = self.oqe_metrics
+                        self.oqe_frame_count = 0  # Reset frame counter
+                        session_type = "baseline" if self.oqe_baseline_mode else "ai_enabled"
+                        print(f"OQE Session Started: {session_type}")
+                        # Log session start to game logger
+                        self._log_oqe_event("session_start", {
+                            "session_type": session_type,
+                            "timestamp": self.oqe_session_start_time,
+                            "baseline_mode": self.oqe_baseline_mode
+                        })
+                elif event.key == pygame.K_F9:
+                    # Export current OQE session
+                    if hasattr(self, 'traffic_hooks') and self.oqe_session_start_time:
+                        session_duration = time.time() - self.oqe_session_start_time
+                        session_type = "baseline" if self.oqe_baseline_mode else "ai_enabled"
+                        report = self.traffic_hooks.generate_session_report(session_type, session_duration)
+                        
+                        # Save report to file
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        filename = f"oqe_session_{session_type}_{timestamp}.json"
+                        filepath = os.path.join("pipeline_reports", filename)
+                        os.makedirs("pipeline_reports", exist_ok=True)
+                        
+                        with open(filepath, 'w') as f:
+                            json.dump(report, f, indent=2)
+                        
+                        print(f"OQE Session Report saved: {filepath}")
+                        print(f"Duration: {session_duration:.1f}s, Passes: {self.oqe_metrics.total_passes_completed}")
+                        
+                        # Log the complete export to game logger for persistent tracking
+                        self._log_oqe_event("session_export", {
+                            "session_type": session_type,
+                            "duration_seconds": session_duration,
+                            "total_passes": self.oqe_metrics.total_passes_completed,
+                            "avg_fps": sum(self.oqe_metrics.fps_samples) / len(self.oqe_metrics.fps_samples) if self.oqe_metrics.fps_samples else 0,
+                            "avg_scan_time_ms": sum(self.oqe_metrics.scan_times_ms) / len(self.oqe_metrics.scan_times_ms) if self.oqe_metrics.scan_times_ms else 0,
+                            "file_saved": filepath,
+                            "report_summary": report.get("summary", {}),
+                            "pass_criteria": report["oqe_evidence"]["pass_criteria"] if "oqe_evidence" in report else {},
+                            "memory_samples": len(self.oqe_metrics.memory_samples_mb)
+                        })
+                        
+                        self.oqe_session_start_time = None
                     
             elif self.state == self.STATE_GAME_OVER:
                 if event.key == pygame.K_SPACE:
@@ -419,8 +532,37 @@ class DriveGame:
         # Always update race music manager
         self.race_music_manager.update(dt)
         
+    def _log_oqe_event(self, event_type: str, data: dict):
+        """Log OQE events to game logger for persistent tracking"""
+        if hasattr(self.scene_manager, 'game_logger') and self.scene_manager.game_logger:
+            self.scene_manager.game_logger.log_system_event("oqe_traffic", event_type, data)
+    
     def _update_racing(self, dt: float):
         """Update racing mechanics and state."""
+        # OQE Hook: Frame start for FPS and performance tracking
+        if hasattr(self, 'traffic_hooks'):
+            # Calculate FPS from delta time
+            current_time = time.time()
+            frame_time = current_time - self.oqe_last_frame_time
+            fps = 1.0 / frame_time if frame_time > 0 else 60.0
+            self.oqe_last_frame_time = current_time
+            
+            # Clamp FPS to reasonable range
+            fps = max(10.0, min(fps, 120.0))
+            self.traffic_hooks.on_frame_start(fps)
+            
+            # Log OQE performance data every 5 seconds
+            self.oqe_frame_count += 1
+            if self.oqe_frame_count % 300 == 0:  # Every 5 seconds at 60 FPS
+                import psutil
+                process = psutil.Process()
+                self._log_oqe_event("performance_sample", {
+                    "fps": fps,
+                    "frame_time_ms": frame_time * 1000,
+                    "memory_mb": process.memory_info().rss / 1024 / 1024,
+                    "frame_count": self.oqe_frame_count
+                })
+        
         # Handle input
         self._handle_racing_input(dt)
         
@@ -834,23 +976,72 @@ class DriveGame:
             
         # Update existing traffic cars
         cars_to_remove = []
+        
+        # OQE Hook: Detect congestion by counting cars close together in each lane
+        if hasattr(self, 'traffic_hooks'):
+            lane_car_counts = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}  # Count cars per lane
+            for check_car in self.npc_cars:
+                # Count cars that are close to player (within visible range)
+                if abs(check_car.y) < 200:  # Cars within close proximity
+                    lane_car_counts[check_car.lane] += 1
+            
+            # Detect congestion (3+ cars in same lane within close range)
+            for lane, car_count in lane_car_counts.items():
+                if car_count >= 3:
+                    self.traffic_hooks.on_congestion_detected(lane, car_count)
+        
         for i, car in enumerate(self.npc_cars):
             # Store previous x position
             if car.prev_x is None:
                 car.prev_x = car.x
             
-            # Update car position based on direction - all from player's POV
-            if car.direction == 1:
-                # Same direction as player - normal relative movement
-                relative_speed = car.speed - self.player_speed
-                car.y += relative_speed * dt * 100  # Move relative to player
+            # OQE Hook: Log car update with lane and speed information
+            if hasattr(self, 'traffic_hooks'):
+                # Convert car speed to km/h for more meaningful metrics
+                speed_kmh = car.speed * 60  # Rough conversion from normalized speed to km/h
+                self.traffic_hooks.on_car_update(car.lane, speed_kmh)
+            
+            # Update road-relative position first (Issue #32)
+            if car.road_pos:
+                # Update distance along road based on direction and speeds
+                if car.direction == 1:
+                    # Same direction as player - use actual speed difference
+                    relative_speed = car.speed - self.player_speed
+                    car.road_pos.distance -= relative_speed * dt * 100  # Move relative to player
+                else:
+                    # Oncoming traffic - they approach based on combined speeds
+                    combined_approach_speed = car.speed + self.player_speed
+                    car.road_pos.distance += combined_approach_speed * dt * 100  # Approach from ahead
+                
+                # Update screen position from road position
+                car.update_screen_position(
+                    self.road_geometry, 
+                    self.road_curve, 
+                    self.width_oscillation,
+                    self.surface_noise
+                )
+                
+                # Log road geometry tracking (OQE - Issue #32)
+                if hasattr(self.scene_manager, 'game_logger') and self.scene_manager.game_logger:
+                    if i == 0 and len(self.npc_cars) > 0:  # Log for first car only to avoid spam
+                        self.scene_manager.game_logger.log_system_event("road_geometry", "position_update", {
+                            "car_id": f"npc_{i}",
+                            "road_distance": car.road_pos.distance,
+                            "lane": car.road_pos.lane,
+                            "lane_offset": car.road_pos.lane_offset,
+                            "screen_x": car.x * self.screen_width,
+                            "screen_y": car.y,
+                            "road_curve": self.road_curve,
+                            "width_variation": self.width_oscillation
+                        })
             else:
-                # Oncoming traffic - from player POV they approach from ahead
-                # They should appear to come toward player and pass by naturally
-                # Use base speed + player speed for realistic relative motion
-                base_oncoming_speed = 0.7  # Base speed for oncoming traffic when player is stopped
-                oncoming_relative_speed = base_oncoming_speed + self.player_speed  # Combined approach speed
-                car.y -= oncoming_relative_speed * dt * 100  # Approach from ahead (toward player)
+                # Fallback to legacy position updates for cars without road_pos
+                if car.direction == 1:
+                    relative_speed = car.speed - self.player_speed
+                    car.y += relative_speed * dt * 100
+                else:
+                    combined_approach_speed = car.speed + self.player_speed
+                    car.y -= combined_approach_speed * dt * 100
             
             # Update AI behavior or crash behavior
             if car.is_crashing:
@@ -930,8 +1121,9 @@ class DriveGame:
                 lane = 7 - lane  # Switch to other lane (3↔4)
                 
             # First determine speed, then spawn position based on speed
-            # All traffic speeds are 80-120% of player speed
-            npc_speed = random.uniform(0.8, 1.2)
+            # All traffic speeds are 80-120% of maximum speed (independent of player)
+            max_speed = 1.0  # Maximum game speed
+            npc_speed = random.uniform(0.8 * max_speed, 1.2 * max_speed)
             
             # Slower cars spawn ahead (top), faster cars spawn behind (bottom)
             if npc_speed < 1.0:  # Slower than player
@@ -953,8 +1145,9 @@ class DriveGame:
             direction = -1
             lane = random.choice([1, 2])
             
-            # First determine speed for oncoming traffic
-            npc_speed = random.uniform(0.8, 1.2)
+            # First determine speed for oncoming traffic (independent of player)
+            max_speed = 1.0  # Maximum game speed
+            npc_speed = random.uniform(0.8 * max_speed, 1.2 * max_speed)
             
             # For oncoming traffic, faster cars need more distance
             if npc_speed < 1.0:  # Slower oncoming traffic
@@ -1038,8 +1231,9 @@ class DriveGame:
                 (80, 40, 40),     # Dark red
             ]
             vehicle_color = random.choice(truck_colors)
-            # Trucks are 60-80% of player speed
-            npc_speed = random.uniform(0.6, 0.8)
+            # Trucks are 60-80% of maximum speed (independent of player)
+            max_speed = 1.0  # Maximum game speed
+            npc_speed = random.uniform(0.6 * max_speed, 0.8 * max_speed)
             # Since trucks are always slower, adjust spawn position if needed
             if direction == 1 and y_position < 0:  # Same direction but spawned behind
                 y_position = random.uniform(200, 400)  # Move to ahead position
@@ -1076,7 +1270,17 @@ class DriveGame:
         if vehicle_type == "truck":
             personality = DriverPersonality.TRUCK
             
+        # Create road-relative position (Issue #32)
+        # y_position is already relative to player (positive = ahead, negative = behind)
+        road_distance = -y_position  # Negate because road geometry expects positive = ahead
+        road_pos = RoadPosition(
+            distance=road_distance,
+            lane=lane,
+            lane_offset=0.0  # Start in center of lane
+        )
+        
         npc_car = NPCCar(
+            road_pos=road_pos,
             x=x_position,
             y=y_position,
             lane=lane,
@@ -1130,17 +1334,37 @@ class DriveGame:
         car.lane_change_timer += dt
         
         # Only same-direction traffic can change lanes intelligently
-        if car.direction == 1:
-            # Same direction traffic uses intelligent passing logic
+        if car.direction == 1 and not getattr(self, 'oqe_baseline_mode', False):
+            # Same direction traffic uses intelligent passing logic (disabled in baseline mode)
             if car.ai_state == "cruising":
                 # Scan surrounding traffic
+                scan_start_time = time.time()
                 scan = self.traffic_awareness.scan_surrounding_traffic(car, self.npc_cars)
+                
+                # OQE Hook: Traffic scan timing
+                if hasattr(self, 'traffic_hooks'):
+                    scan_time_ms = (time.time() - scan_start_time) * 1000
+                    self.traffic_hooks.on_traffic_scan(scan_time_ms)
                 
                 # Check for emergency evasion first
                 evasion_dir = self.traffic_awareness.get_emergency_evasion(car, scan)
+                
+                # OQE Hook: Log emergency evasion attempt
+                if hasattr(self, 'traffic_hooks'):
+                    # Check if emergency evasion was needed (imminent collision)
+                    emergency_needed = scan.ahead_same_lane and scan.distance_to_ahead < 30
+                    if emergency_needed:
+                        if evasion_dir:
+                            # Emergency evasion attempted and successful direction found
+                            self.traffic_hooks.on_emergency_evasion(True, True)
+                        else:
+                            # Emergency evasion needed but no safe direction available
+                            self.traffic_hooks.on_emergency_evasion(True, False)
+                
                 if evasion_dir:
                     car.ai_state = "emergency_change"
-                    car.target_lane = 4 if evasion_dir == 'right' and car.lane == 3 else 3
+                    target_lane = 4 if evasion_dir == 'right' and car.lane == 3 else 3
+                    car.target_lane = target_lane
                     car.lane_change_timer = 0.0
                     car.lane_change_progress = 0.0
                     return
@@ -1190,6 +1414,10 @@ class DriveGame:
                         car.target_lane = None
                         car.ai_state = "cruising"
                         car.lane_change_progress = 0.0
+                        
+                        # OQE Hook: Lane change completed
+                        if hasattr(self, 'traffic_hooks'):
+                            self.traffic_hooks.on_lane_change_complete(car.personality.value)
                     else:
                         # Interpolate position
                         start_x = car.x if car.lane_change_progress == 0 else car.x
@@ -1198,9 +1426,15 @@ class DriveGame:
             # Oncoming traffic stays in their lanes (no lane changes)
             car.ai_state = "cruising"
                     
-        # Adjust speed based on traffic ahead and personality
-        if car.direction == 1 and car.ai_state == "cruising":
+        # Adjust speed based on traffic ahead and personality (if not in baseline mode)
+        if car.direction == 1 and car.ai_state == "cruising" and not getattr(self, 'oqe_baseline_mode', False):
+            scan_start_time = time.time()
             scan = self.traffic_awareness.scan_surrounding_traffic(car, self.npc_cars)
+            
+            # OQE Hook: Additional traffic scan timing
+            if hasattr(self, 'traffic_hooks'):
+                scan_time_ms = (time.time() - scan_start_time) * 1000
+                self.traffic_hooks.on_traffic_scan(scan_time_ms)
             if scan.ahead_same_lane and scan.distance_to_ahead < 100:
                 # Slow down to match car ahead
                 car.speed = max(0.2, scan.ahead_same_lane.speed - 0.1)
@@ -1498,11 +1732,19 @@ class DriveGame:
                 player_bottom > car_top and player_top < car_bottom):
                 
                 # Collision detected!
+                # OQE Hook: Log collision event
+                if hasattr(self, 'traffic_hooks'):
+                    self.traffic_hooks.on_collision()
+                
                 self._handle_collision(car)
                 break  # Only handle one collision per frame
                 
     def _handle_collision(self, car: NPCCar):
         """Handle collision with a traffic vehicle."""
+        # OQE Hook: Log collision with traffic vehicle
+        if hasattr(self, 'traffic_hooks'):
+            self.traffic_hooks.on_collision()
+        
         # Set collision cooldown to prevent multiple rapid collisions
         self.collision_cooldown = 1.0  # 1 second cooldown
         
@@ -1925,6 +2167,10 @@ class DriveGame:
             # Check for collision
             if (player_right > hazard_left and player_left < hazard_right and
                 player_bottom > hazard_top and player_top < hazard_bottom):
+                
+                # OQE Hook: Log hazard collision
+                if hasattr(self, 'traffic_hooks'):
+                    self.traffic_hooks.on_collision()
                 
                 # Handle collision based on hazard type
                 self._handle_hazard_collision(hazard)
@@ -3015,7 +3261,7 @@ class DriveGame:
         pygame.mixer.music.stop()
         
         # Clean up any ongoing sounds
-        if hasattr(self, 'music_selector'):
-            self.music_selector.stop_preview()
+        if hasattr(self, 'music_selector') and hasattr(self.music_selector, '_stop_preview'):
+            self.music_selector._stop_preview()
             
         return {}
