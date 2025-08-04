@@ -70,6 +70,9 @@ class SceneManager:
         self.testing_overlay = LiveTestingOverlay(screen_width, screen_height)
         self.test_plan_loader = TestPlanLoader(str(Path(__file__).parent.parent))
         
+        # Auto-load test procedures for Issue #34 (logging system) by default
+        self.load_test_procedures_for_issue(34)
+        
         # Performance tracking
         self.last_fps_measurement = time.time()
         self.fps_measurement_interval = 1.0  # Measure FPS every second
