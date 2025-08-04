@@ -1,0 +1,3352 @@
+{
+  "timestamp": "2025-08-04T00:20:40.437001",
+  "characters": {
+    "danger": {
+      "scenes": {
+        "hub": {
+          "animations": {
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 27,
+          "issues": [
+            "Missing expected animation: action"
+          ]
+        },
+        "pool": {
+          "animations": {
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 27,
+          "issues": [
+            "Missing expected animation: action"
+          ]
+        },
+        "ski": {
+          "animations": {
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 27,
+          "issues": [
+            "Missing expected animation: action"
+          ]
+        },
+        "vegas": {
+          "animations": {
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 27,
+          "issues": [
+            "Missing expected animation: action"
+          ]
+        }
+      },
+      "total_sprites": 108,
+      "missing_scenes": [
+        "drive"
+      ],
+      "issues": []
+    },
+    "rose": {
+      "scenes": {
+        "hub": {
+          "animations": {
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 27,
+          "issues": [
+            "Missing expected animation: action"
+          ]
+        },
+        "pool": {
+          "animations": {
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 27,
+          "issues": [
+            "Missing expected animation: action"
+          ]
+        },
+        "ski": {
+          "animations": {
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 27,
+          "issues": [
+            "Missing expected animation: action"
+          ]
+        },
+        "vegas": {
+          "animations": {
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 27,
+          "issues": [
+            "Missing expected animation: action"
+          ]
+        }
+      },
+      "total_sprites": 108,
+      "missing_scenes": [
+        "drive"
+      ],
+      "issues": []
+    },
+    "dad": {
+      "scenes": {
+        "hub": {
+          "animations": {
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 27,
+          "issues": [
+            "Missing expected animation: action"
+          ]
+        },
+        "pool": {
+          "animations": {
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 27,
+          "issues": [
+            "Missing expected animation: action"
+          ]
+        },
+        "ski": {
+          "animations": {
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 27,
+          "issues": [
+            "Missing expected animation: action"
+          ]
+        },
+        "vegas": {
+          "animations": {
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 27,
+          "issues": [
+            "Missing expected animation: action"
+          ]
+        }
+      },
+      "total_sprites": 108,
+      "missing_scenes": [
+        "drive"
+      ],
+      "issues": []
+    },
+    "benji": {
+      "scenes": {
+        "hub": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        },
+        "pool": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        },
+        "ski": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        },
+        "vegas": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        },
+        "drive": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        }
+      },
+      "total_sprites": 165,
+      "missing_scenes": [],
+      "issues": []
+    },
+    "olive": {
+      "scenes": {
+        "hub": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        },
+        "pool": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        },
+        "ski": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        },
+        "vegas": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        },
+        "drive": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        }
+      },
+      "total_sprites": 165,
+      "missing_scenes": [],
+      "issues": []
+    },
+    "uncle_bear": {
+      "scenes": {
+        "hub": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        },
+        "pool": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        },
+        "ski": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        },
+        "vegas": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        },
+        "drive": {
+          "animations": {
+            "action": {
+              "frame_count": 6,
+              "frame_files": [
+                "action_01.png",
+                "action_02.png",
+                "action_03.png",
+                "action_04.png",
+                "action_05.png",
+                "action_06.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "issues": []
+            },
+            "hurt": {
+              "frame_count": 2,
+              "frame_files": [
+                "hurt_01.png",
+                "hurt_02.png"
+              ],
+              "frame_sequence": [
+                1,
+                2
+              ],
+              "issues": []
+            },
+            "idle": {
+              "frame_count": 4,
+              "frame_files": [
+                "idle_01.png",
+                "idle_02.png",
+                "idle_03.png",
+                "idle_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "jump": {
+              "frame_count": 3,
+              "frame_files": [
+                "jump_01.png",
+                "jump_02.png",
+                "jump_03.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3
+              ],
+              "issues": []
+            },
+            "victory": {
+              "frame_count": 4,
+              "frame_files": [
+                "victory_01.png",
+                "victory_02.png",
+                "victory_03.png",
+                "victory_04.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "issues": []
+            },
+            "walk": {
+              "frame_count": 5,
+              "frame_files": [
+                "walk_01.png",
+                "walk_02.png",
+                "walk_03.png",
+                "walk_04.png",
+                "walk_05.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "issues": []
+            },
+            "walk_extra": {
+              "frame_count": 9,
+              "frame_files": [
+                "walk_extra_01.png",
+                "walk_extra_02.png",
+                "walk_extra_03.png",
+                "walk_extra_04.png",
+                "walk_extra_05.png",
+                "walk_extra_06.png",
+                "walk_extra_07.png",
+                "walk_extra_08.png",
+                "walk_extra_09.png"
+              ],
+              "frame_sequence": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ],
+              "issues": []
+            }
+          },
+          "sprite_count": 33,
+          "issues": []
+        }
+      },
+      "total_sprites": 165,
+      "missing_scenes": [],
+      "issues": []
+    }
+  },
+  "consistency_issues": [
+    {
+      "type": "sprite_count_mismatch",
+      "details": {
+        "danger": 108,
+        "rose": 108,
+        "dad": 108,
+        "benji": 165,
+        "olive": 165,
+        "uncle_bear": 165
+      },
+      "issue": "Characters have different total sprite counts"
+    },
+    {
+      "type": "missing_scenes",
+      "character": "danger",
+      "missing_scenes": [
+        "drive"
+      ]
+    },
+    {
+      "type": "missing_scenes",
+      "character": "rose",
+      "missing_scenes": [
+        "drive"
+      ]
+    },
+    {
+      "type": "missing_scenes",
+      "character": "dad",
+      "missing_scenes": [
+        "drive"
+      ]
+    }
+  ],
+  "missing_animations": [
+    "danger/hub/action",
+    "danger/pool/action",
+    "danger/ski/action",
+    "danger/vegas/action",
+    "rose/hub/action",
+    "rose/pool/action",
+    "rose/ski/action",
+    "rose/vegas/action",
+    "dad/hub/action",
+    "dad/pool/action",
+    "dad/ski/action",
+    "dad/vegas/action"
+  ],
+  "extra_files": [],
+  "summary": {
+    "total_characters": 6,
+    "valid_characters": 6,
+    "total_sprites": 819,
+    "total_issues": 12,
+    "consistency_issues": 4,
+    "missing_animations": 12,
+    "validation_passed": false
+  }
+}

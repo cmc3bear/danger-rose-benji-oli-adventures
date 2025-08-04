@@ -147,18 +147,14 @@ class DriveGame:
         self.screen_width = scene_manager.screen_width
         self.screen_height = scene_manager.screen_height
         
-        # Game state
-        self.state = self.STATE_MUSIC_SELECT
+        # Game state - start with vehicle selection
+        self.state = self.STATE_VEHICLE_SELECT
         self.race_duration = GAME_DURATION * 2  # 2 minutes for racing
         self.time_remaining = self.race_duration
         self.start_time = None
         
-        # Music system
-        self.music_selector = MusicSelector(
-            self.screen_width,
-            self.screen_height,
-            scene_manager.sound_manager
-        )
+        # Music system - skip music selector since we go directly to vehicle selection
+        self.music_selector = None
         self.race_music_manager = RaceMusicManager(scene_manager.sound_manager)
         self.selected_track: Optional[MusicTrack] = None
         
@@ -403,16 +399,7 @@ class DriveGame:
         
     def handle_event(self, event):
         """Handle input events."""
-        if self.state == self.STATE_MUSIC_SELECT:
-            # Music selector handles its own events
-            result = self.music_selector.handle_event(event)
-            if result == "track_selected":
-                self._on_track_selected(self.music_selector.get_selected_track())
-            elif result == "cancelled":
-                self._on_music_cancelled()
-            return None
-            
-        elif self.state == self.STATE_VEHICLE_SELECT:
+        if self.state == self.STATE_VEHICLE_SELECT:
             # Vehicle selector handles its own events
             result = self.vehicle_selector.handle_event(event)
             if result == "vehicle_selected":
@@ -430,8 +417,8 @@ class DriveGame:
                 elif event.key == pygame.K_ESCAPE:
                     return SCENE_HUB_WORLD
                 elif event.key == pygame.K_m:
-                    # Return to music selection
-                    self.state = self.STATE_MUSIC_SELECT
+                    # Return to vehicle selection
+                    self.state = self.STATE_VEHICLE_SELECT
                     
             elif self.state == self.STATE_RACING:
                 if event.key == pygame.K_ESCAPE:
@@ -510,8 +497,8 @@ class DriveGame:
                 elif event.key == pygame.K_ESCAPE:
                     return SCENE_HUB_WORLD
                 elif event.key == pygame.K_m:
-                    # Return to music selection
-                    self.state = self.STATE_MUSIC_SELECT
+                    # Return to vehicle selection
+                    self.state = self.STATE_VEHICLE_SELECT
                     
         elif event.type == pygame.KEYUP:
             self.keys_pressed.discard(event.key)
@@ -520,10 +507,7 @@ class DriveGame:
         
     def update(self, dt: float):
         """Update game state."""
-        if self.state == self.STATE_MUSIC_SELECT:
-            self.music_selector.update(dt)
-            
-        elif self.state == self.STATE_VEHICLE_SELECT:
+        if self.state == self.STATE_VEHICLE_SELECT:
             self.vehicle_selector.update(dt)
             
         elif self.state == self.STATE_RACING:
@@ -2243,11 +2227,7 @@ class DriveGame:
         
     def draw(self, screen):
         """Draw the game."""
-        if self.state == self.STATE_MUSIC_SELECT:
-            self._draw_road_background(screen)  # Show road in background
-            self.music_selector.draw(screen)
-            
-        elif self.state == self.STATE_VEHICLE_SELECT:
+        if self.state == self.STATE_VEHICLE_SELECT:
             self._draw_road_background(screen)  # Show road in background
             self.vehicle_selector.draw(screen)
             
@@ -3170,6 +3150,20 @@ class DriveGame:
             print(f"[ERROR] Failed to load vehicle sprite: {e}")
             self.car_sprite = None
             
+        # Set up default music if none selected
+        if not self.selected_track:
+            # Create a default track for racing
+            from src.ui.music_selector import MusicTrack
+            default_track = MusicTrack(
+                "default_racing",
+                "Racing Theme",
+                "Default racing music", 
+                "default_racing.ogg"
+            )
+            self.selected_track = default_track
+            self.race_music_manager.select_track(default_track)
+            print("Using default racing music")
+            
         # Skip saving vehicle selection for now
         # The save manager doesn't have vehicle support yet
             
@@ -3177,8 +3171,8 @@ class DriveGame:
         
     def _on_vehicle_cancelled(self):
         """Handle vehicle selection cancellation."""
-        # Go back to music selection
-        self.state = self.STATE_MUSIC_SELECT
+        # Return to hub world since we skip music selection
+        return SCENE_HUB_WORLD
             
     def _start_race(self):
         """Start the racing game."""
@@ -3246,11 +3240,9 @@ class DriveGame:
         # Load previously selected vehicle from save
         # For now, we'll skip this since the save manager doesn't have vehicle support yet
         
-        # Start with music selection if no track selected
-        if not self.selected_track:
-            self.state = self.STATE_MUSIC_SELECT
-        else:
-            self.state = self.STATE_READY
+        # Skip redundant music selection - go directly to vehicle selection
+        # The vehicle selector has integrated music sampling/selection
+        self.state = self.STATE_VEHICLE_SELECT
             
     def on_exit(self):
         """Called when leaving this scene."""

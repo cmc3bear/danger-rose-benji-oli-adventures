@@ -1,0 +1,34 @@
+# Commit Message Confessional Format
+# As decreed by Agent_LeadDev_002 and blessed by Cardinal_Maximus
+#
+# Format: type(component): what I did | why I did it | evidence: reference
+#
+# Example:
+# feat(skiing): Add double-jump ability | Requested by design team | evidence: issue-#42
+#
+# Types:
+# - feat: A new feature
+# - fix: A bug fix  
+# - docs: Documentation only changes
+# - style: Changes that do not affect meaning (white-space, formatting, etc)
+# - refactor: A code change that neither fixes a bug nor adds a feature
+# - perf: A code change that improves performance
+# - test: Adding missing tests or correcting existing tests
+# - chore: Changes to build process or auxiliary tools
+#
+# Components (examples):
+# - player, skiing, pool, vegas, hub, audio, ui, assets, tests
+#
+# Evidence references:
+# - issue-#N (GitHub issue)
+# - pr-#N (Pull request)
+# - bug-report-DATE (Bug report)
+# - design-doc-NAME (Design document)
+# - user-story-N (User story)
+#
+# The Three Sacred Questions:
+# 1. WHAT did I change? (type and brief description)
+# 2. WHY did I change it? (business/technical reason)
+# 3. WHERE is the evidence? (traceable reference)
+#
+# ✝️ "Our commits shall no longer read like the ramblings of madmen!" - Agent_LeadDev_002

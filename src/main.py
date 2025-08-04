@@ -15,6 +15,7 @@ from src.config.env_config import is_debug
 from src.config.game_config import get_config
 from src.scene_manager import SceneManager
 from src.systems.game_state_logger import initialize_global_logger, shutdown_global_logger
+from src.utils.kid_friendly_errors import kid_friendly_handler, create_error_dialog
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -87,4 +88,30 @@ def game():
 
 
 if __name__ == "__main__":
-    game()
+    try:
+        game()
+    except Exception as e:
+        # Use kid-friendly error handling
+        error_dialog = create_error_dialog(e, {
+            'character': 'the game',
+            'action_hint': 'Try restarting the game or check if all files are in place!'
+        })
+        
+        print(f"\n{error_dialog['icon']} {error_dialog['title']}")
+        print("=" * 50)
+        print(error_dialog['message'])
+        print("-" * 50)
+        print(error_dialog['comfort'])
+        
+        # Also log for developers
+        logger.error(f"Game crashed with error: {type(e).__name__}: {e}")
+        
+        # Keep window open so kids can read the message
+        input("\nPress Enter to close...")
+        
+        # Clean shutdown
+        try:
+            shutdown_global_logger()
+            pygame.quit()
+        except:
+            pass
